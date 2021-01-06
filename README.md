@@ -1,5 +1,17 @@
 # PyProximal
 
+[![Build Status](https://travis-ci.com/PyLops/pylops-gpu.svg?branch=master)](https://travis-ci.com/PyLops/pylops-gpu)
+[![AzureDevOps Status](https://dev.azure.com/matteoravasi/PyLops/_apis/build/status/PyLops.pylops-gpu?branchName=master)](https://dev.azure.com/matteoravasi/PyLops/_build/latest?definitionId=7&branchName=master)
+![GithubAction Status](https://github.com/PyLops/pyproximal/workflows/PyProx/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/pyproximal/badge/?version=latest)](https://pylops-gpu.readthedocs.io/en/latest/?badge=latest)
+[![OS-support](https://img.shields.io/badge/OS-linux,osx-850A8B.svg)](https://github.com/PyLops/pyproximal)
+[![Slack Status](https://img.shields.io/badge/chat-slack-green.svg)](https://pylops.slack.com)
+
+
+:vertical_traffic_light: :vertical_traffic_light: This library is under early development.
+Expect things to constantly change until version v1.0.0. :vertical_traffic_light: :vertical_traffic_light:
+
+
 ## Objective
 This Python library provides all the needed building blocks for solving
 non-smooth convex optimization problems using the so-called **proximal algorithms**.
