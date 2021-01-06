@@ -1,0 +1,25 @@
+name: pyproximal
+channels:
+  - defaults
+  - conda-forge
+  - numba
+dependencies:
+  - python>=3.6.4
+  - numpy>=1.15.0
+  - scipy>=1.1.0
+  - pylops
+  - scikit-image
+  - matplotlib
+  - ipython
+  - pytest
+  - Sphinx
+  - numpydoc
+  - numba
+  - icc_rt
+  - pip:
+    - pytest-runner
+    - setuptools_scm
+    - sphinx-rtd-theme
+    - sphinx-gallery
+    - nbsphinx
+    - image

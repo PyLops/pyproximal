@@ -1,0 +1,48 @@
+# OS generated files #
+.*.swp
+*.py[cod]
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/*
+static/*
+db.sqlite3
+
+# Build #
+build
+dist
+pyproximal.egg-info/
+
+# setuptools_scm generated  #
+pyproximal/version.py
+
+# Development #
+.ipynb_checkpoints/
+notebooks
+TODO
+
+# Documentation #
+docs/build
+docs/source/api/generated
+docs/source/gallery
+docs/source/tutorials
+
+# Pylint #
+pylint_plot.py
+pylintrc
+
+# Coverage reports
+COVERAGE
+.coverage
+coverage.xml
+htmlcov/
+
+# Airspeed velocity benchmarks
+ASV
+.asv/
+asv.conf.json
+benchmarks/

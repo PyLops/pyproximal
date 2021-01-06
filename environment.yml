@@ -1,0 +1,8 @@
+name: pyproximal
+channels:
+  - defaults
+dependencies:
+  - python>=3.6.4
+  - numpy>=1.15.0
+  - scipy>=1.1.0
+  - pylops
