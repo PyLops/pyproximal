@@ -1,7 +1,7 @@
 # PyProximal
 
-[![Build Status](https://travis-ci.com/PyLops/pylops-gpu.svg?branch=master)](https://travis-ci.com/PyLops/pylops-gpu)
-[![AzureDevOps Status](https://dev.azure.com/matteoravasi/PyLops/_apis/build/status/PyLops.pylops-gpu?branchName=master)](https://dev.azure.com/matteoravasi/PyLops/_build/latest?definitionId=7&branchName=master)
+[![Build Status](https://travis-ci.com/PyLops/pylops-gpu.svg?branch=master)](https://travis-ci.com/PyLops/pyproximal)
+[![AzureDevOps Status](https://dev.azure.com/matteoravasi/PyLops/_apis/build/status/PyLops.pyproximal?branchName=main)](https://dev.azure.com/matteoravasi/PyLops/_build/latest?definitionId=10&branchName=main)
 ![GithubAction Status](https://github.com/PyLops/pyproximal/workflows/PyProx/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pyproximal/badge/?version=latest)](https://pylops-gpu.readthedocs.io/en/latest/?badge=latest)
 [![OS-support](https://img.shields.io/badge/OS-linux,osx-850A8B.svg)](https://github.com/PyLops/pyproximal)
