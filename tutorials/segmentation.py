@@ -56,7 +56,11 @@ alpha = 1.
 isegcl, iseg = pyproximal.optimization.segmentation.Segment(ig, cl,
                                                             sigma, alpha,
                                                             niter=10,
-                                                            show=True)
+                                                            kwargs_simplex=dict(
+                                                                maxiter=20,
+                                                                engine='numba',
+                                                                call=False),
+                                                            show=False)
 
 fig, axs = plt.subplots(3, 1, figsize=(7, 12))
 axs[0].imshow(ig, cmap='gray')

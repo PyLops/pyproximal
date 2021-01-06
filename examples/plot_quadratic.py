@@ -1,12 +1,12 @@
 r"""
-Norms
-=====
+Quadratic
+=========
 In this example we consider the proximal operator for a quadratic function:
 
 .. math::
 
    \frac{1}{2} \mathbf{x}^T \mathbf{Op} \mathbf{x} + \mathbf{b}^T
-   \mathbf{x} + c`.
+   \mathbf{x} + c.
 
 which is implemented by the :class:`pyproximal.Quadratic` class.
 
@@ -20,8 +20,8 @@ import pyproximal
 plt.close('all')
 
 ###############################################################################
-# To start with cosider the most complete case when both :math`\mathbf{Op}` and
-# :math`\mathbf{Op}` are non-null.
+# To start with cosider the most complete case when both :math:`\mathbf{Op}` and
+# :math:`\mathbf{Op}` are non-null.
 x = np.arange(-5, 5, 0.1)
 nx = len(x)
 
@@ -48,9 +48,9 @@ plt.tight_layout()
 
 
 ###############################################################################
-# If we now assume that the operator :math`\mathbf{Op}` is null, the quadratic
-# operator can be used to define the dot-product between :math`\mathbf{x}` and
-# a vector :math`\mathbf{b}`
+# If we now assume that the operator :math:`\mathbf{Op}` is null, the quadratic
+# operator can be used to define the dot-product between :math:`\mathbf{x}` and
+# a vector :math:`\mathbf{b}`
 x = np.arange(-5, 5, 0.1)
 
 dot = pyproximal.Quadratic(b=np.ones_like(x))
@@ -70,9 +70,9 @@ plt.legend()
 plt.tight_layout()
 
 ###############################################################################
-# Finally if also :math`\mathbf{b}` is zero, the quadratic function reduces
-# to a constant :math`\mathbf{c}` and its proximity operator becomes the vector
-# :math`\mathbf{x}` itself.
+# Finally if also :math:`\mathbf{b}` is zero, the quadratic function reduces
+# to a constant :math:`\mathbf{c}` and its proximity operator becomes the vector
+# :math:`\mathbf{x}` itself.
 x = np.arange(-5, 5, 0.1)
 
 dot = pyproximal.Quadratic(c=5.)
