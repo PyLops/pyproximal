@@ -98,7 +98,7 @@ class L1(ProxOperator):
             x = _softthreshold(x, tau * self.sigma)
         else:
             # use precomposition property
-            x = _softthreshold(x + self.g, tau * self.sigma) - self.g
+            x = _softthreshold(x - self.g, tau * self.sigma) + self.g
         return x
 
     @_check_tau
