@@ -39,7 +39,7 @@ ny, nx = img.shape
 
 # Add noise
 sigman = .2
-n = sigman*np.max(abs(img.ravel())) * np.random.uniform(-1, 1, img.shape)
+n = sigman * np.max(abs(img.ravel())) * np.random.uniform(-1, 1, img.shape)
 noise_img = img + n
 
 ###############################################################################
