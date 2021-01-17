@@ -1,6 +1,7 @@
 # PyProximal
 
-[![Build Status](https://travis-ci.com/PyLops/pylops-gpu.svg?branch=master)](https://travis-ci.com/PyLops/pyproximal)
+[![PyPI version](https://badge.fury.io/py/pyproximal.svg)](https://badge.fury.io/py/pyproximal)
+[![Build Status](https://travis-ci.com/PyLops/pyproximal.svg?branch=master)](https://travis-ci.com/PyLops/pyproximal)
 [![AzureDevOps Status](https://dev.azure.com/matteoravasi/PyLops/_apis/build/status/PyLops.pyproximal?branchName=main)](https://dev.azure.com/matteoravasi/PyLops/_build/latest?definitionId=10&branchName=main)
 ![GithubAction Status](https://github.com/PyLops/pyproximal/workflows/PyProx/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pyproximal/badge/?version=latest)](https://pyproximal.readthedocs.io/en/latest/?badge=latest)
@@ -114,7 +115,18 @@ You need **Python 3.6 or greater**.
 
 #### From PyPi
 
-Coming soon!
+If you want to use PyProximal within your codes,
+install it in your Python environment by typing the following command in your terminal:
+
+```
+pip install pyproximal
+```
+
+Open a python terminal and type:
+
+```
+import pyproximal
+```
 
 
 #### From Github
