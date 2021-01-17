@@ -5,10 +5,8 @@ def src(pth):
     return os.path.join(os.path.dirname(__file__), pth)
 
 # Project description
-descr = """
-        Python library implementing proximal operators to allow solving
-        non-smooth, constrained convex problems with proximal algorithms.
-        """
+descr = 'Python library implementing proximal operators to allow solving ' \
+        'non-smooth, constrained convex problems with proximal algorithms.'
 
 # Setup
 setup(
