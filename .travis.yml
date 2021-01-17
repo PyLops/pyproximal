@@ -1,13 +1,22 @@
 language: python
-
 python:
-  - "3.6"
-
+- '3.6'
 os:
-  - linux
-
+- linux
 script:
-  - pip3 install -r requirements-dev.txt
-  - pip3 install coverage codacy-coverage
-  - pip3 install .
-  - python3 setup.py test
+- pip3 install -r requirements-dev.txt
+- pip3 install coverage codacy-coverage
+- pip3 install .
+- python3 setup.py test
+deploy:
+  provider: pypi
+  user: "__token__"
+  distributions: bdist_wheel
+  skip_existing: true
+  skip_upload_docs: true
+  skip_cleanup: true
+  on:
+    tags: true
+  password:
+    secure: ZwUg242xc1rqlw2Cp+ik6gFpXBWiOYwktsmT42TKpfFetM7bOqPyAHE+7ktAAJXV8XcZkVs0BHi4YcnMCpAhN6t9xMX+biuHCXuUFLFrkcXpyLOTPH8Xf2JQ4LpqOkLW11Vh6rbGNiOhI/IiZteFPd1LdNQOf38wRA8WCHxYfMUUfGv1019qiSt8jVjr3NQB4AyEqzrsd7eaxIw8E24iu89KQYNo1NDZ0f6+Gx81+dRk3HsrPHlqknsHmpBBOMn6LvqvQXgQfJDZskY5BI7xMJO+gj41/8bJuNHlsxcqnZk356gjTm1jVurInjKuVV4a3VOo2hIkQNqDYSounSiRS76si4seIolmEDHHqvHUNfc8F0ttms8RK3gZ1gnUfOR5cBh0w/oUgK6okxl4np+gdB5SrSIwr7CF0WMW/aSldUebira+Jf66xSuFdgulm1iwS6urevRc/dVPs/qFaj5NRrU4dy6gGiYxR4zpm22+AmMfsmfMs+vYUl4e3Eptu1pHxqegKNwht5Yv+u0JQFT/h6pE2fXJ0mcXyFs+SaSmquAbxUaVZg5ykVIx0Yj40r4u0k8nhPfKUXHSucDkevW84qob6URQKMRBkiR9rrx6C4kfA1+PahFVxmzmVBznf/ggu1MK247AD601ZNSnEM8p4Ujfb7IyPT23TLP4/Q+qVWo=
+    

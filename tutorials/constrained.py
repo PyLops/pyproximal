@@ -10,7 +10,7 @@ quadratic function with a box constraint:
         \in I_{Box}
 
 More specifically we will consider both the
-:func:`pyproximal.optimization.primal.ProximalGradient` algorith with and
+:func:`pyproximal.optimization.primal.ProximalGradient` algorithm with and
 without back-tracking.
 
 """
