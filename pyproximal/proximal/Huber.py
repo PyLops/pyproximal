@@ -12,10 +12,10 @@ class Huber(ProxOperator):
 
     .. math::
 
-        H(\mathbf{x})_\alpha =
+        H_\alpha(\mathbf{x}) =
         \begin{cases}
         \frac{||\mathbf{x}||_2^2}{2 \alpha}, & ||\mathbf{x}||_2 \leq \alpha \\
-        ||\mathbf{x}||_1 - \alpha/2, & ||\mathbf{x}||_2 > \alpha \\
+        ||\mathbf{x}||_2 - \alpha/2, & ||\mathbf{x}||_2 > \alpha \\
         \end{cases}
 
     which behaves like a L2 norm for :math:`|x_i| \leq \alpha` and a
@@ -32,7 +32,8 @@ class Huber(ProxOperator):
 
     .. math::
 
-        LOOK AT FOM SOLVER...
+        prox^*_{\tau H_\alpha(.)}(\mathbf{x}) =
+        \left( 1 - \frac{\tau}{max\{||\mathbf{x}||_2\}, \tau + \alpha} \right) \mathbf{x}
 
     """
     def __init__(self, alpha):
@@ -41,18 +42,13 @@ class Huber(ProxOperator):
 
     def __call__(self, x):
         l2 = np.linalg.norm(x)
-        if l2 <= self:
-            h =  l2 ** 2/ (2 * self.alpha)
+        if l2 <= self.alpha:
+            h = l2 ** 2 / (2 * self.alpha)
         else:
-            h =  np.sum(np.abs(x)) - self.alpha / 2.
+            h = l2 - self.alpha / 2.
         return h
 
     @_check_tau
     def prox(self, x, tau):
         x = (1. - tau / max(np.linalg.norm(x), tau + self.alpha)) * x
-        return x
-
-    @_check_tau
-    def proxdual(self, x, tau):
-        x = x / max(np.linalg.norm(x), self.alpha)
         return x
