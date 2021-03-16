@@ -2,8 +2,9 @@ import pytest
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
+from pylops.basicoperators import Identity
 from pyproximal.utils import moreau
-from pyproximal.proximal import Box, Simplex
+from pyproximal.proximal import Box, Simplex, AffineSet
 
 par1 = {'nx': 10, 'ny': 8, 'axis': 0, 'dtype': 'float32'}  # even float32 dir0
 par2 = {'nx': 11, 'ny': 8, 'axis': 1, 'dtype': 'float64'}  # odd float64 dir1
@@ -65,3 +66,20 @@ def test_Simplex_multi(par):
 
         # prox / dualprox
         assert moreau(sim, x.ravel(), tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2), (par3), (par4)])
+def test_Affine(par):
+    """Affine set projection and proximal/dual proximal of related indicator
+    """
+    Op = Identity(par['nx'])
+    b = np.random.normal(0., 1., par['nx'])
+    aff = AffineSet(Op, b, 10)
+
+    # prox
+    tau = 2.
+    x = np.ones(par['nx'])
+    assert_array_almost_equal(aff.prox(x, tau), b)
+
+    # prox / dualprox
+    assert moreau(aff, x, tau)

@@ -19,7 +19,7 @@ Orthogonal projections
     SimplexProj
     EuclideanBallProj
     IntersectionProj
-
+    AffineSetProj
 
 Proximal operators
 ------------------
@@ -52,6 +52,7 @@ Operators
     Box
     Simplex
     Intersection
+    AffineSet
     Quadratic
     Euclidean
     EuclideanBall
