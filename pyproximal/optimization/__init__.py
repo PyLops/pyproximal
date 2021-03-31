@@ -32,4 +32,4 @@ on a special use of the Primal-Dual algorithm:
 
 """
 
-from . import primal, primaldual, bregman, segmentation
+from . import primal, primaldual, bregman, segmentation, sr3
