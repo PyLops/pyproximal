@@ -129,6 +129,7 @@ def SR3(Op, Reg, data, kappa, eps, x0=None, adaptive=True,
     Notes
     -----
     SR3 uses the following algorithm:
+
         .. math::
             \mathbf{x}_{k+1} = (\mathbf{A}^T\mathbf{A} + \kappa
             \mathbf{L}^T\mathbf{L})^{-1}(\mathbf{A}^T\mathbf{b} +
