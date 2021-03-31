@@ -82,6 +82,13 @@ Primal
     ADMM
     LinearizedADMM
 
+.. currentmodule:: pyproximal.optimization.sr3
+
+.. autosummary::
+   :toctree: generated/
+
+    SR3
+
 Primal-dual
 ~~~~~~~~~~~
 
