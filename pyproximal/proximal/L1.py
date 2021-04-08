@@ -57,9 +57,9 @@ class L1(ProxOperator):
         prox_{\tau \sigma ||.||_1}(\mathbf{x}) =
         soft(\mathbf{x}, \tau \sigma) =
         \begin{cases}
-        x_i - \tau \sigma, & x_i - g_i < -\tau \sigma \\
+        x_i + \tau \sigma, & x_i - g_i < -\tau \sigma \\
         g_i, & -\sigma \leq x_i - g_i \leq \tau\sigma \\
-        x_i + \tau\sigma,  & x_i - g_i > \tau\sigma\\
+        x_i - \tau\sigma,  & x_i - g_i > \tau\sigma\\
         \end{cases}
 
     where ``soft`` is the so-called called *soft thresholding*.
@@ -73,7 +73,7 @@ class L1(ProxOperator):
         prox^*_{\tau \sigma ||.||_1}(\mathbf{x}) = P_{||.||_\inf <=\sigma} =
         \begin{cases}
         -\sigma, & x_i < -\sigma \\
-        x_i,& -\sigma \leq x \leq \sigma \\
+        x_i,& -\sigma \leq x_i \leq \sigma \\
         \sigma,  & x_i > \sigma\\
         \end{cases}
 
