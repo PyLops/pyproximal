@@ -3,8 +3,11 @@
 PyProximal API
 ==============
 
-The Application Programming Interface (API) of PyProx...
+The Application Programming Interface (API) of PyProximal is composed of 3 elements:
 
+* *Orthogonal projections*
+* *Proximal operators*
+* *Solvers*
 
 Orthogonal projections
 ----------------------
