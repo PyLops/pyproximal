@@ -118,8 +118,8 @@ html_theme_options = {
 html_context = {
     'menu_links_name': 'Repository',
     'menu_links': [
-        ('<i class="fa fa-github fa-fw"></i> Source Code', 'https://github.com/mrava87/pyproximal'),
-        ('<i class="fa fa-users fa-fw"></i> Contributing', 'https://github.com/mrava87/pyproximal/blob/master/CONTRIBUTING.md'),
+        ('<i class="fa fa-github fa-fw"></i> Source Code', 'https://github.com/PyLops/pyproximal'),
+        ('<i class="fa fa-users fa-fw"></i> Contributing', 'https://github.com/PyLops/pyproximal/blob/master/CONTRIBUTING.md'),
     ],
     # Custom variables to enable "Improve this page"" and "Download notebook"
     # links
