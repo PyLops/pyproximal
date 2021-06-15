@@ -17,7 +17,7 @@ Report Bugs
 
 Report bugs at https://github.com/PyLops/pyproximal.
 
-If you are playing with the PyLops library and find a bug, please report it including:
+If you are playing with the PyProximal library and find a bug, please report it including:
 
 * Your operating system name and version.
 * Any details about your Python environment.
@@ -70,7 +70,7 @@ Ready to contribute?
 
 .. code-block:: bash
 
-   >>  git remote add upstream https://github.com/mrava87/pyproximal
+   >>  git remote add upstream https://github.com/PyLops/pyproximal
 
 5. Create a branch for local development:
 
