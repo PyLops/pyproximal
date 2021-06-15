@@ -34,13 +34,11 @@ to install the PyPi distribution:
 
    >> pip install pyproximal
 
-Coming soon!
-
 Alternatively, to access the latest source from github:
 
 .. code-block:: bash
 
-   >> pip install https://github.com/mrava87/pyproximal/archive/master.zip
+   >> pip install https://github.com/PyLops/pyproximal/archive/master.zip
 
 or just clone the repository
 
@@ -49,7 +47,7 @@ or just clone the repository
    >> git clone https://github.com/mrava87/pyproximal.git
 
 or download the zip file from the repository (green button in the top right corner of the
-main github repo page) and install PyLops from terminal using the command:
+main github repo page) and install PyProximal from terminal using the command:
 
 .. code-block:: bash
 
@@ -70,7 +68,7 @@ The first time you clone the repository run the following command:
 
    >> make dev-install
 
-If you prefer to build a new Conda enviroment just for PyLops, run the following command:
+If you prefer to build a new Conda enviroment just for PyProximal, run the following command:
 
 .. code-block:: bash
 
