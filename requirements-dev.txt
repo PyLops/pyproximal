@@ -8,7 +8,7 @@ ipython
 pytest
 pytest-runner
 setuptools_scm
-Sphinx==3.5.4
+Sphinx
 sphinx-rtd-theme
 sphinx-gallery
 numpydoc
