@@ -6,7 +6,7 @@ from pyproximal import Simplex, L1, L21, VStack
 from pyproximal.optimization.primaldual import PrimalDual
 
 
-def Segment(y, cl, sigma, alpha, z=None, niter=10, x0=None,
+def Segment(y, cl, sigma, alpha, clsigmas=None, z=None, niter=10, x0=None,
             callback=None, show=False, kwargs_simplex=None):
     r"""Primal-dual algorithm for image segmentation
 
@@ -23,6 +23,8 @@ def Segment(y, cl, sigma, alpha, z=None, niter=10, x0=None,
         Positive scalar weight of the misfit term
     alpha : :obj:`float`
         Positive scalar weight of the regularization term
+    clsigmas : :obj:`numpy.ndarray`, optional
+        Classes standard deviations
     z : :obj:`numpy.ndarray`, optional
         Additional vector
     niter : :obj:`int`, optional
@@ -61,9 +63,10 @@ def Segment(y, cl, sigma, alpha, z=None, niter=10, x0=None,
 
     where :math:`X=\{ \mathbf{x}: \sum_{i=1}^{N_{cl}} x_i = 1,\; x_i \geq 0 \}`
     is a simplex and :math:`\mathbf{f}=[\mathbf{f}_1, ...,
-    \mathbf{f}_{N_{cl}}]^T` with :math:`\mathbf{f}_i = |\mathbf{y}-c_i|^2`. Here
-    :math:`\mathbf{c}=[c_1, ..., c_{N_cl}]^T` is a vector representing the
-    optimal mean values for each class.
+    \mathbf{f}_{N_{cl}}]^T` with :math:`\mathbf{f}_i = |\mathbf{y}-c_i|^2/\sigma_i`.
+    Here :math:`\mathbf{c}=[c_1, ..., c_{N_{cl}}]^T` and
+    :math:`\mathbf{\sigma}=[\sigma_1, ..., \sigma_{N_{cl}}]^T` are vectors
+    representing the optimal mean and standard deviations for each class.
 
     .. [1] Chambolle, and A., Pock, "A first-order primal-dual algorithm for
         convex problems with applications to imaging", Journal of Mathematical
@@ -79,6 +82,8 @@ def Segment(y, cl, sigma, alpha, z=None, niter=10, x0=None,
 
     # Data (difference between image and center of classes)
     g = sigma / 2. * (y.reshape(1, dimsprod) - cl[:, np.newaxis]) ** 2
+    if clsigmas is not None:
+        g /= clsigmas[:, np.newaxis]
     g = g.ravel()
 
     # Gradient operator
