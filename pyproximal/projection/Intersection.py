@@ -30,7 +30,7 @@ class IntersectionProj():
     its orthogonal projection can be obtained using the Dykstra's
     algorithm [1]_.
 
-    .. [1] A., Chambolle, D., Cremers, and T., Pock, "A Convex Approach to
+    .. [1] A., Chambolle, D., Cremers, and T., Pock, "A Convex Approach to
         Minimal Partitions", Journal of Mathematical, 2011.
 
     """
