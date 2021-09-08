@@ -16,6 +16,7 @@ The subpackage proximal contains a number of proximal operators:
     L2Convolve	                    L2 Norm of convolution operator
     L21	                            L2,1 Norm
     Huber	                        Huber norm
+    Nuclear                         Nuclear norm
     Orthogonal	                    Product between orthogonal operator and vector
     VStack	                        Stack of proximal operators
 
@@ -31,10 +32,11 @@ from .L1 import *
 from .L2 import *
 from .L21 import *
 from .Huber import *
+from .Nuclear import *
 from .Orthogonal import *
 from .VStack import *
 
 
 __all__ = ['Box', 'Simplex', 'Intersection', 'AffineSet', 'Quadratic',
            'Euclidean', 'EuclideanBall', 'L1', 'L2', 'L2Convolve', 'L21',
-           'Huber', 'Orthogonal', 'VStack']
+           'Huber', 'Nuclear', 'Orthogonal', 'VStack']

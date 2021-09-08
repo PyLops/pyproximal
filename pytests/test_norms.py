@@ -5,7 +5,7 @@ from numpy.testing import assert_array_almost_equal
 
 from pylops.basicoperators import Identity, Diagonal
 from pyproximal.utils import moreau
-from pyproximal.proximal import Box, Euclidean, L2, L1, L21, Huber
+from pyproximal.proximal import Box, Euclidean, L2, L1, L21, Huber, Nuclear
 
 par1 = {'nx': 10, 'sigma': 1., 'dtype': 'float32'}  # even float32
 par2 = {'nx': 11, 'sigma': 2., 'dtype': 'float64'}  # odd float64
@@ -147,3 +147,19 @@ def test_Huber(par):
     # prox / dualprox
     tau = 2.
     assert moreau(hub, x, tau)
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_Nuclear(par):
+    """Nuclear norm and proximal/dual proximal
+    """
+    nucl = Nuclear((par['nx'], 2 * par['nx']), sigma=par['sigma'])
+
+    # norm, cross-check with svd (use tolerance as two methods don't provide
+    # the exact same eigenvalues)
+    X = np.random.uniform(0., 0.1, (par['nx'], 2 * par['nx'])).astype(par['dtype'])
+    _, S, _ = np.linalg.svd(X)
+    assert (nucl(X.ravel()) - par['sigma'] * np.sum(S)) < 1e-3
+
+    # prox / dualprox
+    tau = 2.
+    assert moreau(nucl, X.ravel(), tau)
