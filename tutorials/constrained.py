@@ -13,6 +13,11 @@ More specifically we will consider both the
 :func:`pyproximal.optimization.primal.ProximalGradient` algorithm with and
 without back-tracking.
 
+In the literature you may find that problem of this kind can be solved by the
+so-called Projected Gradient Descent (PGD) algorithm: this is a edge case of
+a Proximal gradient solver when used with a constraint that admits a proximal
+(instead of a soft regularizer).
+
 """
 import numpy as np
 import matplotlib.pyplot as plt
