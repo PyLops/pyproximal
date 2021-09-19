@@ -61,10 +61,11 @@ Operators
     EuclideanBall
     L1
     L2
+    L2Convolve
     L21
     Huber
+    Nuclear
     Orthogonal
-    L2Convolve
     VStack
 
 
@@ -84,6 +85,7 @@ Primal
     AcceleratedProximalGradient
     ADMM
     LinearizedADMM
+    TwIST
 
 .. currentmodule:: pyproximal.optimization.sr3
 

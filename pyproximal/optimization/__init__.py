@@ -13,6 +13,7 @@ operators:
     AcceleratedProximalGradient     Accelerated Proximal gradient algorithm
     ADMM                            Alternating Direction Method of Multipliers
     LinearizedADMM                  Linearized ADMM
+    TwIST                           Two-step Iterative Shrinkage/Threshold
 
 A list of solvers in ``pylops.optimization.proximaldual`` using both proximal
 and dual proximal operators:

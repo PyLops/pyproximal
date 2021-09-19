@@ -148,6 +148,18 @@ def test_Huber(par):
     tau = 2.
     assert moreau(hub, x, tau)
 
+
+def test_Nuclear_FOM():
+    """Nuclear norm benchmark with FOM solver
+    """
+    X = np.array([[1, 2, 3],
+                  [4, 5, 6]])
+    proxX = np.array([[1.4089, 1.8613, 2.3137],
+                      [3.3640, 4.4441, 5.5242]])
+    nucl = Nuclear(X.shape)
+    assert_array_almost_equal(proxX.ravel(), nucl.prox(X, 1), decimal=4)
+
+
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Nuclear(par):
     """Nuclear norm and proximal/dual proximal

@@ -1,6 +1,9 @@
 import time
 import numpy as np
 
+from math import sqrt
+from pyproximal.proximal import L2
+
 
 def _backtracking(x, tau, proxf, proxg, epsg, beta=0.5, niterback=10):
     r"""Backtracking
@@ -142,7 +145,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
     .. math::
 
-        \mathbf{x}^{k+1} = prox_{\tau^k g}(\mathbf{x}^k -
+        \mathbf{x}^{k+1} = prox_{\tau^k \epsilon g}(\mathbf{x}^k -
         \tau^k \nabla f(\mathbf{x}^k))
 
     where at each iteration :math:`\tau^k` can be estimated by back-tracking
@@ -152,8 +155,8 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
         \begin{aligned}
         &\tau = \tau^{k-1} &\\
-        &repeat \; \mathbf{z} = prox_{\tau g}(\mathbf{x}^k -
-        \tau^k \nabla f(\mathbf{x}^k)), \tau = \beta \tau \quad if \;
+        &repeat \; \mathbf{z} = prox_{\tau \epsilon g}(\mathbf{x}^k -
+        \tau \nabla f(\mathbf{x}^k)), \tau = \beta \tau \quad if \;
         f(\mathbf{z}) \leq \tilde{f}_\tau(\mathbf{z}, \mathbf{x}^k) \\
         &\tau^k = \tau, \quad \mathbf{x}^{k+1} = \mathbf{z} &\\
         \end{aligned}
@@ -501,3 +504,155 @@ def LinearizedADMM(proxf, proxg, A, x0, tau, mu, niter=10,
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
         print('---------------------------------------------------------\n')
     return x, z
+
+
+def TwIST(proxg, A, b, x0, alpha=None, beta=None, eigs=None, niter=10,
+          callback=None, show=False, returncost=False):
+    r"""Two-step Iterative Shrinkage/Threshold
+
+    Solves the following minimization problem using Two-step Iterative
+    Shrinkage/Threshold:
+
+    .. math::
+
+        \mathbf{x} = arg min_\mathbf{x} \frac{1}{2}
+        ||\mathbf{b} - \mathbf{Ax}||_2^2 + g(\mathbf{x})
+
+    where :math:`\mathbf{A}` is a linear operator and :math:`g(\mathbf{x})`
+    is any convex function that has a known proximal operator.
+
+    Parameters
+    ----------
+    proxg : :obj:`pyproximal.ProxOperator`
+        Proximal operator of g function
+    A : :obj:`pylops.LinearOperator`
+        Linear operator
+    b : :obj:`numpy.ndarray`
+        Data
+    x0 : :obj:`numpy.ndarray`
+        Initial vector
+    alpha : :obj:`float`, optional
+        Positive scalar weight (if ``None``, estimated based on the
+        eigenvalues of :math:`\mathbf{A}`, see Notes for details)
+    beta : :obj:`float`, optional
+        Positive scalar weight (if ``None``, estimated based on the
+        eigenvalues of :math:`\mathbf{A}`, see Notes for details)
+    eigs : :obj:`tuple`, optional
+        Largest and smallest eigenvalues of :math:`\mathbf{A}^H \mathbf{A}`.
+        If passed, computes `alpha` and `beta` based on them.
+    niter : :obj:`int`, optional
+        Number of iterations of iterative scheme
+    callback : :obj:`callable`, optional
+        Function with signature (``callback(x)``) to call after each iteration
+        where ``x`` is the current model vector
+    show : :obj:`bool`, optional
+        Display iterations log
+    returncost : :obj:`bool`, optional
+        Return cost function
+
+    Returns
+    -------
+    x : :obj:`numpy.ndarray`
+        Inverted model
+    j : :obj:`numpy.ndarray`
+        Cost function
+
+    Notes
+    -----
+    The TwIST algorithm can be expressed by the following recursion:
+
+    .. math::
+
+        \mathbf{x}^{k+1} = (1-\alpha) \mathbf{x}^{k-1} +
+        (\alpha-\beta) \mathbf{x}^k +
+        \beta prox_{g} (\mathbf{x}^k + \mathbf{A}^H
+        (\mathbf{b} - \mathbf{A}\mathbf{x}^k)).
+
+    where :math:`\mathbf{x}^{1} = prox_{g} (\mathbf{x}^0 + \mathbf{A}^T
+    (\mathbf{b} - \mathbf{A}\mathbf{x}^0))`.
+
+    The optimal weighting parameters :math:`\alpha` and :math:`\beta` are
+    linked to the smallest and largest eigenvalues of
+    :math:`\mathbf{A}^H\mathbf{A}` as follows:
+
+    .. math::
+
+        \alpha = 1 + \rho^2 \\
+        \beta =\frac{2 \alpha}{\Lambda_{max} + \lambda_{min}}
+
+    where :math:`\rho=\frac{1-\sqrt{k}}{1+\sqrt{k}}` with
+    :math:`k=\frac{\lambda_{min}}{\Lambda_{max}}` and
+    :math:`\Lambda_{max}=max(1, \lambda_{max})`.
+
+    Experimentally, it has been observed that TwIST is robust to the
+    choice of such parameters. Finally, note that in the case of
+    :math:`\alpha=1` and :math:`\beta=1`, TwIST is identical to IST.
+
+    """
+    # define proxf as L2 proximal
+    proxf = L2(Op=A, b=b)
+
+    # find alpha and beta
+    if alpha is None or beta is None:
+        if eigs is None:
+            emin = A.eigs(neigs=1, which='SM')
+            emax = max([1, A.eigs(neigs=1, which='LM')])
+        else:
+            emax, emin = eigs
+        k = emin / emax
+        rho =  (1 - sqrt(k)) / (1 + sqrt(k))
+        alpha = 1 + rho ** 2
+        beta = 2 * alpha / (emax + emin)
+
+    print(proxf(x0) + proxg(x0))
+    # compute proximal of g on initial guess (x_1)
+    xold = x0.copy()
+    x = proxg.prox(xold - proxf.grad(xold), 1.)
+
+    if show:
+        tstart = time.time()
+        print('TwIST\n'
+              '---------------------------------------------------------\n'
+              'Proximal operator (g): %s\n'
+              'Linear operator (A): %s\n'
+              'alpha = %10e\tbeta = %10e\tniter = %d\n' % (type(proxg),
+                                                           type(A),
+                                                           alpha, beta, niter))
+        head = '   Itn       x[0]          f           g       J = f + g'
+        print(head)
+
+    # iterate
+    j = None
+    if returncost:
+        j = np.zeros(niter)
+    for iiter in range(niter):
+        # compute new x
+        xnew = (1 - alpha) * xold + \
+               (alpha - beta) * x + \
+               beta * proxg.prox(x - proxf.grad(x), 1.)
+        # save current x as old (x_i -> x_i-1)
+        xold = x.copy()
+        # save new x as current (x_i+1 -> x_i)
+        x = xnew.copy()
+
+        # compute cost function
+        if returncost:
+            j[iiter] = proxf(x) + proxg(x)
+
+        # run callback
+        if callback is not None:
+            callback(x)
+
+        if show:
+            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
+                pf, pg = proxf(x), proxg(x)
+                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
+                      (iiter + 1, x[0], pf, pg, pf + pg)
+                print(msg)
+    if show:
+        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
+        print('---------------------------------------------------------\n')
+    if returncost:
+        return x, j
+    else:
+        return x
