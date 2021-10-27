@@ -8,6 +8,8 @@ The subpackage projection contains a number of orthogonal projection:
     HyperPlaneBoxProj	        Projection onto an intersection beween a HyperPlane and a Box
     SimplexProj	                Projection onto a Simplex
     EuclideanBallProj	        Projection onto an Euclidean Ball
+    L1Proj	                    Projection onto an L1 Ball
+    NuclearBallProj	            Projection onto a Nuclear Ball
     IntersectionProj	        Projection onto an Intersection of sets
     AffineSetProj	            Projection onto an Affine set
 
@@ -16,9 +18,11 @@ The subpackage projection contains a number of orthogonal projection:
 from .Box import *
 from .Simplex import *
 from .Euclidean import *
+from .L1 import *
+from .Nuclear import *
 from .Intersection import *
 from .AffineSet import *
 
 
 __all__ = ['BoxProj', 'HyperPlaneBoxProj', 'SimplexProj', 'EuclideanBallProj',
-           'IntersectionProj', 'AffineSetProj']
+           'L1BallProj', 'NuclearBallProj', 'IntersectionProj', 'AffineSetProj']

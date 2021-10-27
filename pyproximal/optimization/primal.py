@@ -461,7 +461,7 @@ def LinearizedADMM(proxf, proxg, A, x0, tau, mu, niter=10,
     .. math::
 
         \mathbf{x}^{k+1} = prox_{\mu f}(\mathbf{x}^{k} - \frac{\mu}{\tau}
-        \mathbf{A}^T(\mathbf{A} \mathbf{x}^k - \mathbf{z}^k + \mathbf{u}^k))\\
+        \mathbf{A}^H(\mathbf{A} \mathbf{x}^k - \mathbf{z}^k + \mathbf{u}^k))\\
         \mathbf{z}^{k+1} = prox_{\tau g}(\mathbf{A} \mathbf{x}^{k+1} +
         \mathbf{u}^k)\\
         \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{A}\mathbf{x}^{k+1} -
@@ -604,7 +604,6 @@ def TwIST(proxg, A, b, x0, alpha=None, beta=None, eigs=None, niter=10,
         alpha = 1 + rho ** 2
         beta = 2 * alpha / (emax + emin)
 
-    print(proxf(x0) + proxg(x0))
     # compute proximal of g on initial guess (x_1)
     xold = x0.copy()
     x = proxg.prox(xold - proxf.grad(xold), 1.)

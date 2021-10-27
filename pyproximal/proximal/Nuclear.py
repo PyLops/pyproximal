@@ -2,6 +2,7 @@ import numpy as np
 
 from pylops.optimization.sparsity import _softthreshold
 from pyproximal.ProxOperator import _check_tau
+from pyproximal.projection import NuclearBallProj
 from pyproximal import ProxOperator
 
 
@@ -29,7 +30,7 @@ class Nuclear(ProxOperator):
         prox_{\tau \sigma ||.||_*}(\mathbf{X}) =
         \mathbf{U} diag{prox_{\tau \sigma ||.||_1}(\boldsymbol\lambda)} \mathbf{V}
 
-    where :math:`\mathbf{U}`, :math:`\boldsymbol\lambda}`, and
+    where :math:`\mathbf{U}`, :math:`\boldsymbol\lambda`, and
     :math:`\mathbf{V}` define the SVD of :math:`X`.
 
     """
@@ -52,3 +53,44 @@ class Nuclear(ProxOperator):
         Sth = _softthreshold(S, tau * self.sigma)
         X = np.dot(U * Sth, Vh)
         return X.ravel()
+
+
+class NuclearBall(ProxOperator):
+    r"""Nuclear ball proximal operator.
+
+    Proximal operator of the Nuclear ball: :math:`N_{r} =
+    \{ \mathbf{X}: ||\mathbf{X}||_* \leq r \}`.
+
+    Parameters
+    ----------
+    n : :obj:`int`
+        Number of elements of input vector
+    radius : :obj:`float`
+        Radius
+    maxiter : :obj:`int`, optional
+        Maximum number of iterations used by :func:`scipy.optimize.bisect`
+    xtol : :obj:`float`, optional
+        Absolute tolerance of :func:`scipy.optimize.bisect`
+
+    Notes
+    -----
+    As the Nuclear ball is an indicator function, the proximal operator
+    corresponds to its orthogonal projection
+    (see :class:`pyproximal.projection.NuclearBallProj` for details.
+
+    """
+    def __init__(self, n, radius, maxiter=100, xtol=1e-5):
+        super().__init__(None, False)
+        self.n = n
+        self.radius = radius
+        self.maxiter = maxiter
+        self.xtol = xtol
+        self.ball = NuclearBallProj(self.n, self.radius,
+                                    self.maxiter, self.xtol)
+
+    def __call__(self, x, tol=1e-5):
+        return np.linalg.norm(x, ord='nuc') - self.radius < tol
+
+    @_check_tau
+    def prox(self, x, tau):
+        return self.ball(x)
