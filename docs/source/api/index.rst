@@ -21,6 +21,8 @@ Orthogonal projections
     HyperPlaneBoxProj
     SimplexProj
     EuclideanBallProj
+    L1BallProj
+    NuclearBallProj
     IntersectionProj
     AffineSetProj
 
@@ -60,11 +62,13 @@ Operators
     Euclidean
     EuclideanBall
     L1
+    L1Ball
     L2
     L2Convolve
     L21
     Huber
     Nuclear
+    NuclearBall
     Orthogonal
     VStack
 

@@ -1,7 +1,7 @@
 import numpy as np
 
 from pyproximal.ProxOperator import _check_tau
-from pyproximal.projection import BoxProj
+from pyproximal.projection import BoxProj, L1BallProj
 from pyproximal import ProxOperator
 
 
@@ -108,3 +108,43 @@ class L1(ProxOperator):
         else:
             x = self._proxdual_moreau(x, tau)
         return x
+
+
+class L1Ball(ProxOperator):
+    r"""L1 ball proximal operator.
+
+    Proximal operator of the L1 ball: :math:`L1_{r} =
+    \{ \mathbf{x}: ||\mathbf{x}||_1 \leq r \}`.
+
+    Parameters
+    ----------
+    n : :obj:`int`
+        Number of elements of input vector
+    radius : :obj:`float`
+        Radius
+    maxiter : :obj:`int`, optional
+        Maximum number of iterations used by :func:`scipy.optimize.bisect`
+    xtol : :obj:`float`, optional
+        Absolute tolerance of :func:`scipy.optimize.bisect`
+
+    Notes
+    -----
+    As the L1 ball is an indicator function, the proximal operator
+    corresponds to its orthogonal projection
+    (see :class:`pyproximal.projection.L1BallProj` for details.
+
+    """
+    def __init__(self, n, radius, maxiter=100, xtol=1e-5):
+        super().__init__(None, False)
+        self.n = n
+        self.radius = radius
+        self.maxiter = maxiter
+        self.xtol = xtol
+        self.ball = L1BallProj(self.n, self.radius, self.maxiter, self.xtol)
+
+    def __call__(self, x, tol=1e-4):
+        return np.sum(np.abs(x)) - self.radius < tol
+
+    @_check_tau
+    def prox(self, x, tau):
+        return self.ball(x)
