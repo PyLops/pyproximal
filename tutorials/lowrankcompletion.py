@@ -24,6 +24,12 @@ The problem we want to solve can be mathematically described as:
 .. math::
     arg \;  min_\mathbf{x} \frac{1}{2}||\mathbf{y}-\mathbf{Rx}||_2^2 + \mu ||\mathbf{X}||_*
 
+or
+
+.. math::
+    arg \;  min_\mathbf{x} \frac{1}{2}||\mathbf{y}-\mathbf{Rx}||_2^2 \; s.t.
+    \; ||\mathbf{X}||_* < \mu
+
 where :math:`||\mathbf{X}||_*=\sum_i \sigma_i` is the nuclear norm of
 :math:`\mathbf{X}` (i.e., sum of eigenvalues).
 
@@ -75,7 +81,7 @@ plt.tight_layout()
 
 ###############################################################################
 # We observe that removing some samples from the image has led to an overall
-# increase increase in the eigenvalues of :math:`\mathbf{X}`, especially
+# increase in the eigenvalues of :math:`\mathbf{X}`, especially
 # those that are originally very small. As a consequence the nuclear norm of
 # :math:`\mathbf{Y}` (the masked image) is larger than that of
 # :math:`\mathbf{X}`.
@@ -93,21 +99,36 @@ Xpg = Xpg.reshape(ny, nx)
 # Recompute SVD and see how the eigenvalues look like
 Upg, Spg, Vhpg = np.linalg.svd(Xpg, full_matrices=False)
 
-plt.figure()
-plt.semilogy(Sx, 'k', label=r'$||X||_*$=%.2f' % np.sum(Sx))
-plt.semilogy(Sy, 'r', label=r'$||Y||_*$=%.2f' % np.sum(Sy))
-plt.semilogy(Spg, 'b', label=r'$||X_{pg}||_*$=%.2f' % np.sum(Spg))
-plt.legend()
-plt.tight_layout()
+###############################################################################
+# Let's do the same with the constrained version
+mu1 = 0.8 * np.sum(Sx)
+g = pyproximal.proximal.NuclearBall((ny, nx), mu1)
+
+Xpgc = pyproximal.optimization.primal.AcceleratedProximalGradient(f, g, np.zeros(ny*nx),
+                                                                 tau=1., niter=100, show=True)
+Xpgc = Xpgc.reshape(ny, nx)
+
+# Recompute SVD and see how the eigenvalues look like
+Upgc, Spgc, Vhpgc = np.linalg.svd(Xpgc, full_matrices=False)
 
 ###############################################################################
 # And finally we display the reconstructed image
 
-fig, axs = plt.subplots(1, 3, figsize=(14, 6))
+plt.figure()
+plt.semilogy(Sx, 'k', label=r'$||X||_*$=%.2f' % np.sum(Sx))
+plt.semilogy(Sy, 'r', label=r'$||Y||_*$=%.2f' % np.sum(Sy))
+plt.semilogy(Spg, 'b', label=r'$||X_{pg}||_*$=%.2f' % np.sum(Spg))
+plt.semilogy(Spgc, 'g', label=r'$||X_{pgc}||_*$=%.2f' % np.sum(Spgc))
+plt.legend()
+plt.tight_layout()
+
+fig, axs = plt.subplots(1, 4, figsize=(14, 6))
 axs[0].imshow(X, cmap='gray')
 axs[0].set_title('True')
 axs[1].imshow(Y, cmap='gray')
 axs[1].set_title('Masked')
 axs[2].imshow(Xpg, cmap='gray')
-axs[2].set_title('Reconstructed')
+axs[2].set_title('Reconstructed reg.')
+axs[3].imshow(Xpgc, cmap='gray')
+axs[3].set_title('Reconstructed constr.')
 fig.tight_layout()

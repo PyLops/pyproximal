@@ -63,8 +63,8 @@ class NuclearBall(ProxOperator):
 
     Parameters
     ----------
-    n : :obj:`int`
-        Number of elements of input vector
+    dims : :obj:`tuple`
+        Dimensions of input matrix
     radius : :obj:`float`
         Radius
     maxiter : :obj:`int`, optional
@@ -79,18 +79,19 @@ class NuclearBall(ProxOperator):
     (see :class:`pyproximal.projection.NuclearBallProj` for details.
 
     """
-    def __init__(self, n, radius, maxiter=100, xtol=1e-5):
+    def __init__(self, dims, radius, maxiter=100, xtol=1e-5):
         super().__init__(None, False)
-        self.n = n
+        self.dims = dims
         self.radius = radius
         self.maxiter = maxiter
         self.xtol = xtol
-        self.ball = NuclearBallProj(self.n, self.radius,
+        self.ball = NuclearBallProj(min(self.dims), self.radius,
                                     self.maxiter, self.xtol)
 
     def __call__(self, x, tol=1e-5):
-        return np.linalg.norm(x, ord='nuc') - self.radius < tol
+        return np.linalg.norm(x.reshape(self.dims), ord='nuc') - self.radius < tol
 
     @_check_tau
     def prox(self, x, tau):
-        return self.ball(x)
+        y = self.ball(x.reshape(self.dims))
+        return y.ravel()

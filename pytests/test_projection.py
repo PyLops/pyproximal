@@ -65,7 +65,7 @@ def test_L1Ball(par):
 def test_NuclBall(par):
     """Nuclear Ball projection and proximal/dual proximal of related indicator
     """
-    nuc = NuclearBall(min(par['nx'], par['ny']), 1)
+    nuc = NuclearBall((par['nx'], par['ny']), 1)
     x = np.random.normal(0., 1., (par['nx'], par['ny'])).astype(par['dtype']) \
         + np.eye(par['nx'], par['ny'])
 
@@ -76,7 +76,7 @@ def test_NuclBall(par):
 
     # prox / dualprox
     tau = 2.
-    assert moreau(nuc, x, tau)
+    assert moreau(nuc, x.ravel(), tau)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
