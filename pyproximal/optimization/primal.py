@@ -186,7 +186,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
         tau = 1.
 
     x = x0.copy()
-    for iiter  in range(niter):
+    for iiter in range(niter):
         if not backtracking:
             x = proxg.prox(x - tau * proxf.grad(x), epsg * tau)
         else:
