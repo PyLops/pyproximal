@@ -9,6 +9,7 @@ The subpackage proximal contains a number of proximal operators:
     Intersection                    Intersection indicator
     AffineSet	                    Affines set indicator
     Quadratic                       Quadratic function
+    Nonlinear	                    Nonlinear function
     Euclidean	                    Euclidean Norm
     EuclideanBall	                Euclidean Ball
     L1	                            L1 Norm
@@ -29,6 +30,7 @@ from .Simplex import *
 from .Intersection import *
 from .AffineSet import *
 from .Quadratic import *
+from .Nonlinear import *
 from .Euclidean import *
 from .L1 import *
 from .L2 import *
@@ -41,4 +43,5 @@ from .VStack import *
 
 __all__ = ['Box', 'Simplex', 'Intersection', 'AffineSet', 'Quadratic',
            'Euclidean', 'EuclideanBall', 'L1', 'L1Ball', 'L2', 'L2Convolve',
-           'L21', 'Huber', 'Nuclear', 'NuclearBall', 'Orthogonal', 'VStack']
+           'L21', 'Huber', 'Nuclear', 'NuclearBall', 'Orthogonal', 'VStack',
+           'Nonlinear']
