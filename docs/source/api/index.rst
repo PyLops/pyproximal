@@ -66,7 +66,6 @@ Operators
     L2
     L2Convolve
     L21
-    Nonlinear
     Huber
     Nuclear
     NuclearBall
