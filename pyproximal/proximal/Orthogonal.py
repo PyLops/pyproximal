@@ -40,8 +40,8 @@ class Orthogonal(ProxOperator):
     .. math::
 
         prox_{\tau g}(x) = \frac{1}{\alpha} ((\alpha \mathbf{I} -
-        \mathbf{Q}^T \mathbf{Q}) \mathbf{x} + \mathbf{Q}^T
-        (prox_{\tau f}(\mathbf{Qx} + \mathbf{b}) - \mathbf{b}))
+        \mathbf{Q}^H \mathbf{Q}) \mathbf{x} + \mathbf{Q}^H
+        (prox_{\alpha \tau f}(\mathbf{Qx} + \mathbf{b}) - \mathbf{b}))
 
     A special case arises when :math:`\mathbf{Q}\mathbf{Q}^T =
     \mathbf{Q}^T\mathbf{Q} = \mathbf{I}`
@@ -49,7 +49,7 @@ class Orthogonal(ProxOperator):
 
     .. math::
 
-        prox_{\tau g}(x) = \mathbf{Q}^T (prox_{\tau f}(\mathbf{Qx} +
+        prox_{\tau g}(x) = \mathbf{Q}^H (prox_{\tau f}(\mathbf{Qx} +
         \mathbf{b}) - \mathbf{b}))
 
     .. [1] Daniel O'Connor, D., and Vandenberghe, L., "Primal-Dual
@@ -78,7 +78,8 @@ class Orthogonal(ProxOperator):
         if self.partial:
             z = (1. / self.alpha) * \
                 (self.alpha * x - self.Q.rmatvec(y) +
-                 self.Q.rmatvec(self.f.prox(y + self.b, tau) - self.b))
+                 self.Q.rmatvec(self.f.prox(y + self.b, self.alpha * tau) -
+                                self.b))
         else:
             if self.b is not None:
                 y = y + self.b
