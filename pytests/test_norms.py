@@ -5,7 +5,7 @@ from numpy.testing import assert_array_almost_equal
 
 from pylops.basicoperators import Identity, Diagonal
 from pyproximal.utils import moreau
-from pyproximal.proximal import Box, Euclidean, L2, L1, L21, Huber, Nuclear
+from pyproximal.proximal import Box, Euclidean, L2, L1, L21, L21_plus_L1, Huber, Nuclear
 
 par1 = {'nx': 10, 'sigma': 1., 'dtype': 'float32'}  # even float32
 par2 = {'nx': 11, 'sigma': 2., 'dtype': 'float64'}  # odd float64
@@ -132,6 +132,26 @@ def test_L21(par):
     # prox / dualprox
     tau = 2.
     assert moreau(l21, x, tau)
+
+
+@pytest.mark.parametrize('par', [(par1), (par2)])
+def test_L21_plus_L1(par):
+    """L21 plus L1 norm on 2darray.
+    """
+    l21_plus_l1 = L21_plus_L1(ndim=2, sigma=par['sigma'], rho=0.8)
+
+    # norm
+    x = np.random.normal(0., 1., (2 * par['nx'], par['nx'])).astype(par['dtype'])
+    rho = 0.8
+    l21_plus_l1_ = par['sigma'] * rho * np.sum(np.abs(x)) + par['sigma'] * (1 - rho) * np.sum(
+        np.sqrt(np.sum(x ** 2, axis=0))
+    )
+    assert_array_almost_equal(l21_plus_l1(x), l21_plus_l1_)
+
+    tau = 2.
+    l21_plus_l1.prox(x, tau)
+
+    assert moreau(l21_plus_l1, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])

@@ -17,6 +17,7 @@ The subpackage proximal contains a number of proximal operators:
     L2	                            L2 Norm
     L2Convolve	                    L2 Norm of convolution operator
     L21	                            L2,1 Norm
+    L21_plus_L1	                    L2,1 + L1 mixed-norm
     Huber	                        Huber Norm
     Nuclear                         Nuclear Norm
     NuclearBall                     Nuclear Ball
@@ -35,13 +36,13 @@ from .Euclidean import *
 from .L1 import *
 from .L2 import *
 from .L21 import *
+from .L21_plus_L1 import *
 from .Huber import *
 from .Nuclear import *
 from .Orthogonal import *
 from .VStack import *
 
-
 __all__ = ['Box', 'Simplex', 'Intersection', 'AffineSet', 'Quadratic',
            'Euclidean', 'EuclideanBall', 'L1', 'L1Ball', 'L2', 'L2Convolve',
-           'L21', 'Huber', 'Nuclear', 'NuclearBall', 'Orthogonal', 'VStack',
-           'Nonlinear']
+           'L21', 'L21_plus_L1', 'Huber', 'Nuclear', 'NuclearBall',
+           'Orthogonal', 'VStack', 'Nonlinear']
