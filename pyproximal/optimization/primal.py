@@ -223,7 +223,7 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
         \mathbf{x} = arg min_\mathbf{x} f(\mathbf{x}) + \epsilon g(\mathbf{x})
 
     where :math:`f(\mathbf{x})` is a smooth convex function with a uniquely
-    defined gradient and :math:`f(\mathbf{x})` is any convex function that
+    defined gradient and :math:`g(\mathbf{x})` is any convex function that
     has a known proximal operator.
 
     Parameters
