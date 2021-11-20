@@ -138,7 +138,7 @@ def test_L21(par):
 def test_L21_plus_L1(par):
     """L21 plus L1 norm on 2darray.
     """
-    l21_plus_l1 = L21_plus_L1(ndim=2, sigma=par['sigma'], rho=0.8)
+    l21_plus_l1 = L21_plus_L1(sigma=par['sigma'], rho=0.8)
 
     # norm
     x = np.random.normal(0., 1., (2 * par['nx'], par['nx'])).astype(par['dtype'])
