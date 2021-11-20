@@ -52,6 +52,9 @@ class Nonlinear(ProxOperator):
     def __call__(self, x):
         return self.fun(x)
 
+    def _funprox(self, x, tau):
+        return self.fun(x) + 1. / (2 * tau) * ((x - self.y) ** 2).sum()
+
     def _gradprox(self, x, tau):
         return self.grad(x) + 1. / tau * (x - self.y)
 

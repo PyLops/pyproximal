@@ -95,7 +95,7 @@ class L2(ProxOperator):
 
         # create data term
         if self.Op is not None:
-            self.OpTb = self.sigma * self.Op.rmatvec(self.b)
+            self.OpTb = self.sigma * self.Op.H @ self.b
 
     def __call__(self, x):
         if self.Op is not None and self.b is not None:
@@ -154,7 +154,7 @@ class L2(ProxOperator):
 
     def grad(self, x):
         if self.Op is not None and self.b is not None:
-            g = self.sigma * self.Op.rmatvec(self.Op.matvec(x) - self.b)
+            g = self.sigma * self.Op.H @ (self.Op @ x - self.b)
         elif self.b is not None:
             g = self.sigma * (x - self.b)
         else:
