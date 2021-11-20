@@ -211,6 +211,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
 def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
                                 epsg=1., niter=10, niterback=100,
+                                acceleration='vandenberghe',
                                 callback=None, show=False):
     r"""Accelerated Proximal gradient
 
@@ -245,6 +246,10 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
         Scaling factor of g function
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
+    niterback : :obj:`int`, optional
+        Max number of iterations of backtracking
+    acceleration:  :obj:`str`, optional
+        Acceleration (``vandenberghe`` or ``fista``)
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
@@ -263,14 +268,24 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
     .. math::
 
-        \mathbf{y}^{k+1} = \mathbf{x}^k + \omega^k
-        (\mathbf{x}^k - \mathbf{x}^{k-1})  \\
         \mathbf{x}^{k+1} = prox_{\tau^k f}(\mathbf{y}^{k+1}  -
-        \tau^k \nabla f(\mathbf{y}^{k+1}))
+        \tau^k \nabla f(\mathbf{y}^{k+1})) \\
+        \mathbf{y}^{k+1} = \mathbf{x}^k + \omega^k
+        (\mathbf{x}^k - \mathbf{x}^{k-1})
 
-    where :math:`\omega^k = k / (k + 3)`.
+    where :math:`\omega^k = k / (k + 3)` for ``acceleration=vandenberghe`` [1]_
+    or :math:`\omega^k = (t_{k-1}-1)/t_k` for ``acceleration=fista`` where
+    :math:`t_k = (1 + \sqrt{1+4t_{k-1}^{2}}) / 2` [2]_
+
+    .. [1] Vandenberghe, L., "Fast proximal gradient methods", 2010.
+    .. [2] Beck, A., and Teboulle, M. "A Fast Iterative Shrinkage-Thresholding
+       Algorithm for Linear Inverse Problems", SIAM Journal on
+       Imaging Sciences, vol. 2, pp. 183-202. 2009.
 
     """
+    if acceleration not in ['vandenberghe', 'fista']:
+        raise NotImplementedError('Acceleration should be vandenberghe '
+                                  'or fista')
     if show:
         tstart = time.time()
         print('Accelerated Proximal Gradient\n'
@@ -289,17 +304,31 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
         backtracking = True
         tau = 1.
 
+    # initialize model
+    t = 1.
     x = x0.copy()
-    xold = np.zeros_like(x)
+    y = x.copy()
+
+    # iterate
     for iiter in range(niter):
-        omega = iiter / (iiter + 3)
-        y = x + omega * (x - xold)
         xold = x.copy()
+
+        # proximal step
         if not backtracking:
             x = proxg.prox(y - tau * proxf.grad(y), epsg * tau)
         else:
             x, tau = _backtracking(y, tau, proxf, proxg, epsg,
                                    beta=beta, niterback=niterback)
+
+        # update y
+        if acceleration == 'vandenberghe':
+            omega = iiter / (iiter + 3)
+        else:
+            told = t
+            t = (1. + np.sqrt(1. + 4. * t ** 2)) / 2.
+            omega = ((told - 1.) / t)
+        y = x + omega * (x - xold)
+
         # run callback
         if callback is not None:
             callback(x)
