@@ -66,6 +66,7 @@ Operators
     L2
     L2Convolve
     L21
+    L21_plus_L1
     Nonlinear
     Huber
     Nuclear
@@ -98,6 +99,14 @@ Primal
    :toctree: generated/
 
     SR3
+
+.. currentmodule:: pyproximal.optimization.palm
+
+.. autosummary::
+   :toctree: generated/
+
+    PALM
+
 
 Primal-dual
 ~~~~~~~~~~~
