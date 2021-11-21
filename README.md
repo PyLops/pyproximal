@@ -194,3 +194,4 @@ you are required to rebuild the entire documentation before your changes will be
 ## Contributors
 * Matteo Ravasi, mrava87
 * Nick Luiken, NickLuiken
+* Eneko Uruñuela, eurunuela
