@@ -185,7 +185,7 @@ class ProxOperator(object):
         .. math::
 
             prox_{\tau g} (\mathbf{x}) =
-            prox_{\tau f} (\mathbf{x} - \sigma \tau)
+            prox_{\sigma \tau f} (\mathbf{x})
 
         """
         if isinstance(sigma, float):
@@ -222,16 +222,42 @@ class ProxOperator(object):
         else:
             return NotImplemented
 
+    def chain(self, g):
+        r"""Chain
+
+        Chains two proximal operators. This must be used with care only when
+        aware that the combination of two proximal operators can be simply
+        obtained by chaining them
+
+        Parameters
+        ----------
+        g : :obj:`pyproximal.proximal.ProxOperator`
+            Rigth operator
+
+        Notes
+        -----
+        The proximal operator of the chain of two operators is defined as:
+
+        .. math::
+
+            prox_{\tau f g} (\mathbf{x}) = prox_{\tau g}(prox_{\tau f g}(x))
+
+        """
+        return _ChainOperator(self, g)
+
     def __add__(self, v):
         return self.affine_addition(v)
 
     def __sub__(self, v):
         return self.__add__(-v)
 
-    def __mul__(self, sigma):
-        return self.postcomposition(sigma)
+    def __rmul__(self, sigma):
+        if isinstance(sigma, (int, float)):
+            return self.postcomposition(sigma)
+        else:
+            return self.chain(sigma)
 
-    __rmul__ = __mul__
+    #__rmul__ = __mul__
 
     def _adjoint(self):
         """Adjoint operator - swaps prox and proxdual"""
@@ -275,6 +301,24 @@ class _SumOperator(ProxOperator):
 
     def grad(self, x):
         return self.f.grad(x) + self.v
+
+
+class _ChainOperator(ProxOperator):
+    def __init__(self, f, g):
+        #if not isinstance(f, ProxOperator) or not isinstance(g, ProxOperator):
+        #    raise ValueError('Inputs must be a ProxOperator')
+        self.f, self.g = f, g
+        super().__init__(None, True if f.grad else False)
+
+    def __call__(self, x):
+        pass
+
+    @_check_tau
+    def prox(self, x, tau, **kwargs):
+        return self.g.prox(self.f.prox(x, tau), tau)
+
+    def grad(self, x):
+        pass
 
 
 class _PostcompositionOperator(ProxOperator):
