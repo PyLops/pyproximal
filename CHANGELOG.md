@@ -1,3 +1,17 @@
+# 0.2.0
+* Added ``pyproximal.proximal.L0Ball``, ``pyproximal.proximal.L1Ball``, 
+  ``pyproximal.proximal.L21_plus_L1``, ``pyproximal.proximal.Nuclear``, 
+  ``pyproximal.proximal.NuclearBall``, and ``pyproximal.proximal.Nonlinear`` 
+  operators
+* Added ``pyproximal.optimization.primal.TwIST`` solver
+* Added `acceleration` in
+  ``pyproximal.optimization.primal.AcceleratedProximalGradient`` solver
+* Added classes standard deviation in
+  ``pyproximal.optimization.segmentation.Segment`` solver
+* Added `chain` method ``pyproximal.ProxOperator``
+* Fix ``pyproximal.proximal.Orthogonal`` by introducing `alpha`
+  in the proximal evaluation
+  
 # 0.1.0
 * Added ``pyproximal.optimization.sr3.SR3`` solver
 * Added ``pyproximal.projection.AffineSetProj`` and
