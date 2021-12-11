@@ -20,8 +20,9 @@ Orthogonal projections
     BoxProj
     HyperPlaneBoxProj
     SimplexProj
-    EuclideanBallProj
+    L0BallProj
     L1BallProj
+    EuclideanBallProj
     NuclearBallProj
     IntersectionProj
     AffineSetProj
@@ -73,6 +74,18 @@ Operators
     NuclearBall
     Orthogonal
     VStack
+
+
+Other operators
+---------------
+
+.. currentmodule:: pyproximal.utils.bilinear
+
+.. autosummary::
+   :toctree: generated/
+
+    BilinearOperator
+    LowRankFactorizedMatrix
 
 
 Solvers
