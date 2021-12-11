@@ -10,10 +10,11 @@ The subpackage proximal contains a number of proximal operators:
     AffineSet	                    Affines set indicator
     Quadratic                       Quadratic function
     Nonlinear	                    Nonlinear function
-    Euclidean	                    Euclidean Norm
-    EuclideanBall	                Euclidean Ball
+    L0Ball	                        L0 Ball
     L1	                            L1 Norm
     L1Ball                          L1 Ball
+    Euclidean	                    Euclidean Norm
+    EuclideanBall	                Euclidean Ball
     L2	                            L2 Norm
     L2Convolve	                    L2 Norm of convolution operator
     L21	                            L2,1 Norm
@@ -33,6 +34,7 @@ from .AffineSet import *
 from .Quadratic import *
 from .Nonlinear import *
 from .Euclidean import *
+from .L0 import *
 from .L1 import *
 from .L2 import *
 from .L21 import *
@@ -43,6 +45,6 @@ from .Orthogonal import *
 from .VStack import *
 
 __all__ = ['Box', 'Simplex', 'Intersection', 'AffineSet', 'Quadratic',
-           'Euclidean', 'EuclideanBall', 'L1', 'L1Ball', 'L2', 'L2Convolve',
-           'L21', 'L21_plus_L1', 'Huber', 'Nuclear', 'NuclearBall',
-           'Orthogonal', 'VStack', 'Nonlinear']
+           'Euclidean', 'EuclideanBall', 'L0', 'L1', 'L1Ball', 'L2',
+           'L2Convolve', 'L21', 'L21_plus_L1', 'Huber', 'Nuclear',
+           'NuclearBall', 'Orthogonal', 'VStack', 'Nonlinear']

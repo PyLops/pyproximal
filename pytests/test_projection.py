@@ -4,8 +4,8 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 from pylops.basicoperators import Identity
 from pyproximal.utils import moreau
-from pyproximal.proximal import Box, EuclideanBall, L1Ball, NuclearBall,\
-    Simplex, AffineSet
+from pyproximal.proximal import Box, EuclideanBall, L0Ball, L1Ball, \
+    NuclearBall, Simplex, AffineSet
 
 par1 = {'nx': 10, 'ny': 8, 'axis': 0, 'dtype': 'float32'}  # even float32 dir0
 par2 = {'nx': 11, 'ny': 8, 'axis': 1, 'dtype': 'float64'}  # odd float64 dir1
@@ -45,6 +45,23 @@ def test_EuclBall(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
+def test_L0Ball(par):
+    """L0 Ball projection and proximal/dual proximal of related indicator
+    """
+    l0 = L0Ball(1)
+    x = np.random.normal(0., 1., par['nx']).astype(par['dtype']) + 1.
+
+    # evaluation
+    assert l0(x) == False
+    xp = l0.prox(x, 1.)
+    assert l0(xp) == True
+
+    # prox / dualprox
+    tau = 2.
+    assert moreau(l0, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
 def test_L1Ball(par):
     """L1 Ball projection and proximal/dual proximal of related indicator
     """
@@ -72,7 +89,7 @@ def test_NuclBall(par):
     # evaluation
     assert nuc(x) == False
     xp = nuc.prox(x, 1.)
-    assert nuc(xp) == True
+    assert nuc(xp, 1e-4) == True
 
     # prox / dualprox
     tau = 2.
