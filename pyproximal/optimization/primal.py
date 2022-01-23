@@ -353,10 +353,22 @@ def ADMM(proxf, proxg, x0, tau, niter=10, callback=None, show=False):
 
     .. math::
 
-        \mathbf{x} = arg min_\mathbf{x} f(\mathbf{x}) + g(\mathbf{x})
+        \mathbf{x},\mathbf{x}  = arg min_{\mathbf{x},\mathbf{z}}
+        f(\mathbf{x}) + g(\mathbf{z}) \\
+        s.t \; \mathbf{Ax}+\mathbf{Bz}=c
 
-    where :math:`f(\mathbf{x})` and :math:`g(\mathbf{x})` are any convex
-    function that has a known proximal operator.
+    where :math:`f(\mathbf{x})` and :math:`g(\mathbf{z})` are any convex
+    function that has a known proximal operator, :math:`\mathbf{A}=\mathbf{I}`,
+    :math:`\mathbf{B}=-\mathbf{I}`, and :math:`c=0`.
+
+    Note that ADMM can solve the problem of the form above with any
+    :math:`\mathbf{A}`, :math:`\mathbf{B}`, and :math:`c`: however, the solution
+    of such problems is not generalizable as it depends on che choice of
+    :math:`f` and :math:`g`. For this reason, we currently do not provide a
+    solver for the more general case. One special case that is however provided
+    is when :math:`\mathbf{B}=-\mathbf{I}` and :math:`c=0` (for any
+    :math:`\mathbf{A}`), which can be solved by the
+    :func:`pyproximal.optimization.primal.LinearizedADMM` solver.
 
     Parameters
     ----------
