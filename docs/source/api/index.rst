@@ -62,6 +62,7 @@ Operators
     Quadratic
     Euclidean
     EuclideanBall
+    L0Ball
     L1
     L1Ball
     L2

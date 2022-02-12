@@ -10,7 +10,7 @@ The subpackage proximal contains a number of proximal operators:
     AffineSet	                    Affines set indicator
     Quadratic                       Quadratic function
     Nonlinear	                    Nonlinear function
-    L0Ball	                        L0 Ball
+    L0Ball                          L0 Ball
     L1	                            L1 Norm
     L1Ball                          L1 Ball
     Euclidean	                    Euclidean Norm

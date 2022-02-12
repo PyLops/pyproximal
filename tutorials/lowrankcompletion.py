@@ -1,6 +1,6 @@
 r"""
-Low-Rank completion
-===================
+Low-Rank completion via SVD
+===========================
 In this tutorial we will present an example of low-rank matrix completion.
 Contrarily to most of the examples in this library (and PyLops), the regularizer
 is here applied to a matrix, which is obtained by reshaping the model vector
