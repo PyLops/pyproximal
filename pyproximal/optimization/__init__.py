@@ -26,6 +26,12 @@ with any of the above solvers to solve each subproblem in its inner loop)
 
     Bregman                         Bregman iterations
 
+Additional solvers are in ``pylops.optimization.sr3`` amd
+``pylops.optimization.palm``:
+
+    SR3                             Sparse Relaxed Regularized algorithm
+    PALM                            Proximal Alternating Linearized Minimization
+
 Finally this subpackage contains also a solver for image segmentation based
 on a special use of the Primal-Dual algorithm:
 
@@ -33,4 +39,4 @@ on a special use of the Primal-Dual algorithm:
 
 """
 
-from . import primal, primaldual, bregman, segmentation, sr3
+from . import primal, primaldual, bregman, segmentation, sr3, palm

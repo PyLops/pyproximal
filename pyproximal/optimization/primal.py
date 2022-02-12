@@ -353,7 +353,7 @@ def ADMM(proxf, proxg, x0, tau, niter=10, callback=None, show=False):
 
     .. math::
 
-        \mathbf{x},\mathbf{x}  = arg min_{\mathbf{x},\mathbf{z}}
+        \mathbf{x},\mathbf{z}  = arg min_{\mathbf{x},\mathbf{z}}
         f(\mathbf{x}) + g(\mathbf{z}) \\
         s.t \; \mathbf{Ax}+\mathbf{Bz}=c
 

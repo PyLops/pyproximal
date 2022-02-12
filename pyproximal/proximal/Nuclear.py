@@ -28,7 +28,7 @@ class Nuclear(ProxOperator):
     .. math::
 
         prox_{\tau \sigma ||.||_*}(\mathbf{X}) =
-        \mathbf{U} diag{prox_{\tau \sigma ||.||_1}(\boldsymbol\lambda)} \mathbf{V}
+        \mathbf{U} diag \{ prox_{\tau \sigma ||.||_1}(\boldsymbol\lambda) \} \mathbf{V}
 
     where :math:`\mathbf{U}`, :math:`\boldsymbol\lambda`, and
     :math:`\mathbf{V}` define the SVD of :math:`X`.

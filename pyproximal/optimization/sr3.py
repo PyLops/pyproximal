@@ -79,10 +79,10 @@ def _lsqr(Op, data, iter_lim, z_old, x0, kappa, eps, Reg):
 
 def SR3(Op, Reg, data, kappa, eps, x0=None, adaptive=True,
         iter_lim_outer=int(1e2), iter_lim_inner=int(1e2)):
-    r"""Implementation of SR3
+    r"""Sparse Relaxed Regularized Regression
 
-    This function applies SR3 to an inverse problem with a sparsity constraint,
-    of the form
+    Applies the Sparse Relaxed Regularized Regression (SR3) algorithm to
+    an inverse problem with a sparsity constraint of the form
 
     .. math::
 
