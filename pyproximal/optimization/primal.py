@@ -29,7 +29,7 @@ def _backtracking(x, tau, proxf, proxg, epsg, beta=0.5, niterback=10):
     return z, tau
 
 
-def ProximalPoint(prox, x0, tau, niter=10, show=False):
+def ProximalPoint(prox, x0, tau, niter=10, callback=None, show=False):
     r"""Proximal point algorithm
 
     Solves the following minimization problem using Proximal point algorithm:
@@ -51,6 +51,9 @@ def ProximalPoint(prox, x0, tau, niter=10, show=False):
         Positive scalar weight
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
+    callback : :obj:`callable`, optional
+        Function with signature (``callback(x)``) to call after each iteration
+        where ``x`` is the current model vector
     show : :obj:`bool`, optional
         Display iterations log
 
@@ -79,6 +82,11 @@ def ProximalPoint(prox, x0, tau, niter=10, show=False):
     x = x0.copy()
     for iiter in range(niter):
         x = prox.prox(x, tau)
+
+        # run callback
+        if callback is not None:
+            callback(x)
+
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 msg = '%6g  %12.5e  %10.3e' % \
