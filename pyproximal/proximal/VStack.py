@@ -1,14 +1,6 @@
 import numpy as np
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
-from pyproximal.projection import BoxProj
-
-
-import numpy as np
-from scipy.sparse.linalg.interface import _get_dtype
-from scipy.sparse.linalg.interface import LinearOperator as spLinearOperator
-from pylops import LinearOperator
-from pylops.basicoperators import MatrixMult
 
 
 class VStack(ProxOperator):

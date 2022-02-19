@@ -111,7 +111,7 @@ This repository is organized as follows:
 
 ## Getting started
 
-You need **Python 3.6 or greater**.
+You need **Python 3.8 or greater**.
 
 #### From PyPi
 

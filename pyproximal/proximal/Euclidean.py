@@ -10,6 +10,11 @@ class Euclidean(ProxOperator):
     Proximal operator of the Euclidean norm: :math:`\sigma ||\mathbf{x}||_2 =
     \sigma \sqrt{\sum x_i^2}`.
 
+    Parameters
+    ----------
+    sigma : :obj:`int`, optional
+        Multiplicative coefficient of :math:`L_{2,1}` norm
+
     Notes
     -----
     The Euclidean proximal operator is defined as:
