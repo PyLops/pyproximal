@@ -30,6 +30,6 @@ class L0BallProj():
 
     def __call__(self, x):
         xshape = x.shape
-        x = x.ravel()
-        x[np.argsort(np.abs(x))[:-self.radius]] = 0
-        return x.reshape(xshape)
+        xf = x.copy().flatten()
+        xf[np.argsort(np.abs(xf))[:-self.radius]] = 0
+        return xf.reshape(xshape)

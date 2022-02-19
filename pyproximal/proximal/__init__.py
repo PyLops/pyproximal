@@ -45,6 +45,6 @@ from .Orthogonal import *
 from .VStack import *
 
 __all__ = ['Box', 'Simplex', 'Intersection', 'AffineSet', 'Quadratic',
-           'Euclidean', 'EuclideanBall', 'L0', 'L1', 'L1Ball', 'L2',
+           'Euclidean', 'EuclideanBall', 'L0Ball', 'L1', 'L1Ball', 'L2',
            'L2Convolve', 'L21', 'L21_plus_L1', 'Huber', 'Nuclear',
            'NuclearBall', 'Orthogonal', 'VStack', 'Nonlinear']
