@@ -134,7 +134,7 @@ import pyproximal
 You can also directly install from the master node (although this is not reccomended)
 
 ```
-pip install git+https://git@github.com/PyLops/pyproximal.git@master
+pip install git+https://git@github.com/PyLops/pyproximal.git@main
 ```
 
 ## Contributing
