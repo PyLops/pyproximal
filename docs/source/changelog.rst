@@ -3,12 +3,22 @@
 Changelog
 =========
 
+Version 0.3.0
+--------------
+*Released on: 23/03/2022*
+
+* Added :py:class:`pyproximal.optimization.palm.PALM` optimizer
+* Added ``callback`` to :py:class:`pyproximal.optimization.primal.ProximalPoint`
+  optimizer
+* Added :py:class:`pyproximal.utils.bilinear.BilinearOperator`
+  and :py:class:`pyproximal.utils.bilinear.LowRankFactorizedMatrix`
+  operators
+
 Version 0.2.0
 --------------
-*Released on: 11/12/2020*
+*Released on: 11/12/2021*
 
-* Added ,
-  :py:class:`pyproximal.proximal.L0Ball`,
+* Added :py:class:`pyproximal.proximal.L0Ball`,
   :py:class:`pyproximal.proximal.L1Ball`,
   :py:class:`pyproximal.proximal.L21_plus_L1`,
   :py:class:`pyproximal.proximal.Nuclear`,
@@ -29,7 +39,7 @@ Version 0.2.0
 
 Version 0.1.0
 --------------
-*Released on: 24/04/2020*
+*Released on: 24/04/2021*
 
 * Added :py:class:`pyproximal.optimization.sr3.SR3` solver
 * Added :py:class:`pyproximal.projection.AffineSetProj` and

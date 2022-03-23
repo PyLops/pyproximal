@@ -113,6 +113,10 @@ This repository is organized as follows:
 
 You need **Python 3.8 or greater**.
 
+*Note: Versions prior to v0.3.0 work alsi with Python 3.6 or greater, however they 
+require scipy version to be lower than v1.8.0.*
+
+
 #### From PyPi
 
 If you want to use PyProximal within your codes,

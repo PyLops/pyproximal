@@ -5,6 +5,9 @@ Installation
 
 To install the PyProximal library you will need **Python 3.8 or greater**.
 
+.. note::
+    Versions prior to v0.3.0 work alsi with Python 3.6 or greater, however they
+    require scipy version to be lower than v1.8.0
 
 Dependencies
 ------------

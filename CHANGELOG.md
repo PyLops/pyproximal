@@ -1,3 +1,10 @@
+# 0.3.0
+* Added ``pyproximal.optimization.palm.PALM`` optimizer
+* Added ``callback`` to ``pyproximal.optimization.proximal.ProximalPoint`` 
+  optimizer
+* Added ``pyproximal.utils.bilinear.BilinearOperator`` and 
+  ``pyproximal.utils.bilinear.LowRankFactorizedMatrix`` operators
+
 # 0.2.0
 * Added ``pyproximal.proximal.L0Ball``, ``pyproximal.proximal.L1Ball``, 
   ``pyproximal.proximal.L21_plus_L1``, ``pyproximal.proximal.Nuclear``, 
