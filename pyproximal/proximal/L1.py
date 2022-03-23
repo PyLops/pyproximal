@@ -5,7 +5,7 @@ from pyproximal.projection import BoxProj, L1BallProj
 from pyproximal import ProxOperator
 
 
-def _softthreshold(x, thresh, g=None):
+def _softthreshold(x, thresh):
     r"""Soft thresholding.
 
     Applies soft thresholding to vector ``x - g``.
@@ -16,8 +16,6 @@ def _softthreshold(x, thresh, g=None):
         Vector
     thresh : :obj:`float`
         Threshold
-    g : :obj:`numpy.ndarray`, optional
-        Vector to subtract
 
     Returns
     -------

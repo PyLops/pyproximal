@@ -27,7 +27,7 @@ class L21(ProxOperator):
 
     .. math::
 
-        ||\mathbf{X}||_{2,1} = \sigma \sum_{j=0}^{N'_x} ||\mathbf{x}_j||_2 =
+        \sigma ||\mathbf{X}||_{2,1} = \sigma \sum_{j=0}^{N'_x} ||\mathbf{x}_j||_2 =
         \sigma \sum_{j=0}^{N'_x} \sqrt{\sum_{i=0}^{N_{dim}}} |x_{ij}|^2
 
     the proximal operator is:
