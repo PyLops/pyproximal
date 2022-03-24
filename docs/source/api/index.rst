@@ -75,6 +75,7 @@ Operators
     NuclearBall
     Orthogonal
     VStack
+    SCAD
 
 
 Other operators
