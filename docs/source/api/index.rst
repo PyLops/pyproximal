@@ -121,6 +121,13 @@ Primal
 
     PALM
 
+.. currentmodule:: pyproximal.optimization.pnp
+
+.. autosummary::
+   :toctree: generated/
+
+    PlugAndPlay
+
 
 Primal-dual
 ~~~~~~~~~~~

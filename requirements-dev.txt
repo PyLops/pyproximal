@@ -5,6 +5,7 @@ numba
 scikit-image
 matplotlib
 ipython
+bm3d
 pytest
 pytest-runner
 setuptools_scm

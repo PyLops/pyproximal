@@ -14,6 +14,7 @@ operators:
     ADMM                            Alternating Direction Method of Multipliers
     LinearizedADMM                  Linearized ADMM
     TwIST                           Two-step Iterative Shrinkage/Threshold
+    PlugAndPlay                     Plug-and-Play Prior with ADMM
 
 A list of solvers in ``pylops.optimization.proximaldual`` using both proximal
 and dual proximal operators:
@@ -39,4 +40,4 @@ on a special use of the Primal-Dual algorithm:
 
 """
 
-from . import primal, primaldual, bregman, segmentation, sr3, palm
+from . import primal, primaldual, bregman, segmentation, sr3, palm, pnp
