@@ -122,12 +122,13 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
         Proximal operator of g function
     x0 : :obj:`numpy.ndarray`
         Initial vector
-    tau : :obj:`float`, optional
+    tau : :obj:`float` or :obj:`numpy.ndarray`, optional
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
         the Lipschitz constant of :math:`\nabla f`. When ``tau=None``,
         backtracking is used to adaptively estimate the best tau at each
-        iteration.
+        iteration. Finally note that :math:`\tau` can be chosen to be a vector
+        when dealing with problems with multiple right-hand-sides
     beta : obj:`float`, optional
         Backtracking parameter (must be between 0 and 1)
     epsg : :obj:`float`, optional
@@ -242,12 +243,13 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
         Proximal operator of g function
     x0 : :obj:`numpy.ndarray`
         Initial vector
-    tau : :obj:`float`, optional
+    tau : :obj:`float` or :obj:`numpy.ndarray`, optional
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
         the Lipschitz constant of :math:`\nabla f`. When ``tau=None``,
         backtracking is used to adaptively estimate the best tau at each
-        iteration.
+        iteration. Finally note that :math:`\tau` can be chosen to be a vector
+        when dealing with problems with multiple right-hand-sides
     beta : obj:`float`, optional
         Backtracking parameter (must be between 0 and 1)
     epsg : :obj:`float`, optional
