@@ -9,7 +9,7 @@ def _check_tau(func):
 
     """
     def wrapper(*args, **kwargs):
-        if args[2] <= 0:
+        if np.any(args[2] <= 0):
             raise ValueError('tau must be positive')
         return func(*args, **kwargs)
     return wrapper
