@@ -12,13 +12,13 @@ par2 = {'nx': 11, 'ny': 8, 'axis': 1, 'dtype': 'float64'}  # odd float64 dir1
 par3 = {'nx': 10, 'ny': 8, 'axis': 0, 'dtype': 'float32'}  # even float32 dir0
 par4 = {'nx': 11, 'ny': 8, 'axis': 1, 'dtype': 'float64'}  # odd float64  dir1
 
-np.random.seed(10)
-
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Box(par):
     """Box projection and proximal/dual proximal of related indicator
     """
+    np.random.seed(10)
+
     box = Box(-1, 1)
     x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
 
@@ -31,7 +31,9 @@ def test_Box(par):
 def test_EuclBall(par):
     """Euclidean Ball projection and proximal/dual proximal of related indicator
     """
-    eucl = EuclideanBall(np.zeros(par['nx']), 1)
+    np.random.seed(10)
+
+    eucl = EuclideanBall(np.zeros(par['nx']), 1.)
     x = np.random.normal(0., 1., par['nx']).astype(par['dtype']) + 1.
 
     # evaluation
@@ -48,6 +50,8 @@ def test_EuclBall(par):
 def test_L0Ball(par):
     """L0 Ball projection and proximal/dual proximal of related indicator
     """
+    np.random.seed(10)
+
     l0 = L0Ball(1)
     x = np.random.normal(0., 1., par['nx']).astype(par['dtype']) + 1.
 
@@ -65,6 +69,8 @@ def test_L0Ball(par):
 def test_L1Ball(par):
     """L1 Ball projection and proximal/dual proximal of related indicator
     """
+    np.random.seed(10)
+
     l1 = L1Ball(par['nx'], 1)
     x = np.random.normal(0., 1., par['nx']).astype(par['dtype']) + 1.
 
@@ -82,6 +88,8 @@ def test_L1Ball(par):
 def test_NuclBall(par):
     """Nuclear Ball projection and proximal/dual proximal of related indicator
     """
+    np.random.seed(10)
+
     nuc = NuclearBall((par['nx'], par['ny']), 1)
     x = np.random.normal(0., 1., (par['nx'], par['ny'])).astype(par['dtype']) \
         + np.eye(par['nx'], par['ny'])
@@ -100,6 +108,8 @@ def test_NuclBall(par):
 def test_Simplex(par):
     """Simplex projection and proximal/dual proximal of related indicator
     """
+    np.random.seed(10)
+
     for engine in ['numpy', 'numba']:
         x = np.abs(np.random.normal(0., 1., par['nx']).astype(par['dtype']))
 
@@ -120,6 +130,8 @@ def test_Simplex(par):
 def test_Simplex_multi(par):
     """Simplex projection and proximal/dual proximal for 2d array
     """
+    np.random.seed(10)
+
     dims = (par['ny'], par['nx'])
     otheraxis = 1 if par['axis'] == 0 else 0
     for engine in ['numpy', 'numba']:
@@ -142,6 +154,8 @@ def test_Simplex_multi(par):
 def test_Affine(par):
     """Affine set projection and proximal/dual proximal of related indicator
     """
+    np.random.seed(10)
+
     Op = Identity(par['nx'])
     b = np.random.normal(0., 1., par['nx'])
     aff = AffineSet(Op, b, 10)
