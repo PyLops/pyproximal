@@ -199,3 +199,4 @@ you are required to rebuild the entire documentation before your changes will be
 * Matteo Ravasi, mrava87
 * Nick Luiken, NickLuiken
 * Eneko Uruñuela, eurunuela
+* Marcus Valtonen Örnhag, marcusvaltonen
