@@ -76,6 +76,7 @@ Operators
     Orthogonal
     VStack
     SCAD
+    Log
 
 
 Other operators

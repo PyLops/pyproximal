@@ -27,3 +27,20 @@ ax[1].plot(x, scad.prox(x, 0.5), 'r-', label='tau=0.50')
 ax[1].plot(x, scad.prox(x, 0.25), 'm-', label='tau=0.25')
 ax[1].plot(x, x, 'k--')
 ax[1].legend()
+
+###############################################################################
+# The Log penalty encourages sparsity more than the l1-penalty and
+# parametrizes a family of functions which lie between l0 and l1-penalties.
+log = pyproximal.Log(1, 0.5)
+x = np.linspace(-10, 10, 101)
+
+fig, ax = plt.subplots(1, 2)
+ax[0].plot(x, log.elementwise(x), label='Log')
+ax[0].plot(x, np.abs(x), 'k--', label='l1')
+ax[0].legend()
+ax[1].plot(x, log.prox(x, 1), label='tau=1')
+ax[1].plot(x, log.prox(x, 0.75), 'b-', label='tau=0.75')
+ax[1].plot(x, log.prox(x, 0.5), 'r-', label='tau=0.50')
+ax[1].plot(x, log.prox(x, 0.25), 'm-', label='tau=0.25')
+ax[1].plot(x, x, 'k--')
+ax[1].legend()
