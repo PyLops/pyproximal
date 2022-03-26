@@ -96,6 +96,9 @@ class L2(ProxOperator):
         # create data term
         if self.Op is not None:
             self.OpTb = self.sigma * self.Op.H @ self.b
+            # create A.T A upfront for explicit operators
+            if self.Op.explicit:
+                self.ATA = np.conj(self.Op.A.T) @ self.Op.A
 
     def __call__(self, x):
         if self.Op is not None and self.b is not None:
@@ -132,7 +135,7 @@ class L2(ProxOperator):
                 y -= tau * self.alpha * self.q
             if self.Op.explicit:
                 Op1 = MatrixMult(np.eye(self.Op.shape[1]) +
-                                 tau * self.sigma * np.conj(self.Op.A.T) @ self.Op.A)
+                                 tau * self.sigma * self.ATA)
                 x = Op1.div(y)
             else:
                 Op1 = Identity(self.Op.shape[1], dtype=self.Op.dtype) + \
