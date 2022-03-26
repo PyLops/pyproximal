@@ -3,10 +3,10 @@ import pytest
 import numpy as np
 
 from pyproximal.utils import moreau
-from pyproximal.proximal import SCAD
+from pyproximal.proximal import Log, SCAD
 
-par1 = {'nx': 10, 'sigma': 1., 'a': 2.1, 'dtype': 'float32'}  # even float32
-par2 = {'nx': 11, 'sigma': 2., 'a': 3.7, 'dtype': 'float64'}  # odd float64
+par1 = {'nx': 10, 'sigma': 1., 'a': 2.1, 'gamma': 0.5, 'dtype': 'float32'}  # even float32
+par2 = {'nx': 11, 'sigma': 2., 'a': 3.7, 'gamma': 5.0, 'dtype': 'float64'}  # odd float64
 
 np.random.seed(10)
 
@@ -32,3 +32,18 @@ def test_SCAD(par):
     # Make sure that a ValueError is raised if you try to instantiate with a <= 2
     with pytest.raises(ValueError):
         _ = SCAD(sigma=1.0, a=1.7)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_Log(par):
+    """Log penalty and proximal/dual proximal
+    """
+    log = Log(sigma=par['sigma'], gamma=par['gamma'])
+    # Log
+    x = np.random.normal(0., 10.0, par['nx']).astype(par['dtype'])
+    expected = par['sigma'] / np.log(par['gamma'] + 1) * np.linalg.norm(np.log(par['gamma'] * np.abs(x) + 1), 1)
+    assert log(x) == pytest.approx(expected)
+
+    # Check proximal operator
+    tau = 2.
+    assert moreau(log, x, tau)

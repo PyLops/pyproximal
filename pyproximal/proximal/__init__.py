@@ -25,6 +25,7 @@ The subpackage proximal contains a number of proximal operators:
     Orthogonal	                    Product between orthogonal operator and vector
     VStack	                        Stack of proximal operators
     SCAD                            Smoothly clipped absolute deviation
+    Log                             Logarithmic
 
 """
 
@@ -45,8 +46,10 @@ from .Nuclear import *
 from .Orthogonal import *
 from .VStack import *
 from .SCAD import *
+from .Log import *
 
 __all__ = ['Box', 'Simplex', 'Intersection', 'AffineSet', 'Quadratic',
            'Euclidean', 'EuclideanBall', 'L0Ball', 'L1', 'L1Ball', 'L2',
            'L2Convolve', 'L21', 'L21_plus_L1', 'Huber', 'Nuclear',
-           'NuclearBall', 'Orthogonal', 'VStack', 'Nonlinear', 'SCAD']
+           'NuclearBall', 'Orthogonal', 'VStack', 'Nonlinear', 'SCAD',
+           'Log']
