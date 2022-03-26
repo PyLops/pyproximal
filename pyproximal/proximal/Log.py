@@ -53,18 +53,14 @@ class Log(ProxOperator):
     def prox(self, x, tau):
         k = tau * self.sigma / np.log(self.gamma + 1)
         out = np.zeros_like(x)
-        f = lambda x, y: k * np.log(self.sigma * np.abs(x) + 1) + (x - np.abs(y)) ** 2 / 2
         for i, y in enumerate(x):
-            b = self.sigma * np.abs(y) - 1
-            discriminant = b ** 2 - 4 * self.sigma * (k * self.sigma - np.abs(y))
-            if discriminant < 0:
-                out[i] = 0
-            else:
+            b = self.gamma * np.abs(y) - 1
+            discriminant = b ** 2 - 4 * self.gamma * (k * self.gamma - np.abs(y))
+            if discriminant >= 0:
                 c = np.sqrt(discriminant)
-                r1 = (b + c) / (2 * self.sigma)
-                r2 = (b - c) / (2 * self.sigma)
-                f1 = f(r1, y)
-                f2 = f(r2, y)
-                out[i] = r1 if f1 < f2 else r2
+                r = np.array([0, (b - c) / (2 * self.gamma), (b + c) / (2 * self.gamma)])
+                val = tau * self.elementwise(r) + (r - np.abs(y)) ** 2 / 2
+                idx = np.argmin(val)
+                out[i] = r[idx]
                 out[i] *= np.sign(y)
         return out
