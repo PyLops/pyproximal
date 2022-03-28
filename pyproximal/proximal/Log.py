@@ -49,16 +49,18 @@ class Log(ProxOperator):
         \gamma z^2 + (1-\gamma y) x + k\gamma - y = 0 .
 
     The discriminant :math:`\Delta` is given by
-        .. math::
+
+    .. math::
         \Delta = (1-\gamma y)^2-4\gamma (k\gamma - y) .
 
-    In case the discriminant is negative the global optimum is obtained when
+    When the discriminant is negative the global optimum is obtained at
     :math:`z=0`; otherwise, it is obtained when
-        .. math::
+
+    .. math::
         z = \frac{\gamma x - 1 +\sqrt{\Delta}}{2\gamma} .
 
     Note that the other stationary point must be a local maximum since
-    :math:`\gamma>0`, and can therefore be discarded.
+    :math:`\gamma>0` and can therefore be discarded.
 
     .. [1] Friedman, J. H. "Fast sparse regression and classification",
         International Journal of Forecasting, 28(3):722 – 738, 2012.
