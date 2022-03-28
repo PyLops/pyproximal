@@ -67,10 +67,14 @@ class ETP(ProxOperator):
     def prox(self, x, tau):
         k = tau * self.sigma / (1 - np.exp(-self.gamma))
         out = np.zeros_like(x)
-        for i, y in enumerate(x):
-            tmp = np.exp(-np.abs(y) * self.gamma) * k * self.gamma ** 2
-            if tmp <= np.exp(-1):
-                stat_point = np.sign(y) * np.real(lambertw(-tmp)) / self.gamma + y
-                if tau * self.elementwise(stat_point) + (stat_point - y) ** 2 / 2 < y ** 2 / 2:
-                    out[i] = stat_point
+
+        # Get real-valued solutions to the Lambert W function
+        tmp = np.exp(-np.abs(x) * self.gamma) * k * self.gamma ** 2
+        idx = tmp <= np.exp(-1)
+        stat_points = np.sign(x[idx]) * np.real(lambertw(-tmp[idx])) / self.gamma + x[idx]
+
+        # Check which stationary points are global minima
+        idx_minima = tau * self.elementwise(stat_points) + (stat_points - x[idx]) ** 2 / 2 < x[idx] ** 2 / 2
+        idx[idx] = idx_minima
+        out[idx] = stat_points[idx_minima]
         return out
