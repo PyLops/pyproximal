@@ -8,6 +8,14 @@ from pyproximal import ProxOperator
 class ETP(ProxOperator):
     r"""Exponential-type penalty (ETP).
 
+    The exponential-type penalty is defined as
+
+    .. math::
+
+        ETP_{\sigma,\gamma}(\mathbf{x}) = \sum_i \frac{\sigma}{1-e^{-\gamma}}(1-e^{-\gamma|x_i|})
+
+    for :math:`{\sigma>0}`, and :math:`{\gamma\geq 0}`.
+
     Parameters
     ----------
     sigma : :obj:`float`
@@ -17,15 +25,23 @@ class ETP(ProxOperator):
 
     Notes
     -----
-    The exponential-type penalty is defined as
+    As :math:`{\gamma\rightarrow 0}` the exponential-type penalty approaches the l1-penalty and when
+    :math:`{\gamma\rightarrow\infty}` tends to the l0-penalty [1]_.
+
+    As for the proximal operator, consider the 1-dimensional case
 
     .. math::
 
-        ETP_{\sigma,\gamma}(\mathbf{x}) = \sum_i \frac{\sigma}{1-e^{-\gamma}}(1-e^{-\gamma|x_i|})
+        prox_{\tau ETP(\cdot)}(x) = argmin_{z} ETP(z) + \frac{1}{2\tau}\|x - z\|_2^2
 
-    for :math:`{\sigma>0}`, and :math:`{\gamma\geq 0}`. Note that when
-    :math:`{\gamma\rightarrow 0}` the logarithmic penalty approaches the l1-penalty and when
-    :math:`{\gamma\rightarrow\infty}` tends to the l0-penalty [1]_.
+    and assume that :math:`x\geq 0`. The minima can be obtained when :math:`z=0` or at a stationary point,
+    where the latter must satisfy
+
+    .. math::
+
+        x = z + \frac{\gamma \sigma \tau}{1-e^{-\gamma}} e^{-\gamma z} .
+
+    The solution to the above equation can be expressed using the *Lambert W function*.
 
     .. [1] Gao, C. et al. "A Feasible Nonconvex Relaxation Approach to Feature Selection",
         In the Proceedings of the Conference on Artificial Intelligence (AAAI), 2011.
