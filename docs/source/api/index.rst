@@ -77,6 +77,7 @@ Operators
     VStack
     SCAD
     Log
+    ETP
 
 
 Other operators
