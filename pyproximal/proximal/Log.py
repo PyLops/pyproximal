@@ -94,7 +94,6 @@ class Log(ProxOperator):
         r = np.vstack((np.zeros_like(c), (b[idx] + c) / (2 * self.gamma)))
         val = tau * self.elementwise(r) + (r - np.abs(x[idx])) ** 2 / 2
         idx_minima = np.argmin(val, axis=0)
-        print(np.unique(idx_minima))
         out[idx] = r[idx_minima, range(r.shape[1])]
         out *= np.sign(x)
         return out
