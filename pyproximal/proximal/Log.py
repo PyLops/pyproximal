@@ -11,7 +11,7 @@ class Log(ProxOperator):
 
     .. math::
 
-        Log_{\sigma,\gamma}(\mathbf{x}) = \sum_i \frac{\sigma}{\log(\gamma + 1)}\log(\gamma|x_i| + 1)
+        \mathrm{Log}_{\sigma,\gamma}(\mathbf{x}) = \sum_i \frac{\sigma}{\log(\gamma + 1)}\log(\gamma|x_i| + 1)
 
     where :math:`{\sigma>0}`, :math:`{\gamma>0}`.
 
@@ -24,26 +24,28 @@ class Log(ProxOperator):
 
     Notes
     -----
-    The logarithmic penalty is an extension of the elastic net family of penalties to non-convex members, which
-    should produce sparser solutions compared to the l1-penalty [1]_. The pyproximal implementation considers a scaled
-    version that satisfies :math:`{Log_{\sigma,\gamma}(0) = 0}` and
-    :math:`{Log_{\sigma,\gamma}(1) = \sigma}`, which is suitable also for penalizing singular values. Note that when
-    :math:`{\gamma\rightarrow 0}` the logarithmic penalty approaches the l1-penalty and when
-    :math:`{\gamma\rightarrow\infty}` it mimicks the l0-penalty.
+    The logarithmic penalty is an extension of the elastic net family of penalties to
+    non-convex members, which should produce sparser solutions compared to the
+    :math:`\ell_1`-penalty [1]_. The pyproximal implementation considers a scaled
+    version that satisfies :math:`{\mathrm{Log}_{\sigma,\gamma}(0) = 0}` and
+    :math:`{\mathrm{Log}_{\sigma,\gamma}(1) = \sigma}`, which is suitable also for
+    penalizing singular values. Note that when :math:`{\gamma\rightarrow 0}` the
+    logarithmic penalty approaches the l1-penalty and when
+    :math:`{\gamma\rightarrow\infty}` it mimicks the :math:`\ell_0`-penalty.
 
-    The proximal operator can be analyzed using the 1-dimensional case
+    The proximal operator can be analyzed using the one-dimensional case
 
     .. math::
-        prox_{\tau Log(\cdot)}(x) = argmin_{z} Log(z) + \frac{1}{2\tau}(x - z)^2
+        \prox_{\tau \mathrm{Log}(\cdot)}(x) = \argmin_{z} \mathrm{Log}(z) + \frac{1}{2\tau}(x - z)^2
 
-    where we assume that :math:`x\geq 0`. The minima can be obtained when :math:`z=0` or at a local minimum.
-    Consider therefore
+    where we assume that :math:`x\geq 0`. The minima can be obtained when :math:`z=0`
+    or at a local minimum. Consider therefore
 
     .. math::
         f(z) = k \log(\gamma x + 1) + \frac{1}{2} (x - z)^2
 
-    where :math:`k= \frac{\tau \sigma}{\log(\gamma + 1)}` is introduced for convenience.
-    The condition that :math:`f'(z) = 0` yields the following equation
+    where :math:`k= \frac{\tau \sigma}{\log(\gamma + 1)}` is introduced for
+    convenience. The condition that :math:`f'(z) = 0` yields the following equation
 
     .. math::
         \gamma z^2 + (1-\gamma y) x + k\gamma - y = 0 .

@@ -132,6 +132,16 @@ html_context = {
     'github_version': 'master',
 }
 
+# Math macros
+mathjax3_config = {
+    "tex": {
+        "macros": {
+            "prox": r"\mathrm{prox}",
+            "sgn": r"\mathrm{sgn}",
+            "argmin": r"\mathrm{argmin}",
+        }
+    }
+}
 
 # Load the custom CSS files (needs sphinx >= 1.6 for this to work)
 def setup(app):

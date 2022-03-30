@@ -7,28 +7,42 @@ from pyproximal import ProxOperator
 class SCAD(ProxOperator):
     r"""Smoothly clipped absolute deviation (SCAD) penalty.
 
-    Parameters
-    ----------
-    sigma : :obj:`float`
-        First threshold parameter (named :math:`\lambda` in the original paper [1])
-    a : :obj:`float`, optional
-        Second threshold parameter (must be larger than 2). Default is 3.7, see [1] for more information.
-
-    Notes
-    -----
     The SCAD penalty is a concave function and is defined as
 
     .. math::
 
-        SCAD_{\sigma}(\mathbf{x}) =
+        \mathrm{SCAD}_{\sigma, a}(\mathbf{x}) =
         \begin{cases}
         \sigma x_i, & |x_i| \leq \sigma \\
         \frac{-x_i^2 + 2 a \sigma  - \sigma^2}{2 (a - 1)}, & \sigma < |x_i| \leq a\sigma \\
         \frac{(a + 1)\sigma^2}{2}, & |x_i| > a\sigma
         \end{cases}
 
-    Furthermore, it is continuous and differentiable and does not suffer from biasedness as the l1-norm, nor is
-    discontinuous as the hard thresholding penalty. Thus, it fuses the most favourable properties of both penalties.
+    Parameters
+    ----------
+    sigma : :obj:`float`
+        First threshold parameter (named :math:`\lambda` in the original paper [1]_)
+    a : :obj:`float`, optional
+        Second threshold parameter (must be larger than 2). Default is 3.7, see [1]_ for more information.
+
+    Notes
+    -----
+
+    The SCAD penalty is continuous and differentiable and does not suffer from
+    biasedness as the :math:`\ell_1`-norm, nor is discontinuous as the hard
+    thresholding penalty. Thus, it fuses the most favourable properties of both
+    penalties.
+
+    The proximal operator is given by
+
+    .. math::
+
+        \prox_{\tau \mathrm{SCAD}_{\sigma, a}(\cdot)}(\mathbf{x}) =
+        \begin{cases}
+        \sgn(x_i)\max(0, |x_i| - \sigma), & |x_i| \leq \frac{\sigma(a - 1 - \tau + a\tau)}{a - 1} \\
+        \frac{(a-1)x_i - \sgn(x_i)a\tau\sigma}{a-1-\tau}, & \frac{\sigma(a - 1 - \tau + a\tau)}{a - 1} < |x_i| \leq a\sigma \\
+        x_i, & |x_i| > a\sigma
+        \end{cases}
 
     .. [1] Fan, J. and Li, R. "Variable selection via nonconcave penalized likelihood and its oracle
         properties" Journal of the American Statistical Association, 96(456):1348–1360, 2001
