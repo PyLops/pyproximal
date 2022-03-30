@@ -38,6 +38,10 @@ class L2(ProxOperator):
     warm : :obj:`bool`, optional
         Warm start (``True``) or not (``False``). Uses estimate from previous
         call of ``prox`` method.
+    densesolver : :obj:`str`, optional
+        Use ``numpy`` or ``scipy`` solver when dealing with explicit operators.
+        Choose ``densesolver=None`` when using PyLops versions earlier than
+        v1.18.1 or v2.0.0
 
     Notes
     -----
@@ -81,7 +85,7 @@ class L2(ProxOperator):
 
     """
     def __init__(self, Op=None, b=None, q=None, sigma=1., alpha=1.,
-                 qgrad=True, niter=10, x0=None, warm=True):
+                 qgrad=True, niter=10, x0=None, warm=True, densesolver=None):
         super().__init__(Op, True)
         self.b = b
         self.q = q
@@ -91,6 +95,7 @@ class L2(ProxOperator):
         self.niter = niter
         self.x0 = x0
         self.warm = warm
+        self.densesolver = densesolver
         self.count = 0
 
         # create data term
@@ -136,7 +141,12 @@ class L2(ProxOperator):
             if self.Op.explicit:
                 Op1 = MatrixMult(np.eye(self.Op.shape[1]) +
                                  tau * self.sigma * self.ATA)
-                x = Op1.div(y)
+                if densesolver is None:
+                    # to allow backward compatibility with PyLops versions earlier
+                    # than v1.18.1 and v2.0.0
+                    x = Op1.div(y)
+                else:
+                    x = Op1.div(y, densesolver=self.densesolver)
             else:
                 Op1 = Identity(self.Op.shape[1], dtype=self.Op.dtype) + \
                       tau * self.sigma * self.Op.H * self.Op
