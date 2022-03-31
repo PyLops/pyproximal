@@ -36,7 +36,7 @@ def ProximalPoint(prox, x0, tau, niter=10, callback=None, show=False):
 
     .. math::
 
-        \mathbf{x} = arg min_\mathbf{x} f(\mathbf{x})
+        \mathbf{x} = \argmin_\mathbf{x} f(\mathbf{x})
 
     where :math:`f(\mathbf{x})` is any convex function that has a known
     proximal operator.
@@ -68,7 +68,7 @@ def ProximalPoint(prox, x0, tau, niter=10, callback=None, show=False):
 
     .. math::
 
-        \mathbf{x}^{k+1} = prox_{\tau f}(\mathbf{x}^k)
+        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{x}^k)
 
     """
     if show:
@@ -108,7 +108,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
     .. math::
 
-        \mathbf{x} = arg min_\mathbf{x} f(\mathbf{x}) + \epsilon g(\mathbf{x})
+        \mathbf{x} = \argmin_\mathbf{x} f(\mathbf{x}) + \epsilon g(\mathbf{x})
 
     where :math:`f(\mathbf{x})` is a smooth convex function with a uniquely
     defined gradient and :math:`g(\mathbf{x})` is any convex function that
@@ -154,7 +154,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
     .. math::
 
-        \mathbf{x}^{k+1} = prox_{\tau^k \epsilon g}(\mathbf{x}^k -
+        \mathbf{x}^{k+1} = \prox_{\tau^k \epsilon g}(\mathbf{x}^k -
         \tau^k \nabla f(\mathbf{x}^k))
 
     where at each iteration :math:`\tau^k` can be estimated by back-tracking
@@ -164,7 +164,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
         \begin{aligned}
         &\tau = \tau^{k-1} &\\
-        &repeat \; \mathbf{z} = prox_{\tau \epsilon g}(\mathbf{x}^k -
+        &repeat \; \mathbf{z} = \prox_{\tau \epsilon g}(\mathbf{x}^k -
         \tau \nabla f(\mathbf{x}^k)), \tau = \beta \tau \quad if \;
         f(\mathbf{z}) \leq \tilde{f}_\tau(\mathbf{z}, \mathbf{x}^k) \\
         &\tau^k = \tau, \quad \mathbf{x}^{k+1} = \mathbf{z} &\\
@@ -229,7 +229,7 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
     .. math::
 
-        \mathbf{x} = arg min_\mathbf{x} f(\mathbf{x}) + \epsilon g(\mathbf{x})
+        \mathbf{x} = \argmin_\mathbf{x} f(\mathbf{x}) + \epsilon g(\mathbf{x})
 
     where :math:`f(\mathbf{x})` is a smooth convex function with a uniquely
     defined gradient and :math:`g(\mathbf{x})` is any convex function that
@@ -278,7 +278,7 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
     .. math::
 
-        \mathbf{x}^{k+1} = prox_{\tau^k f}(\mathbf{y}^{k+1}  -
+        \mathbf{x}^{k+1} = \prox_{\tau^k f}(\mathbf{y}^{k+1}  -
         \tau^k \nabla f(\mathbf{y}^{k+1})) \\
         \mathbf{y}^{k+1} = \mathbf{x}^k + \omega^k
         (\mathbf{x}^k - \mathbf{x}^{k-1})
@@ -363,7 +363,7 @@ def ADMM(proxf, proxg, x0, tau, niter=10, callback=None, show=False):
 
     .. math::
 
-        \mathbf{x},\mathbf{z}  = arg min_{\mathbf{x},\mathbf{z}}
+        \mathbf{x},\mathbf{z}  = \argmin_{\mathbf{x},\mathbf{z}}
         f(\mathbf{x}) + g(\mathbf{z}) \\
         s.t \; \mathbf{Ax}+\mathbf{Bz}=c
 
@@ -413,8 +413,8 @@ def ADMM(proxf, proxg, x0, tau, niter=10, callback=None, show=False):
 
     .. math::
 
-        \mathbf{x}^{k+1} = prox_{\tau f}(\mathbf{z}^{k} - \mathbf{u}^{k})\\
-        \mathbf{z}^{k+1} = prox_{\tau g}(\mathbf{x}^{k+1} + \mathbf{u}^{k})\\
+        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{z}^{k} - \mathbf{u}^{k})\\
+        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{x}^{k+1} + \mathbf{u}^{k})\\
         \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{x}^{k+1} - \mathbf{z}^{k+1}
 
     Note that ``x`` and ``z`` converge to each other, but if iterations are
@@ -466,7 +466,7 @@ def LinearizedADMM(proxf, proxg, A, x0, tau, mu, niter=10,
 
     .. math::
 
-        \mathbf{x} = arg min_\mathbf{x} f(\mathbf{x}) + g(\mathbf{A}\mathbf{x})
+        \mathbf{x} = \argmin_\mathbf{x} f(\mathbf{x}) + g(\mathbf{A}\mathbf{x})
 
     where :math:`f(\mathbf{x})` and :math:`g(\mathbf{x})` are any convex
     function that has a known proximal operator and :math:`\mathbf{A}` is a
@@ -511,9 +511,9 @@ def LinearizedADMM(proxf, proxg, A, x0, tau, mu, niter=10,
 
     .. math::
 
-        \mathbf{x}^{k+1} = prox_{\mu f}(\mathbf{x}^{k} - \frac{\mu}{\tau}
+        \mathbf{x}^{k+1} = \prox_{\mu f}(\mathbf{x}^{k} - \frac{\mu}{\tau}
         \mathbf{A}^H(\mathbf{A} \mathbf{x}^k - \mathbf{z}^k + \mathbf{u}^k))\\
-        \mathbf{z}^{k+1} = prox_{\tau g}(\mathbf{A} \mathbf{x}^{k+1} +
+        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{A} \mathbf{x}^{k+1} +
         \mathbf{u}^k)\\
         \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{A}\mathbf{x}^{k+1} -
         \mathbf{z}^{k+1}
@@ -566,7 +566,7 @@ def TwIST(proxg, A, b, x0, alpha=None, beta=None, eigs=None, niter=10,
 
     .. math::
 
-        \mathbf{x} = arg min_\mathbf{x} \frac{1}{2}
+        \mathbf{x} = \argmin_\mathbf{x} \frac{1}{2}
         ||\mathbf{b} - \mathbf{Ax}||_2^2 + g(\mathbf{x})
 
     where :math:`\mathbf{A}` is a linear operator and :math:`g(\mathbf{x})`
@@ -616,10 +616,10 @@ def TwIST(proxg, A, b, x0, alpha=None, beta=None, eigs=None, niter=10,
 
         \mathbf{x}^{k+1} = (1-\alpha) \mathbf{x}^{k-1} +
         (\alpha-\beta) \mathbf{x}^k +
-        \beta prox_{g} (\mathbf{x}^k + \mathbf{A}^H
+        \beta \prox_{g} (\mathbf{x}^k + \mathbf{A}^H
         (\mathbf{b} - \mathbf{A}\mathbf{x}^k)).
 
-    where :math:`\mathbf{x}^{1} = prox_{g} (\mathbf{x}^0 + \mathbf{A}^T
+    where :math:`\mathbf{x}^{1} = \prox_{g} (\mathbf{x}^0 + \mathbf{A}^T
     (\mathbf{b} - \mathbf{A}\mathbf{x}^0))`.
 
     The optimal weighting parameters :math:`\alpha` and :math:`\beta` are

@@ -10,7 +10,7 @@ def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1.,
 
     .. math::
 
-        \mathbf{x}\mathbf{,y} = arg min_{\mathbf{x}, \mathbf{y}}
+        \mathbf{x}\mathbf{,y} = \argmin_{\mathbf{x}, \mathbf{y}}
         f(\mathbf{x}) + g(\mathbf{y}) + H(\mathbf{x}, \mathbf{y})
 
     where :math:`f(\mathbf{x})` and :math:`g(\mathbf{y})` are any pair of
@@ -54,9 +54,9 @@ def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1.,
 
     .. math::
 
-        \mathbf{x}^{k+1} = prox_{c_k f}(\mathbf{x}^{k} -
+        \mathbf{x}^{k+1} = \prox_{c_k f}(\mathbf{x}^{k} -
         \frac{1}{c_k}\nabla_x H(\mathbf{x}^{k}, \mathbf{y}^{k}))\\
-        \mathbf{y}^{k+1} = prox_{d_k g}(\mathbf{y}^{k} -
+        \mathbf{y}^{k+1} = \prox_{d_k g}(\mathbf{y}^{k} -
         \frac{1}{d_k}\nabla_y H(\mathbf{x}^{k+1}, \mathbf{y}^{k}))\\
 
     Here :math:`c_k=\gamma_f L_x` and :math:`d_k=\gamma_g L_y`, where

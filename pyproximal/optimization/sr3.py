@@ -134,7 +134,7 @@ def SR3(Op, Reg, data, kappa, eps, x0=None, adaptive=True,
             \mathbf{x}_{k+1} = (\mathbf{A}^T\mathbf{A} + \kappa
             \mathbf{L}^T\mathbf{L})^{-1}(\mathbf{A}^T\mathbf{b} +
             \kappa \mathbf{L}^T\mathbf{y}_k) \\
-            \mathbf{y}_{k+1} = \text{prox}_{\lambda/\kappa\mathcal{R}}
+            \mathbf{y}_{k+1} = \prox_{\lambda/\kappa\mathcal{R}}
             (\mathbf{Lx}_{k+1})
 
     """
