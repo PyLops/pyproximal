@@ -45,7 +45,7 @@ class ProxOperator(object):
 
     .. math::
 
-        prox_{\tau f} (\mathbf{x}) = arg \; min_{\mathbf{y}} f(\mathbf{y}) +
+        prox_{\tau f} (\mathbf{x}) = \argmin_{\mathbf{y}} f(\mathbf{y}) +
         \frac{1}{2 \tau}||\mathbf{y} - \mathbf{x}||^2_2
 
     """

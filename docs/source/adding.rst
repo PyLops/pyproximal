@@ -104,14 +104,14 @@ of a box from ``-sigma`` to ``sigma`` as defined in the ``__init__`` method. Our
 Testing the operator
 --------------------
 Being able to write an operator is not yet a guarantee of the fact that the operator is correct. Testing proximal
-operators is however not easy. Two different scenarios can be idetified:
+operators is however not easy. Two different scenarios can be identified:
 
 - a closed form is available for both the proximal and the dual proximal. In this case, we can directly implement
   both of them and use the Moreau identity (:func:`pyproximal.utils.moreau`) to validate their correctness:
 
     .. math::
-        \mathbf{x} = prox_{\tau f} (\mathbf{x}) +
-            \tau prox_{\frac{1}{\tau} f^*} (\frac{\mathbf{x}}{\tau})
+        \mathbf{x} = \prox_{\tau f} (\mathbf{x}) +
+            \tau \prox_{\frac{1}{\tau} f^*} (\frac{\mathbf{x}}{\tau})
 
 - a closed form is not available for either the proximal or the dual proximal. In this case, we cannot validate one
   implementation against the other and we need to rely on ad-hoc tests to validate the implementation that we have

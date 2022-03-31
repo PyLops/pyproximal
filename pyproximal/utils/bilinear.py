@@ -55,7 +55,7 @@ class LowRankFactorizedMatrix(BilinearOperator):
 
     Bilinear operator representing the L2 norm of a Low-Rank Factorized
     Matrix defined as: :math:`H(\mathbf{X}, \mathbf{Y}) =
-    \frac{1}{2} ||\mathbf{Op}(\mathbf{X}\mathbf{Y}) - \mathbf{d}||_2^2`,
+    \frac{1}{2} \|\mathbf{Op}(\mathbf{X}\mathbf{Y}) - \mathbf{d}\|_2^2`,
     where :math:`\mathbf{X}` is a matrix of size  :math:`n \times k`,
     :math:`\mathbf{Y}` is a matrix of size :math:`k \times m`, and
     :math:`\mathbf{Op}` is a linear operator of size :math:`p \times n`.

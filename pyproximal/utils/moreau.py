@@ -31,8 +31,8 @@ def moreau(prox, x, tau, tol=1e-5, raiseerror=True, verb=False):
 
     .. math::
 
-        \mathbf{x} = prox_{\tau f} (\mathbf{x}) +
-        \tau prox_{\frac{1}{\tau} f^*} (\frac{\mathbf{x}}{\tau})
+        \mathbf{x} = \prox_{\tau f} (\mathbf{x}) +
+        \tau \prox_{\frac{1}{\tau} f^*} (\frac{\mathbf{x}}{\tau})
 
     This routine is used to evaluate if the prox and dualprox implementations
     of a ``pyprox.ProxOperator`` satisfy such identity.
