@@ -136,9 +136,9 @@ html_context = {
 mathjax3_config = {
     "tex": {
         "macros": {
-            "prox": r"\mathrm{prox}",
-            "sgn": r"\mathrm{sgn}",
-            "argmin": r"\mathrm{argmin}",
+            "prox": r"\operatorname{prox}",
+            "sgn": r"\operatorname{sgn}",
+            "argmin": r"\operatorname*{argmin}",
         }
     }
 }

@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 
 from pyproximal.utils import moreau
-from pyproximal.proximal import ETP, Log, SCAD
+from pyproximal.proximal import ETP, Geman, Log, SCAD
 
 par1 = {'nx': 10, 'sigma': 1., 'a': 2.1, 'gamma': 0.5, 'dtype': 'float32'}  # even float32
 par2 = {'nx': 11, 'sigma': 2., 'a': 3.7, 'gamma': 5.0, 'dtype': 'float64'}  # odd float64
@@ -63,3 +63,19 @@ def test_ETP(par):
     # Check proximal operator
     tau = 2.
     assert moreau(etp, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_Geman(par):
+    """Geman penalty and proximal/dual proximal
+    """
+    np.random.seed(10)
+    geman = Geman(sigma=par['sigma'], gamma=par['gamma'])
+    # Geman
+    x = np.random.normal(0., 10.0, par['nx']).astype(par['dtype'])
+    expected = par['sigma'] * np.linalg.norm(np.abs(x) / (np.abs(x) + par['gamma']), 1)
+    assert geman(x) == pytest.approx(expected)
+
+    # Check proximal operator
+    tau = 2.
+    assert moreau(geman, x, tau)
