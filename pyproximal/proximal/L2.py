@@ -9,7 +9,7 @@ from pyproximal import ProxOperator
 class L2(ProxOperator):
     r"""L2 Norm proximal operator.
 
-    Proximal operator for the L2 norm defined as: :math:`f(\mathbf{x}) =
+    The Proximal operator of the :math:`\ell_2` norm is defined as: :math:`f(\mathbf{x}) =
     \frac{\sigma}{2} ||\mathbf{Op}\mathbf{x} - \mathbf{b}||_2^2`
     and :math:`f_\alpha(\mathbf{x}) = f(\mathbf{x}) +
     \alpha \mathbf{q}^T\mathbf{x}`.
@@ -24,7 +24,7 @@ class L2(ProxOperator):
         Dot vector
     sigma : :obj:`int`, optional
         Multiplicative coefficient of L2 norm
-    alpha : :obj:`int`, optional
+    alpha : :obj:`float`, optional
         Multiplicative coefficient of dot product
     qgrad : :obj:`bool`, optional
         Add q term to gradient (``True``) or not (``False``)
@@ -66,21 +66,19 @@ class L2(ProxOperator):
 
     .. math::
 
-        prox_{\frac{\sigma}{2} ||\mathbf{x} - \mathbf{b}||_2^2 +
-        \alpha \mathbf{q}^T\mathbf{x}}(\mathbf{x}) =
+        \prox_{f_\alpha}(\mathbf{x}) =
         \frac{\mathbf{x} + \tau \sigma \mathbf{b} - \tau \alpha \mathbf{q}}
         {1 + \tau \sigma}
 
-    If also ``b`` is not provided, the proximal operator becomes:`
+    If ``b`` is not provided, the proximal operator reduces to:
 
     .. math::
 
-        prox_{\frac{\sigma}{2} ||\mathbf{x}||_2^2 +
-        \alpha \mathbf{q}^T\mathbf{x}} =
+        \prox_{f_\alpha}(\mathbf{x}) =
         \frac{\mathbf{x} - \tau \alpha \mathbf{q}}{1 + \tau \sigma}
 
-    Finally, note that the second term in :math:`f(\mathbf{x})` is added
-    because this combined norm appears in several problems where Bregman
+    Finally, note that the second term in :math:`f_\alpha(\mathbf{x})` is added
+    because this combined expression appears in several problems where Bregman
     iterations are used alongside a proximal solver.
 
     """

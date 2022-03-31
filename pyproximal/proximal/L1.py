@@ -36,8 +36,8 @@ def _softthreshold(x, thresh):
 class L1(ProxOperator):
     r"""L1 norm proximal operator.
 
-    Proximal operator of the L1 norm:
-    :math:`\sigma||\mathbf{x} - \mathbf{g}||_1 = \sigma \sum |x_i - g_i|`.
+    Proximal operator of the :math:`\ell_1` norm:
+    :math:`\sigma\|\mathbf{x} - \mathbf{g}\|_1 = \sigma \sum |x_i - g_i|`.
 
     Parameters
     ----------
@@ -48,27 +48,27 @@ class L1(ProxOperator):
 
     Notes
     -----
-    The L1 proximal operator is defined as [1]_:
+    The :math:`\ell_1` proximal operator is defined as [1]_:
 
     .. math::
 
-        prox_{\tau \sigma ||.||_1}(\mathbf{x}) =
-        soft(\mathbf{x}, \tau \sigma) =
+        \prox_{\tau \sigma \|\cdot\|_1}(\mathbf{x}) =
+        \operatorname{soft}(\mathbf{x}, \tau \sigma) =
         \begin{cases}
         x_i + \tau \sigma, & x_i - g_i < -\tau \sigma \\
         g_i, & -\sigma \leq x_i - g_i \leq \tau\sigma \\
         x_i - \tau\sigma,  & x_i - g_i > \tau\sigma\\
         \end{cases}
 
-    where ``soft`` is the so-called called *soft thresholding*.
+    where :math:``\operatorname{soft}`` is the so-called called *soft thresholding*.
 
-    Moreover, as the conjugate of the L1 norm is the orthogonal projection of
-    its dual norm (i.e., :math:`L_\inf` norm) onto a unit ball, its dual
+    Moreover, as the conjugate of the :math:`\ell_1` norm is the orthogonal projection of
+    its dual norm (i.e., :math:`\ell_\inf` norm) onto a unit ball, its dual
     operator (when :math:`\mathbf{g}=\mathbf{0}`) is defined as:
 
     .. math::
 
-        prox^*_{\tau \sigma ||.||_1}(\mathbf{x}) = P_{||.||_\inf <=\sigma} =
+        \prox^*_{\tau \sigma \|\cdot\|_1}(\mathbf{x}) = P_{\|\cdot\|_\inf <=\sigma}(\mathbf{x}) =
         \begin{cases}
         -\sigma, & x_i < -\sigma \\
         x_i,& -\sigma \leq x_i \leq \sigma \\
@@ -111,8 +111,8 @@ class L1(ProxOperator):
 class L1Ball(ProxOperator):
     r"""L1 ball proximal operator.
 
-    Proximal operator of the L1 ball: :math:`L1_{r} =
-    \{ \mathbf{x}: ||\mathbf{x}||_1 \leq r \}`.
+    Proximal operator of the :math:`\ell_1` ball: :math:`L1_{r} =
+    \{ \mathbf{x}: \|\mathbf{x}\|_1 \leq r \}`.
 
     Parameters
     ----------

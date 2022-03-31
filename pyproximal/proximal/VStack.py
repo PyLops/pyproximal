@@ -35,8 +35,8 @@ class VStack(ProxOperator):
     the related proximal operator becomes:
 
     .. math::
-        prox_{\tau f}(\mathbf{x}) = \left(
-        prox_{\tau f_1}(\mathbf{x}_1), ...,
+        \prox_{\tau f}(\mathbf{x}) = \left(
+        \prox_{\tau f_1}(\mathbf{x}_1), \ldots,
         \tau f_N(\mathbf{x}_N) \right)
 
     """

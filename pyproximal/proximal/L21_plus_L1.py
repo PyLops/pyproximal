@@ -7,8 +7,8 @@ class L21_plus_L1(ProxOperator):
     r"""L21 + L1 norm proximal operator.
 
     Proximal operator of the :math:`L_{2,1} + L_1` mixed-norm:
-    :math:`f(\mathbf{X}) = \sigma \rho ||\mathbf{X}||_1 +
-    \sigma (1 - \rho) ||\mathbf{X}||_{2,1}`
+    :math:`f(\mathbf{X}) = \sigma \rho \|\mathbf{X}\|_1 +
+    \sigma (1 - \rho) \|\mathbf{X}\|_{2,1}`
 
     Parameters
     ----------

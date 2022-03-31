@@ -39,9 +39,9 @@ class Orthogonal(ProxOperator):
 
     .. math::
 
-        prox_{\tau g}(x) = \frac{1}{\alpha} ((\alpha \mathbf{I} -
+        \prox_{\tau g}(x) = \frac{1}{\alpha} ((\alpha \mathbf{I} -
         \mathbf{Q}^H \mathbf{Q}) \mathbf{x} + \mathbf{Q}^H
-        (prox_{\alpha \tau f}(\mathbf{Qx} + \mathbf{b}) - \mathbf{b}))
+        (\prox_{\alpha \tau f}(\mathbf{Qx} + \mathbf{b}) - \mathbf{b}))
 
     A special case arises when :math:`\mathbf{Q}\mathbf{Q}^T =
     \mathbf{Q}^T\mathbf{Q} = \mathbf{I}`
@@ -49,7 +49,7 @@ class Orthogonal(ProxOperator):
 
     .. math::
 
-        prox_{\tau g}(x) = \mathbf{Q}^H (prox_{\tau f}(\mathbf{Qx} +
+        \prox_{\tau g}(x) = \mathbf{Q}^H (\prox_{\tau f}(\mathbf{Qx} +
         \mathbf{b}) - \mathbf{b}))
 
     .. [1] Daniel O'Connor, D., and Vandenberghe, L., "Primal-Dual

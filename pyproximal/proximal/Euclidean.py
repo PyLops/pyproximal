@@ -7,13 +7,13 @@ from pyproximal.projection import EuclideanBallProj
 class Euclidean(ProxOperator):
     r"""Euclidean norm proximal operator.
 
-    Proximal operator of the Euclidean norm: :math:`\sigma ||\mathbf{x}||_2 =
+    Proximal operator of the Euclidean norm: :math:`\sigma \|\mathbf{x}\|_2 =
     \sigma \sqrt{\sum x_i^2}`.
 
     Parameters
     ----------
     sigma : :obj:`int`, optional
-        Multiplicative coefficient of :math:`L_{2,1}` norm
+        Multiplicative coefficient of :math:`L_{2}` norm
 
     Notes
     -----
@@ -21,8 +21,8 @@ class Euclidean(ProxOperator):
 
     .. math::
 
-        prox_{\tau \sigma ||.||_2}(\mathbf{x}) =
-        \left(1 - \frac{\tau \sigma }{max\{||\mathbf{x}||_2,
+        \prox_{\tau \sigma \|\cdot\|_2}(\mathbf{x}) =
+        \left(1 - \frac{\tau \sigma }{\max\{\|\mathbf{x}\|_2,
         \tau \sigma \}}\right) \mathbf{x}
 
     This operator is sometimes called *block soft thresholding*.
@@ -33,8 +33,8 @@ class Euclidean(ProxOperator):
 
     .. math::
 
-        prox^*_{\tau \sigma ||.||_2}(\mathbf{x}) =
-        \frac{\sigma \mathbf{x}}{max\{||\mathbf{x}||_2, \sigma\}}
+        \prox^*_{\tau \sigma \|\cdot\|_2}(\mathbf{x}) =
+        \frac{\sigma \mathbf{x}}{\max\{\|\mathbf{x}\|_2, \sigma\}}
 
     """
     def __init__(self, sigma=1.):
