@@ -5,9 +5,9 @@ This tutorial shows how we can use some of PyProximal solvers to solve a
 quadratic function with a box constraint:
 
     .. math::
-        \mathbf{x} = arg min_\mathbf{x} \frac{1}{2} \mathbf{x}^T \mathbf{A}
+        \mathbf{x} = \argmin_\mathbf{x} \frac{1}{2} \mathbf{x}^T \mathbf{A}
         \mathbf{x} + \mathbf{b}^T \mathbf{x} \quad s.t. \quad \mathbf{x}
-        \in I_{Box}
+        \in \mathcal{I}_{\operatorname{Box}}
 
 More specifically we will consider both the
 :func:`pyproximal.optimization.primal.ProximalGradient` algorithm with and

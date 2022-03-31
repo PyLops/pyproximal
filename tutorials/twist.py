@@ -7,11 +7,11 @@ sensing problem, namely :py:class:`pylops.optimization.sparsity.ISTA`,
 :py:class:`pylops.optimization.sparsity.FISTA`, and
 :py:class:`pyproximal.optimization.primal.TwIST`.
 
-Whilst all solvers try to solve an uncostrained problem with a L1
+Whilst all solvers try to solve an unconstrained problem with a L1
 regularization term:
 
 .. math::
-    J = ||\mathbf{d} - \mathbf{Op} \mathbf{x}||_2 + \epsilon ||\mathbf{x}||_1
+    J = \|\mathbf{d} - \mathbf{Op} \mathbf{x}\|_2 + \epsilon \|\mathbf{x}\|_1
 
 their convergence speed is different, which is something we want to focus in
 this tutorial.

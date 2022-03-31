@@ -12,9 +12,9 @@ In this example we will consider the following forward problem:
     \mathbf{y} = \mathbf{R} \mathbf{x}
 
 where :math:`\mathbf{R}` is a restriction operator, which applied to
-:math:`\mathbf{x}=vec(\mathbf{X})`, the vectorized version of a 2d image of
+:math:`\mathbf{x}=\operatorname{vec}(\mathbf{X})`, the vectorized version of a 2d image of
 size :math:`n \times m`, selects a reasonably small number of samples
-:math:`p << nm` that form the vector :math:`\mathbf{y}`. Note that any other
+:math:`p \ll nm` that form the vector :math:`\mathbf{y}`. Note that any other
 modelling operator could be used here, for example a 2D convolutional operator
 in the case of deblurring or a 2D FFT plus restriction in the case of
 MRI scanning.
@@ -22,16 +22,16 @@ MRI scanning.
 The problem we want to solve can be mathematically described as:
 
 .. math::
-    arg \;  min_\mathbf{x} \frac{1}{2}||\mathbf{y}-\mathbf{Rx}||_2^2 + \mu ||\mathbf{X}||_*
+    \argmin_\mathbf{x} \frac{1}{2}\|\mathbf{y}-\mathbf{Rx}\|_2^2 + \mu \|\mathbf{X}\|_*
 
 or
 
 .. math::
-    arg \;  min_\mathbf{x} \frac{1}{2}||\mathbf{y}-\mathbf{Rx}||_2^2 \; s.t.
-    \; ||\mathbf{X}||_* < \mu
+    \argmin_\mathbf{x} \frac{1}{2}\|\mathbf{y}-\mathbf{Rx}\|_2^2 \; \text{s.t.}
+    \; \|\mathbf{X}\|_* < \mu
 
-where :math:`||\mathbf{X}||_*=\sum_i \sigma_i` is the nuclear norm of
-:math:`\mathbf{X}` (i.e., sum of eigenvalues).
+where :math:`\|\mathbf{X}\|_*=\sum_i \sigma_i` is the nuclear norm of
+:math:`\mathbf{X}` (i.e., the sum of the singular values).
 
 """
 # sphinx_gallery_thumbnail_number = 2
@@ -54,7 +54,7 @@ ny, nx = X.shape
 
 ###############################################################################
 # We can now define a :class:`pylops.Restriction` operator and look at how
-# the eigenvalues of our image change when we remove some of its sample.
+# the singular values of our image change when we remove some of its sample.
 
 # Restriction operator
 sub = 0.4
@@ -81,7 +81,7 @@ plt.tight_layout()
 
 ###############################################################################
 # We observe that removing some samples from the image has led to an overall
-# increase in the eigenvalues of :math:`\mathbf{X}`, especially
+# increase in the singular values of :math:`\mathbf{X}`, especially
 # those that are originally very small. As a consequence the nuclear norm of
 # :math:`\mathbf{Y}` (the masked image) is larger than that of
 # :math:`\mathbf{X}`.
@@ -96,7 +96,7 @@ Xpg = pyproximal.optimization.primal.AcceleratedProximalGradient(f, g, np.zeros(
                                                                  tau=1., niter=100, show=True)
 Xpg = Xpg.reshape(ny, nx)
 
-# Recompute SVD and see how the eigenvalues look like
+# Recompute SVD and see how the singular values look like
 Upg, Spg, Vhpg = np.linalg.svd(Xpg, full_matrices=False)
 
 ###############################################################################
@@ -108,7 +108,7 @@ Xpgc = pyproximal.optimization.primal.AcceleratedProximalGradient(f, g, np.zeros
                                                                  tau=1., niter=100, show=True)
 Xpgc = Xpgc.reshape(ny, nx)
 
-# Recompute SVD and see how the eigenvalues look like
+# Recompute SVD and see how the singular values look like
 Upgc, Spgc, Vhpgc = np.linalg.svd(Xpgc, full_matrices=False)
 
 ###############################################################################

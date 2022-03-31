@@ -7,7 +7,7 @@ by either random noise or salt-and-pepper noise using proximal algorithms.
 The overall cost function to minimize is written in the following form:
 
     .. math::
-        arg \;  min_\mathbf{u} \frac{1}{2}||\mathbf{u}-\mathbf{f}||_2^2 +
+        \argmin_\mathbf{u} \frac{1}{2}\|\mathbf{u}-\mathbf{f}\|_2^2 +
         \sigma J(\mathbf{u})
 
 where the L2 norm in the data term can be replaced by a L1 norm for
@@ -15,9 +15,9 @@ salt-and-pepper (outlier like noise).
 
 For both examples we investigate with different choices of regularization:
 
-- L2 on Gradient :math:`J(\mathbf{u}) = ||\nabla \mathbf{u}||_2^2`
-- Anisotropic TV :math:`J(\mathbf{u}) = ||\nabla \mathbf{u}||_1`
-- Isotropic TV :math:`J(\mathbf{u}) = ||\nabla \mathbf{u}||_{2,1}`
+- L2 on Gradient :math:`J(\mathbf{u}) = \|\nabla \mathbf{u}\|_2^2`
+- Anisotropic TV :math:`J(\mathbf{u}) = \|\nabla \mathbf{u}\|_1`
+- Isotropic TV :math:`J(\mathbf{u}) = \|\nabla \mathbf{u}\|_{2,1}`
 
 """
 import numpy as np
