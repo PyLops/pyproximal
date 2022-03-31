@@ -10,16 +10,16 @@ class Nuclear(ProxOperator):
     r"""Nuclear norm proximal operator.
 
     Proximal operator of the Nuclear norm defined as
-    :math:`\sigma||\mathbf{X}||_* = \sigma \sum_i \lambda_i` where
-    :math:`\mathbf{X}` is a matrix of size :math:`N \times M` and
-    :math:`\lambda_i=1,2, min(N, M)` are its eigenvalues.
+    :math:`\sigma\|\mathbf{X}\|_* = \sigma \sum_i \sigma_i` where
+    :math:`\mathbf{X}` is a matrix of size :math:`M \times N` and
+    :math:`\sigma_i=1, \ldots, \min(M, N)` are its singular values.
 
     Parameters
     ----------
     dim : :obj:`tuple`
         Size of matrix :math:`\mathbf{X}`
-    sigma : :obj:`int`, optional
-        Multiplicative coefficient of Nuclear norm
+    sigma : :obj:`float`, optional
+        Multiplicative coefficient of nuclear norm
 
     Notes
     -----
@@ -27,11 +27,10 @@ class Nuclear(ProxOperator):
 
     .. math::
 
-        prox_{\tau \sigma ||.||_*}(\mathbf{X}) =
-        \mathbf{U} diag \{ prox_{\tau \sigma ||.||_1}(\boldsymbol\lambda) \} \mathbf{V}
+        \prox_{\tau \sigma \|\cdot\|_*}(\mathbf{X}) =
+        \mathbf{U} \diag\left( \prox_{\tau \sigma \|\cdot\|_1}(\boldsymbol\lambda)\right) \mathbf{V}^H
 
-    where :math:`\mathbf{U}`, :math:`\boldsymbol\lambda`, and
-    :math:`\mathbf{V}` define the SVD of :math:`X`.
+    where :math:`\mathbf{X} = \mathbf{U}\diag(\boldsymbol\lambda)\mathbf{V}^H`, is an SVD of :math:`X`.
 
     """
     def __init__(self, dim, sigma=1.):
@@ -42,7 +41,7 @@ class Nuclear(ProxOperator):
     def __call__(self, x):
         X = x.reshape(self.dim)
         eigs = np.linalg.eigvalsh(X.T @ X)
-        eigs[eigs < 0] = 0 # ensure all eigenvalues at positive
+        eigs[eigs < 0] = 0  # ensure all eigenvalues at positive
         nucl = np.sum(np.sqrt(eigs))
         return self.sigma * nucl
 
@@ -59,7 +58,7 @@ class NuclearBall(ProxOperator):
     r"""Nuclear ball proximal operator.
 
     Proximal operator of the Nuclear ball: :math:`N_{r} =
-    \{ \mathbf{X}: ||\mathbf{X}||_* \leq r \}`.
+    \{ \mathbf{X}: \|\mathbf{X}\|_* \leq r \}`.
 
     Parameters
     ----------
