@@ -28,10 +28,10 @@ class L1BallProj():
 
     .. math::
 
-        P_{L1_{r}} (\mathbf{x}) = sign(x) P_{Simplex(r)}
+        P_{L1_{r}} (\mathbf{x}) = sign(x) P_{\operatorname{Simplex}(r)}
 
-    Note the this is the proximal operator of the corresponding
-    indicator function :math:`I_{L1_{r}}`.
+    Note that this is the proximal operator of the corresponding
+    indicator function :math:`\mathcal{I}_{L1_{r}}`.
 
     """
     def __init__(self, n, radius, maxiter=100, xtol=1e-5):

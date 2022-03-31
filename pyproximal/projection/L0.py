@@ -18,11 +18,11 @@ class L0BallProj():
 
         L0_{r} = \{ \mathbf{x}: ||\mathbf{x}||_0 \leq r \}
 
-    its orthogonal projection is computed by finding the r highest
+    its orthogonal projection is computed by finding the :math:`r` highest
     largest entries of :math:`\mathbf{x}` (in absolute value), keeping those
     and zero-ing all the other entries.
-    Note the this is the proximal operator of the corresponding
-    indicator function :math:`I_{L0_{r}}`.
+    Note that this is the proximal operator of the corresponding
+    indicator function :math:`\mathcal{I}_{L0_{r}}`.
 
     """
     def __init__(self, radius):
