@@ -12,9 +12,9 @@ class ETP(ProxOperator):
 
     .. math::
 
-        ETP_{\sigma,\gamma}(\mathbf{x}) = \sum_i \frac{\sigma}{1-e^{-\gamma}}(1-e^{-\gamma|x_i|})
+        \mathrm{ETP}_{\sigma,\gamma}(\mathbf{x}) = \sum_i \frac{\sigma}{1-e^{-\gamma}}(1-e^{-\gamma|x_i|})
 
-    for :math:`{\sigma>0}`, and :math:`{\gamma\geq 0}`.
+    for :math:`{\sigma>0}`, and :math:`{\gamma>0}`.
 
     Parameters
     ----------
@@ -25,14 +25,14 @@ class ETP(ProxOperator):
 
     Notes
     -----
-    As :math:`{\gamma\rightarrow 0}` the exponential-type penalty approaches the l1-penalty and when
-    :math:`{\gamma\rightarrow\infty}` tends to the l0-penalty [1]_.
+    As :math:`{\gamma\rightarrow 0}` the exponential-type penalty approaches the :math:`\ell_1`-penalty and when
+    :math:`{\gamma\rightarrow\infty}` tends to the :math:`\ell_0`-penalty [1]_.
 
-    As for the proximal operator, consider the 1-dimensional case
+    As for the proximal operator, consider the one-dimensional case
 
     .. math::
 
-        prox_{\tau ETP(\cdot)}(x) = argmin_{z} ETP(z) + \frac{1}{2\tau}\|x - z\|_2^2
+        \prox_{\tau \mathrm{ETP}(\cdot)}(x) = \argmin_{z} \mathrm{ETP}(z) + \frac{1}{2\tau}(x - z)^2
 
     and assume that :math:`x\geq 0`. The minima can be obtained when :math:`z=0` or at a stationary point,
     where the latter must satisfy
