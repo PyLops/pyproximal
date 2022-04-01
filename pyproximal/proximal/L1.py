@@ -68,7 +68,7 @@ class L1(ProxOperator):
 
     .. math::
 
-        \prox^*_{\tau \sigma \|\cdot\|_1}(\mathbf{x}) = P_{\|\cdot\|_\inf <=\sigma}(\mathbf{x}) =
+        \prox^*_{\tau \sigma \|\cdot\|_1}(\mathbf{x}) = P_{\|\cdot\|_{\infty} <=\sigma}(\mathbf{x}) =
         \begin{cases}
         -\sigma, & x_i < -\sigma \\
         x_i,& -\sigma \leq x_i \leq \sigma \\
