@@ -139,6 +139,7 @@ mathjax3_config = {
             "prox": r"\operatorname{prox}",
             "sgn": r"\operatorname{sgn}",
             "argmin": r"\operatorname*{argmin}",
+            "diag": r"\operatorname{diag}",
         }
     }
 }
