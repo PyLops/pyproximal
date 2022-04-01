@@ -141,7 +141,7 @@ class L2(ProxOperator):
             if self.Op.explicit:
                 Op1 = MatrixMult(np.eye(self.Op.shape[1]) +
                                  tau * self.sigma * self.ATA)
-                if densesolver is None:
+                if self.densesolver is None:
                     # to allow backward compatibility with PyLops versions earlier
                     # than v1.18.1 and v2.0.0
                     x = Op1.div(y)
