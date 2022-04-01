@@ -60,7 +60,7 @@ class L1(ProxOperator):
         x_i - \tau\sigma,  & x_i - g_i > \tau\sigma\\
         \end{cases}
 
-    where :math:``\operatorname{soft}`` is the so-called called *soft thresholding*.
+    where :math:`\operatorname{soft}` is the so-called called *soft thresholding*.
 
     Moreover, as the conjugate of the :math:`\ell_1` norm is the orthogonal projection of
     its dual norm (i.e., :math:`\ell_\inf` norm) onto a unit ball, its dual
