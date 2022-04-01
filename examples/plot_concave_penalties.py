@@ -49,3 +49,9 @@ compare_penalty_and_proximal_operator(log)
 # l1-penalty and the l0-penalty at its extremes.
 etp = pyproximal.ETP(1, 0.25)
 compare_penalty_and_proximal_operator(etp)
+
+
+###############################################################################
+# The Geman penalty
+geman = pyproximal.Geman(3, 1.2)
+compare_penalty_and_proximal_operator(geman)

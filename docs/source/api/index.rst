@@ -78,6 +78,7 @@ Operators
     SCAD
     Log
     ETP
+    Geman
 
 
 Other operators
