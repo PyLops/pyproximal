@@ -171,10 +171,11 @@ class Rosebrock_lbfgs(Rosebrock):
 
         self.solhist = []
         self.solhist.append(self.x0)
-        sol = sp.optimize.minimize(self.fun, x0=self.x0,
-                                      jac=lambda x: self._gradprox(x, self.tau),
-                                      method='L-BFGS-B', callback=callback,
-                                      options=dict(maxiter=15))
+        sol = sp.optimize.minimize(lambda x: self._funprox(x, self.tau),
+                                   x0=self.x0,
+                                   jac=lambda x: self._gradprox(x, self.tau),
+                                   method='L-BFGS-B', callback=callback,
+                                   options=dict(maxiter=15))
         sol = sol.x
 
         self.solhist = np.array(self.solhist)
