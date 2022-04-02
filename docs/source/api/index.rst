@@ -79,6 +79,7 @@ Operators
     Log
     ETP
     Geman
+    QuadraticEnvelopeCard
 
 
 Other operators

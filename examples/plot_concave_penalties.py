@@ -55,3 +55,9 @@ compare_penalty_and_proximal_operator(etp)
 # The Geman penalty
 geman = pyproximal.Geman(3, 1.2)
 compare_penalty_and_proximal_operator(geman)
+
+
+###############################################################################
+# The quadratic envelope of the l0-penalty
+f_mu = pyproximal.QuadraticEnvelopeCard(1.5)
+compare_penalty_and_proximal_operator(f_mu)
