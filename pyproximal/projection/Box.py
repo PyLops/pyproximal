@@ -18,21 +18,21 @@ class BoxProj():
 
     .. math::
 
-        Box_{[l, u]} = \{ x: l \leq x\leq u \}
+        \operatorname{Box}_{[l, u]} = \{ x: l \leq x\leq u \}
 
     its orthogonal projection is:
 
     .. math::
 
-        P_{Box_{[l, u]}} (x_i) = min\{ max \{x_i, l_i\}, u_i \} =
+        P_{\operatorname{Box}_{[l, u]}} (x_i) = min\{ max \{x_i, l_i\}, u_i \} =
         \begin{cases}
         l_i, & x_i < l_i\\
         x_i,& l_i \leq x_i \leq u_i \\
         u_i,  & x_i > u_i\\
         \end{cases} \quad \forall i
 
-    Note the this is the proximal operator of the corresponding
-    indicator function :math:`I_{Box_{[l, u]}}`
+    Note that this is the proximal operator of the corresponding
+    indicator function :math:`\mathcal{I}_{\operatorname{Box}_{[l, u]}}`.
 
     """
     def __init__(self, lower=-np.inf, upper=np.inf):

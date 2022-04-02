@@ -14,7 +14,7 @@ class Intersection(ProxOperator):
     n : :obj:`int`
         Number of vectors to be projected simultaneously
     sigma : :obj:`np.ndarray` or :obj:`int`
-        Matrix of distances of size :math:`k \time k` (or single value in the
+        Matrix of distances of size :math:`k \times k` (or single value in the
         case of constant matrix)
     k : :obj:`int`, optional
         Number of iterations

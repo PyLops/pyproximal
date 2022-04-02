@@ -73,9 +73,9 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
 
     .. math::
 
-        \mathbf{y}^{k+1} = prox_{\mu g^*}(\mathbf{y}^{k} +
+        \mathbf{y}^{k+1} = \prox_{\mu g^*}(\mathbf{y}^{k} +
         \mu \mathbf{A}\bar{\mathbf{x}}^{k})\\
-        \mathbf{x}^{k+1} = prox_{\tau f}(\mathbf{x}^{k} -
+        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{x}^{k} -
         \tau (\mathbf{A}^H \mathbf{y}^{k+1} + \mathbf{z})) \\
         \bar{\mathbf{x}}^{k+1} = \mathbf{x}^{k+1} +
         \theta (\mathbf{x}^{k+1} - \mathbf{x}^k)
@@ -86,11 +86,11 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
 
     .. math::
 
-        \mathbf{x}^{k+1} = prox_{\tau f}(\mathbf{x}^{k} -
+        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{x}^{k} -
         \tau (\mathbf{A}^H \mathbf{y}^{k} + \mathbf{z})) \\
         \bar{\mathbf{x}}^{k+1} = \mathbf{x}^{k+1} +
         \theta (\mathbf{x}^{k+1} - \mathbf{x}^k) \\
-        \mathbf{y}^{k+1} = prox_{\mu g^*}(\mathbf{y}^{k} +
+        \mathbf{y}^{k+1} = \prox_{\mu g^*}(\mathbf{y}^{k} +
         \mu \mathbf{A}\bar{\mathbf{x}}^{k+1})
 
     .. [1] A., Chambolle, and T., Pock, "A first-order primal-dual algorithm for

@@ -17,7 +17,7 @@ class L21(ProxOperator):
         :math:`N'_x = \frac{N_x}{N_{dim}}`. Note that the input
         vector ``x`` should be created by stacking vectors from different
         dimensions.
-    sigma : :obj:`int`, optional
+    sigma : :obj:`float`, optional
         Multiplicative coefficient of :math:`L_{2,1}` norm
 
     Notes
@@ -27,14 +27,14 @@ class L21(ProxOperator):
 
     .. math::
 
-        \sigma ||\mathbf{X}||_{2,1} = \sigma \sum_{j=0}^{N'_x} ||\mathbf{x}_j||_2 =
+        \sigma \|\mathbf{X}\|_{2,1} = \sigma \sum_{j=0}^{N'_x} \|\mathbf{x}_j\|_2 =
         \sigma \sum_{j=0}^{N'_x} \sqrt{\sum_{i=0}^{N_{dim}}} |x_{ij}|^2
 
     the proximal operator is:
 
     .. math::
 
-        prox_{\tau \sigma |||.||_{2,1}}(\mathbf{x}_j) =
+        \prox_{\tau \sigma \|\cdot\|_{2,1}}(\mathbf{x}_j) =
         \left(1 - \frac{\sigma \tau}{max\{||\mathbf{x}_j||_2,
         \sigma \tau \}}\right) \mathbf{x}_j \quad \forall j
 
@@ -42,8 +42,8 @@ class L21(ProxOperator):
 
     .. math::
 
-        prox^*_{\tau \sigma |||.||_{2,1}}(\mathbf{x}_j) =
-        \frac{\sigma \mathbf{x}_j}{max\{||\mathbf{x}_j||_2, \sigma\}}
+        \prox^*_{\tau \sigma \||\cdot\|_{2,1}}(\mathbf{x}_j) =
+        \frac{\sigma \mathbf{x}_j}{\max\{||\mathbf{x}_j||_2, \sigma\}}
         \quad \forall j
 
     Finally, we note that the :math:`L_{2,1}` norm is a separable function

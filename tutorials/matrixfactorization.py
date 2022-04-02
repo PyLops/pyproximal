@@ -9,8 +9,8 @@ represent the matrix we are after.
 More specifically we will consider the following forward problem:
 
 .. math::
-    \mathbf{X},\mathbf{Y} = arg min_{\mathbf{X}, \mathbf{Y}} \frac{1}{2}
-    ||\mathbf{XY}-\mathbf{A}||_F^2 + \delta_{\mathbf{X}\ge0} + \delta_{\mathbf{Y}\ge0}
+    \mathbf{X},\mathbf{Y} = \argmin_{\mathbf{X}, \mathbf{Y}} \frac{1}{2}
+    \|\mathbf{XY}-\mathbf{A}\|_F^2 + \delta_{\mathbf{X}\ge0} + \delta_{\mathbf{Y}\ge0}
 
 where the non-negativity constraint (:math:`\delta_{\cdot \ge0}`) is simply
 implemented using a `Box` proximal operator.
@@ -55,7 +55,7 @@ Xest, Yest = Xest.reshape(Xin.shape), Yest.reshape(Yin.shape)
 Aest = Xest @ Yest
 
 ###############################################################################
-# And finally we display the individual components and the reconstruced matrix
+# And finally we display the individual components and the reconstructed matrix
 
 fig, axs = plt.subplots(1, 5, figsize=(14, 3))
 axs[0].imshow(Xest, cmap='gray')

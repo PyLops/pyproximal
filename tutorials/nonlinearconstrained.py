@@ -7,8 +7,8 @@ nonlinear function. For this example we will use the well-known Rosenbrock
 function:
 
     .. math::
-        \mathbf{x} = arg min_\mathbf{x} f(\mathbf{x}) \quad s.t. \quad \mathbf{x}
-        \in I_{Box}
+        \mathbf{x} = \argmin_\mathbf{x} f(\mathbf{x}) \quad \text{s.t.} \quad \mathbf{x}
+        \in \mathcal{I}_{\operatorname{Box}}
 
 We will learn how to handle nonlinear functionals in convex optimization, and
 more specifically dive into the details of the
@@ -18,15 +18,15 @@ need to implement the following three method: `func` and `grad` and `optimize`.
 As the names imply, the first method takes a model vector :math:`x` as input and
 evaluates the functional. The second method evaluates the gradient of the
 functional with respect to :math:`x`. The third method implements an
-optimization routine that solves the proximal operaror of :math:`f`,
+optimization routine that solves the proximal operator of :math:`f`,
 more specifically:
 
     .. math::
-        prox_{\tau f} (\mathbf{x}) = arg \; min_{\mathbf{y}} f(\mathbf{y}) +
-        \frac{1}{2 \tau}||\mathbf{y} - \mathbf{x}||^2_2
+        \prox_{\tau f} (\mathbf{x}) = \argmin_{\mathbf{y}} f(\mathbf{y}) +
+        \frac{1}{2 \tau}\|\mathbf{y} - \mathbf{x}\|^2_2
 
 Note that when creating the ``optimize`` method a user must use the gradient
-of the augumented functional which is provided by the `_gradprox` built-in
+of the augmented functional which is provided by the `_gradprox` built-in
 method in :class:`pyproximal.proximal.Nonlinear` class.
 
 In this example, we will consider both the

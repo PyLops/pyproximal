@@ -41,7 +41,7 @@ def PlugAndPlay(proxf, denoiser, dims, x0, tau, niter=10,
 
     .. math::
 
-        \mathbf{x},\mathbf{z}  = arg min_{\mathbf{x}}
+        \mathbf{x},\mathbf{z}  = \argmin_{\mathbf{x}}
         f(\mathbf{x}) + g(\mathbf{x})
 
     where :math:`f(\mathbf{x})` is a function that has a known proximal
@@ -87,11 +87,11 @@ def PlugAndPlay(proxf, denoiser, dims, x0, tau, niter=10,
 
     .. math::
 
-        \mathbf{x}^{k+1} = prox_{\tau f}(\mathbf{z}^{k} - \mathbf{u}^{k})\\
-        \mathbf{z}^{k+1} = Denoise(\mathbf{x}^{k+1} + \mathbf{u}^{k}, \tau \sigma)\\
+        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{z}^{k} - \mathbf{u}^{k})\\
+        \mathbf{z}^{k+1} = \operatorname{Denoise}(\mathbf{x}^{k+1} + \mathbf{u}^{k}, \tau \sigma)\\
         \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{x}^{k+1} - \mathbf{z}^{k+1}
 
-    where :math:`Denoise` is a denoising algorithm of choice and
+    where :math:`\operatorname{Denoise}` is a denoising algorithm of choice and
     :math:`\tau \sigma` is the denoising parameter (should be chosen to
     represent an estimate of the noise variance). This rather peculiar step
     originates from the intuition that the optimization process associated

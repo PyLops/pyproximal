@@ -7,7 +7,7 @@ from pyproximal.projection import BoxProj
 class Box(ProxOperator):
     r"""Box proximal operator.
 
-    Proximal operator of a Box: :math:`Box_{[l, u]} = \{ x: l \leq x\leq u \}`.
+    Proximal operator of a Box: :math:`\operatorname{Box}_{[l, u]} = \{ x: l \leq x\leq u \}`.
 
     Parameters
     ----------

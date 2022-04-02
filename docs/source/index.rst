@@ -34,8 +34,8 @@ and how this can be used to solve a basic denoising problem of the form:
 
 .. math::
 
-        \arg min_\mathbf{x} \frac{\sigma}{2}
-        ||\mathbf{x} - \mathbf{y} ||_2^2 + ||\mathbf{D} \mathbf{x}||_1
+        \argmin_\mathbf{x} \frac{\sigma}{2}
+        \|\mathbf{x} - \mathbf{y} \|_2^2 + \|\mathbf{D} \mathbf{x}\|_1
 
 .. code-block:: python
 

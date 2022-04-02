@@ -5,11 +5,11 @@ This tutorial considers the Basis Pursuit problem. From a mathematical point of 
 that satisfies a system of equations.
 
 .. math::
-    arg \;  min_\mathbf{x} ||\mathbf{x}||_1 \; s.t. \; \mathbf{Ax} = \mathbf{y}
+    \argmin_\mathbf{x} \|\mathbf{x}\|_1 \; \text{s.t.} \; \mathbf{Ax} = \mathbf{y}
 
-where the operator :math:`\mathbf{A}_{(N \times M}` is generally a skinny matrix (:math:`N<M`)
-Note that this problem is similar to more general L1-regularized inversion but it presents a stricter condition on the
-data term which must be satisfied exactly here.
+where the operator :math:`\mathbf{A}` is of size :math:`N \times M`, and generally :math:`N<M`.
+Note that this problem is similar to more general L1-regularized inversion, but it presents a stricter condition on the
+data term which must be satisfied exactly.
 
 """
 import numpy as np
@@ -65,4 +65,3 @@ plt.tight_layout()
 # We can observe how even after few iterations, despite the solution is not
 # yet converged the data reconstruction is perfect. This is consequence of the
 # fact that for the Basis Pursuit problem the data term is a hard constraint.
-

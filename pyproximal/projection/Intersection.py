@@ -16,7 +16,7 @@ class IntersectionProj():
     k : :obj:`int`, optional
         Number of iterations
     tol : :obj:`float`, optional
-        Toleance of update
+        Tolerance of update
 
     Notes
     -----

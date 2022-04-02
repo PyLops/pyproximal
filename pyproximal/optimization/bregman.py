@@ -13,13 +13,13 @@ def Bregman(proxf, proxg, x0, solver, A=None, alpha=1., niterouter=10,
 
     .. math::
 
-        1. \; \mathbf{x} = arg min_\mathbf{x} f(\mathbf{x}) + \alpha g(\mathbf{x})
+        1. \; \mathbf{x} = \argmin_\mathbf{x} f(\mathbf{x}) + \alpha g(\mathbf{x})
 
     or
 
     .. math::
 
-        2. \;     \mathbf{x} = arg min_\mathbf{x} f(\mathbf{x}) +
+        2. \;     \mathbf{x} = \argmin_\mathbf{x} f(\mathbf{x}) +
         \alpha g(\mathbf{A}\mathbf{x})
 
     where :math:`f(\mathbf{x})` and :math:`g(\mathbf{x})` are any convex
@@ -84,7 +84,7 @@ def Bregman(proxf, proxg, x0, solver, A=None, alpha=1., niterouter=10,
 
     .. math::
 
-        \mathbf{x}^{k+1} = arg min_{\mathbf{x}} \quad f + \alpha g -
+        \mathbf{x}^{k+1} = \argmin_{\mathbf{x}} \quad f + \alpha g -
         \alpha (\mathbf{q}^{k})^T \mathbf{x}\\
         \mathbf{q}^{k+1} = \mathbf{q}^{k} - \frac{1}{\alpha}
         \nabla f(\mathbf{x}^{k+1})

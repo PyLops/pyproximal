@@ -2,7 +2,7 @@ r"""
 Image segmentation
 ==================
 This tutorial shows how we can use the
-:func:`pyproximal.optimization.primaldual.PrimalDual` solver to peform
+:func:`pyproximal.optimization.primaldual.PrimalDual` solver to perform
 image segmentation. A modified version of such a solver that can directly
 used for segmentation is provided by
 :func:`pyproximal.optimization.segmentation.Segment`.
@@ -45,7 +45,7 @@ cl = (cl + dcl/2)[:-1]
 # The simplest segmentation we can do is to simply assign each pixel to its
 # closest class. This is equivalent to solving our cost function and ignoring
 # the term that minimizes the total interface between the sets. As a result
-# our segmentation boundaries will be very crips.
+# our segmentation boundaries will be very crisp.
 ic = np.floor(ig / dcl).astype(np.int)
 
 ###############################################################################

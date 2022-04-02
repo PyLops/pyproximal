@@ -40,7 +40,7 @@ class Quadratic(ProxOperator):
 
     .. math::
 
-        prox_{\tau f}(\mathbf{x}) =
+        \prox_{\tau f}(\mathbf{x}) =
         \left(\mathbf{I} + \tau  \mathbf{Op} \right)^{-1} \left(\mathbf{x} -
         \tau \mathbf{b}\right)
 
@@ -55,11 +55,11 @@ class Quadratic(ProxOperator):
 
     .. math::
 
-        prox_{\mathbf{b}^T \mathbf{x} + c}(\mathbf{x}) =
+        \prox_{\mathbf{b}^T \mathbf{x} + c}(\mathbf{x}) =
         \mathbf{x} - \tau \mathbf{b}
 
     Finally if also ``b`` is not provided, the proximal operator of a constant
-    function simply becomes :math:`prox_c(\mathbf{x}) = \mathbf{x}`
+    function simply becomes :math:`\prox_c(\mathbf{x}) = \mathbf{x}`
 
 
     """
