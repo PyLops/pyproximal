@@ -9,30 +9,52 @@ from pyproximal import ProxOperator
 class Nuclear(ProxOperator):
     r"""Nuclear norm proximal operator.
 
-    Proximal operator of the Nuclear norm defined as
-    :math:`\sigma\|\mathbf{X}\|_* = \sigma \sum_i \sigma_i` where
-    :math:`\mathbf{X}` is a matrix of size :math:`M \times N` and
-    :math:`\sigma_i=1, \ldots, \min(M, N)` are its singular values.
+    The nuclear norm is defined as
+    :math:`\sigma\|\mathbf{X}\|_* = \sigma \sum_i \lambda_i` where :math:`\mathbf{X}`
+    is a matrix of size :math:`M \times N` and :math:`\lambda_i` is the *i*:th
+    singular value of :math:`\mathbf{X}`, where :math:`i=1,\ldots, \min(M, N)`.
+
+    The *weighted* nuclear norm, with the positive weight vector :math:`\boldsymbol\sigma`, is
+    defined as
+
+    .. math::
+
+         \|\mathbf{X}|\|_{{\boldsymbol\sigma},*} = \sum_i \sigma_i\lambda_i(\mathbf{X}) .
 
     Parameters
     ----------
     dim : :obj:`tuple`
         Size of matrix :math:`\mathbf{X}`
-    sigma : :obj:`float`, optional
-        Multiplicative coefficient of nuclear norm
+    sigma : :obj:`float` or :obj:`numpy.ndarray`, optional
+        Multiplicative coefficient of the nuclear norm penalty. If ``sigma`` is a float
+        the same penalty is applied for all singular values. If instead ``sigma`` is an
+        array the weight ``sigma[i]`` will be applied to the *i*:th singular value.
+        This is often referred to as the *weighted nuclear norm*.
 
     Notes
     -----
-    The Nuclear norm proximal operator is defined as:
+    The nuclear norm proximal operator is:
 
     .. math::
 
         \prox_{\tau \sigma \|\cdot\|_*}(\mathbf{X}) =
-        \mathbf{U} \diag\left( \prox_{\tau \sigma \|\cdot\|_1}(\boldsymbol\lambda)\right) \mathbf{V}^H
+        \mathbf{U} \diag \{ \prox_{\tau \sigma \|\cdot\|_1}(\boldsymbol\lambda) \} \mathbf{V}^H
 
-    where :math:`\mathbf{X} = \mathbf{U}\diag(\boldsymbol\lambda)\mathbf{V}^H`, is an SVD of :math:`X`.
+    where :math:`\mathbf{U}`, :math:`\boldsymbol\lambda`, and
+    :math:`\mathbf{V}` define the SVD of :math:`X`.
+
+    The weighted nuclear norm is convex if the sequence :math:`\{\sigma_i\}_i` is
+    non-ascending, but is in general non-convex; however, when the weights are
+    non-descending it can be shown that applying the soft-thresholding operator on the
+    singular values still yields a fixed point (w. r. t. a specific algorithm), see
+    [1]_ for details.
+
+    .. [1] Gu et al. "Weighted Nuclear Norm Minimization with Application to Image
+        Denoising", In the IEEE Conference on Computer Vision and Pattern Recognition,
+        2862-2869, 2014.
 
     """
+
     def __init__(self, dim, sigma=1.):
         super().__init__(None, False)
         self.dim = dim
@@ -42,14 +64,14 @@ class Nuclear(ProxOperator):
         X = x.reshape(self.dim)
         eigs = np.linalg.eigvalsh(X.T @ X)
         eigs[eigs < 0] = 0  # ensure all eigenvalues at positive
-        nucl = np.sum(np.sqrt(eigs))
-        return self.sigma * nucl
+        return np.sum(np.flip(self.sigma) * np.sqrt(eigs))
 
     @_check_tau
     def prox(self, x, tau):
         X = x.reshape(self.dim)
         U, S, Vh = np.linalg.svd(X, full_matrices=False)
-        Sth = _softthreshold(S, tau * self.sigma)
+        sigma = self.sigma if np.isscalar(self.sigma) else self.sigma[:S.size]
+        Sth = _softthreshold(S, tau * sigma)
         X = np.dot(U * Sth, Vh)
         return X.ravel()
 
