@@ -7,13 +7,13 @@ from pyproximal import ProxOperator
 class SingularValuePenalty(ProxOperator):
     r"""Proximal operator of a penalty acting on the singular values.
 
-    Generic regularizer :math:`\mathcal{R}` acting on the singular values of a matrix,
+    Generic regularizer :math:`\mathcal{R}_f` acting on the singular values of a matrix,
 
-    ..math::
+    .. math::
 
-        \mathcal{R}(\mathbf{X}) = f(\boldsymbol\lambda)
+        \mathcal{R}_f(\mathbf{X}) = f(\boldsymbol\lambda)
 
-    :math:`\mathbf{X}` is a matrix of size :math:`M \times N` and
+    where :math:`\mathbf{X}` is a matrix of size :math:`M \times N` and
     :math:`\boldsymbol\lambda` is the corresponding singular value vector.
 
     Parameters
@@ -35,8 +35,8 @@ class SingularValuePenalty(ProxOperator):
         \mathbf{U} \diag\left( \prox_{\tau f}(\boldsymbol\lambda)\right) \mathbf{V}^H
 
     where :math:`\mathbf{X} = \mathbf{U}\diag(\boldsymbol\lambda)\mathbf{V}^H`, is an
-    SVD of :math:`X`. It is the user's responsibility to check that this is true for
-    their particular choice of ``penalty``.
+    SVD of :math:`\mathbf{X}`. It is the user's responsibility to check that this is
+    true for their particular choice of ``penalty``.
     """
 
     def __init__(self, dim, penalty):
