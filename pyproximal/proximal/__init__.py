@@ -29,6 +29,7 @@ The subpackage proximal contains a number of proximal operators:
     ETP                             Exponential-type penalty
     Geman                           Geman penalty
     QuadraticEnvelopeCard           The quadratic envelope of the cardinality function
+    SingularValuePenalty            Generic singular value penalty
 
 """
 
@@ -53,9 +54,10 @@ from .Log import *
 from .ETP import *
 from .Geman import *
 from .QuadraticEnvelope import *
+from .SingularValuePenalty import *
 
 __all__ = ['Box', 'Simplex', 'Intersection', 'AffineSet', 'Quadratic',
            'Euclidean', 'EuclideanBall', 'L0Ball', 'L1', 'L1Ball', 'L2',
            'L2Convolve', 'L21', 'L21_plus_L1', 'Huber', 'Nuclear',
            'NuclearBall', 'Orthogonal', 'VStack', 'Nonlinear', 'SCAD',
-           'Log', 'ETP', 'Geman', 'QuadraticEnvelopeCard']
+           'Log', 'ETP', 'Geman', 'QuadraticEnvelopeCard', 'SingularValuePenalty']

@@ -80,6 +80,7 @@ Operators
     ETP
     Geman
     QuadraticEnvelopeCard
+    SingularValuePenalty
 
 
 Other operators
