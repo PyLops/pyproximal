@@ -195,3 +195,21 @@ def test_Nuclear(par):
     # prox / dualprox
     tau = 2.
     assert moreau(nucl, X.ravel(), tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_Weighted_Nuclear(par):
+    """Weighted nuclear norm and proximal/dual proximal
+    """
+    weights = par['sigma'] * np.linspace(0.1, 5, 2 * par['nx'])
+    nucl = Nuclear((par['nx'], 2 * par['nx']), sigma=weights)
+
+    # norm, cross-check with svd (use tolerance as two methods don't provide
+    # the exact same singular values)
+    X = np.random.uniform(0., 0.1, (par['nx'], 2 * par['nx'])).astype(par['dtype'])
+    S = np.linalg.svd(X, compute_uv=False)
+    assert (nucl(X.ravel()) - np.sum(weights[:S.size] * S)) < 1e-3
+
+    # prox / dualprox
+    tau = 2.
+    assert moreau(nucl, X.ravel(), tau)
