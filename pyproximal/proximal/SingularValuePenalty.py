@@ -20,18 +20,19 @@ class SingularValuePenalty(ProxOperator):
     ----------
     dim : :obj:`tuple`
         Size of matrix :math:`\mathbf{X}`.
-    penalty : :class:`pylops.ProxOperator`
+    penalty : :class:`pyproximal.ProxOperator`
         Function acting on the singular values.
 
     Notes
     -----
-    The pyproximal implementation allows ``penalty`` to be any function on the singular
-    values; however, not all penalties will have an accurate proximal operator defined
-    this way. Given a penalty :math:`f`, the proximal operator is assumed to be
+    The pyproximal implementation allows ``penalty`` to be any
+    :class:`pyproximal.ProxOperator` acting on the singular values; however, not all
+    penalties will result in a mathematically accurate proximal operator defined this
+    way. Given a penalty :math:`f`, the proximal operator is assumed to be
 
     .. math::
 
-        \prox_{\tau f}(\mathbf{X}) =
+        \prox_{\tau \mathcal{R}_f}(\mathbf{X}) =
         \mathbf{U} \diag\left( \prox_{\tau f}(\boldsymbol\lambda)\right) \mathbf{V}^H
 
     where :math:`\mathbf{X} = \mathbf{U}\diag(\boldsymbol\lambda)\mathbf{V}^H`, is an
