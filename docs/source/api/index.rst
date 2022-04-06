@@ -52,6 +52,8 @@ Operators
 
 .. currentmodule:: pyproximal
 
+Vector
+``````
 .. autosummary::
    :toctree: generated/
 
@@ -69,17 +71,25 @@ Operators
     L2Convolve
     L21
     L21_plus_L1
-    Nonlinear
     Huber
-    Nuclear
-    NuclearBall
-    Orthogonal
-    VStack
     SCAD
     Log
     ETP
     Geman
     QuadraticEnvelopeCard
+    Orthogonal
+    Nonlinear
+    VStack
+
+
+Matrix-only
+```````````
+
+.. autosummary::
+   :toctree: generated/
+
+    Nuclear
+    NuclearBall
     SingularValuePenalty
 
 
