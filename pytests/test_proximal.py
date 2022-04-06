@@ -3,20 +3,21 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from pylops import MatrixMult, Identity
+
+import pyproximal
 from pyproximal.utils import moreau
-from pyproximal.proximal import Quadratic, Nonlinear, \
-    L1, L2, Orthogonal, VStack
+from pyproximal.proximal import L1, L2, Nonlinear, Orthogonal, Quadratic, \
+    SingularValuePenalty, VStack
 
 par1 = {'nx': 10, 'sigma': 1., 'dtype': 'float32'}  # even float32
 par2 = {'nx': 11, 'sigma': 2., 'dtype': 'float64'}  # odd float64
-
-np.random.seed(10)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Quadratic(par):
     """Quadratic functional and proximal/dual proximal
     """
+    np.random.seed(10)
     A = np.random.normal(0, 1, (par['nx'], par['nx']))
     A = A.T @ A
     quad = Quadratic(Op=MatrixMult(A), b=np.ones(par['nx']), niter=500)
@@ -31,6 +32,7 @@ def test_Quadratic(par):
 def test_DotProduct(par):
     """Dot product functional and proximal/dual proximal
     """
+    np.random.seed(10)
     quad = Quadratic(b=np.ones(par['nx']))
 
     # prox / dualprox
@@ -43,6 +45,7 @@ def test_DotProduct(par):
 def test_Constant(par):
     """Constant functional and proximal/dual proximal
     """
+    np.random.seed(10)
     quad = Quadratic(c=5.)
 
     # prox / dualprox
@@ -55,6 +58,7 @@ def test_Constant(par):
 def test_SemiOrthogonal(par):
     """L1 functional with Semi-Orthogonal operator and proximal/dual proximal
     """
+    np.random.seed(10)
     l1 = L1()
     orth = Orthogonal(l1, 2*Identity(par['nx']), b=np.arange(par['nx']),
                       partial=True, alpha=4.)
@@ -69,6 +73,7 @@ def test_SemiOrthogonal(par):
 def test_Orthogonal(par):
     """L1 functional with Orthogonal operator and proximal/dual proximal
     """
+    np.random.seed(10)
     l1 = L1()
     orth = Orthogonal(l1, Identity(par['nx']), b=np.arange(par['nx']))
 
@@ -82,6 +87,7 @@ def test_Orthogonal(par):
 def test_VStack(par):
     """L2 functional with VStack operator of multiple L1s
     """
+    np.random.seed(10)
     nxs = [par['nx'] // 4] * 4
     nxs[-1] = par['nx'] - np.sum(nxs[:-1])
     l2 = L2()
@@ -106,6 +112,7 @@ def test_Nonlinear():
     """Nonlinear proximal operator. Since this is a template class simply check
     that errors are raised when not used properly
     """
+    np.random.seed(10)
     Nop = Nonlinear(np.ones(10))
     with pytest.raises(NotImplementedError):
         Nop.fun(np.ones(10))
@@ -115,4 +122,20 @@ def test_Nonlinear():
         Nop.optimize()
 
 
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_SingularValuePenalty(par):
+    """Test SingularValuePenalty
+    """
+    np.random.seed(10)
+    f_mu = pyproximal.QuadraticEnvelopeCard(mu=par['sigma'])
+    penalty = SingularValuePenalty((par['nx'], 2 * par['nx']), f_mu)
 
+    # norm, cross-check with svd (use tolerance as two methods don't provide
+    # the exact same eigenvalues)
+    X = np.random.uniform(0., 0.1, (par['nx'], 2 * par['nx'])).astype(par['dtype'])
+    _, S, _ = np.linalg.svd(X)
+    assert (penalty(X.ravel()) - f_mu(S)) < 1e-3
+
+    # prox / dualprox
+    tau = 0.75
+    assert moreau(penalty, X.ravel(), tau)
