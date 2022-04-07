@@ -17,21 +17,22 @@ Orthogonal projections
 .. autosummary::
    :toctree: generated/
 
+    AffineSetProj
     BoxProj
+    EuclideanBallProj
     HyperPlaneBoxProj
-    SimplexProj
+    IntersectionProj
     L0BallProj
     L1BallProj
-    EuclideanBallProj
     NuclearBallProj
-    IntersectionProj
-    AffineSetProj
+    SimplexProj
 
 Proximal operators
 ------------------
 
 Templates
-~~~~~~~~~
+^^^^^^^^^
+
 .. currentmodule:: pyproximal
 
 .. autosummary::
@@ -46,22 +47,23 @@ Templates
 
     moreau
 
-
-Operators
-~~~~~~~~~
-
 .. currentmodule:: pyproximal
+
+Vector
+^^^^^^
+
+Convex
+~~~~~~
 
 .. autosummary::
    :toctree: generated/
 
-    Box
-    Simplex
-    Intersection
     AffineSet
-    Quadratic
+    Box
     Euclidean
     EuclideanBall
+    Huber
+    Intersection
     L0Ball
     L1
     L1Ball
@@ -69,18 +71,43 @@ Operators
     L2Convolve
     L21
     L21_plus_L1
-    Nonlinear
-    Huber
-    Nuclear
-    NuclearBall
     Orthogonal
-    VStack
-    SCAD
-    Log
+    Quadratic
+    Simplex
+
+
+Non-Convex
+~~~~~~~~~~
+
+.. autosummary::
+   :toctree: generated/
+
     ETP
     Geman
+    Log
     QuadraticEnvelopeCard
+    SCAD
+
+
+Matrix-only
+^^^^^^^^^^^
+
+.. autosummary::
+   :toctree: generated/
+
+    Nuclear
+    NuclearBall
     SingularValuePenalty
+
+
+Other
+^^^^^
+
+.. autosummary::
+   :toctree: generated/
+
+    Nonlinear
+    VStack
 
 
 Other operators
@@ -99,26 +126,19 @@ Solvers
 -------
 
 Primal
-~~~~~~
+^^^^^^
 
 .. currentmodule:: pyproximal.optimization.primal
 
 .. autosummary::
    :toctree: generated/
 
-    ProximalPoint
-    ProximalGradient
     AcceleratedProximalGradient
     ADMM
     LinearizedADMM
+    ProximalGradient
+    ProximalPoint
     TwIST
-
-.. currentmodule:: pyproximal.optimization.sr3
-
-.. autosummary::
-   :toctree: generated/
-
-    SR3
 
 .. currentmodule:: pyproximal.optimization.palm
 
@@ -134,20 +154,27 @@ Primal
 
     PlugAndPlay
 
+.. currentmodule:: pyproximal.optimization.sr3
+
+.. autosummary::
+   :toctree: generated/
+
+    SR3
+
 
 Primal-dual
-~~~~~~~~~~~
+^^^^^^^^^^^
 
 .. currentmodule:: pyproximal.optimization.primaldual
 
 .. autosummary::
    :toctree: generated/
 
-    PrimalDual
     AdaptivePrimalDual
+    PrimalDual
 
 Other
-~~~~~
+^^^^^
 
 .. currentmodule:: pyproximal.optimization.bregman
 
