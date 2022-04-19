@@ -66,7 +66,7 @@ class L2(ProxOperator):
 
     .. math::
 
-        \prox_{f_\alpha}(\mathbf{x}) =
+        \prox_{\tau f_\alpha}(\mathbf{x}) =
         \frac{\mathbf{x} + \tau \sigma \mathbf{b} - \tau \alpha \mathbf{q}}
         {1 + \tau \sigma}
 
@@ -74,7 +74,7 @@ class L2(ProxOperator):
 
     .. math::
 
-        \prox_{f_\alpha}(\mathbf{x}) =
+        \prox_{\tau f_\alpha}(\mathbf{x}) =
         \frac{\mathbf{x} - \tau \alpha \mathbf{q}}{1 + \tau \sigma}
 
     Finally, note that the second term in :math:`f_\alpha(\mathbf{x})` is added
