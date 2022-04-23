@@ -135,6 +135,7 @@ Primal
 
     AcceleratedProximalGradient
     ADMM
+    ADMML2
     LinearizedADMM
     ProximalGradient
     ProximalPoint

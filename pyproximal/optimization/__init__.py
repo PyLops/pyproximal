@@ -12,6 +12,7 @@ operators:
     ProximalGradient                Proximal gradient algorithm
     AcceleratedProximalGradient     Accelerated Proximal gradient algorithm
     ADMM                            Alternating Direction Method of Multipliers
+    ADMML2                            ADMM with L2 misfit term
     LinearizedADMM                  Linearized ADMM
     TwIST                           Two-step Iterative Shrinkage/Threshold
     PlugAndPlay                     Plug-and-Play Prior with ADMM
