@@ -37,6 +37,6 @@ class EuclideanBallProj():
 
     def __call__(self, x):
         x = self.center +  \
-            self.radius  / (max(np.linalg.norm(x - self.center),
-                                self.radius)) * (x - self.center)
+            self.radius / (max(np.linalg.norm(x - self.center),
+                               self.radius)) * (x - self.center)
         return x
