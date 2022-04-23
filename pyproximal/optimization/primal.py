@@ -2,6 +2,7 @@ import time
 import numpy as np
 
 from math import sqrt
+from pylops.optimization.leastsquares import RegularizedInversion
 from pyproximal.proximal import L2
 
 
@@ -365,20 +366,26 @@ def ADMM(proxf, proxg, x0, tau, niter=10, callback=None, show=False):
 
         \mathbf{x},\mathbf{z}  = \argmin_{\mathbf{x},\mathbf{z}}
         f(\mathbf{x}) + g(\mathbf{z}) \\
-        s.t \; \mathbf{Ax}+\mathbf{Bz}=c
+        s.t. \; \mathbf{x}=\mathbf{z}
 
     where :math:`f(\mathbf{x})` and :math:`g(\mathbf{z})` are any convex
-    function that has a known proximal operator, :math:`\mathbf{A}=\mathbf{I}`,
-    :math:`\mathbf{B}=-\mathbf{I}`, and :math:`c=0`.
+    function that has a known proximal operator.
 
-    Note that ADMM can solve the problem of the form above with any
-    :math:`\mathbf{A}`, :math:`\mathbf{B}`, and :math:`c`: however, the solution
-    of such problems is not generalizable as it depends on che choice of
-    :math:`f` and :math:`g`. For this reason, we currently do not provide a
-    solver for the more general case. One special case that is however provided
-    is when :math:`\mathbf{B}=-\mathbf{I}` and :math:`c=0` (for any
-    :math:`\mathbf{A}`), which can be solved by the
-    :func:`pyproximal.optimization.primal.LinearizedADMM` solver.
+    ADMM can also solve the problem of the form above with a more general
+    constraint: :math:`\mathbf{Ax}+\mathbf{Bz}=c`. This routine implements
+    the special case where :math:`\mathbf{A}=\mathbf{I}`, :math:`\mathbf{B}=-\mathbf{I}`,
+    and :math:`c=0`, as a general algorithm can be obtained for any choice of
+    :math:`f` and :math:`g` provided they have a known proximal operator.
+
+    On the other hand, for more general choice of :math:`\mathbf{A}`, :math:`\mathbf{B}`,
+    and :math:`c`, the iterations are not generalizable, i.e. thye depends on the choice of
+    :math:`f` and :math:`g` functions. For this reason, we currently only provide an additional
+    solver for the special case where :math:`f` is a :class:`pyproximal.proximal.L2`
+    operator with a linear operator  :math:`\mathbf{G}` and data :math:`\mathbf{y}`,
+    :math:`\mathbf{B}=-\mathbf{I}` and :math:`c=0`,
+    called :func:`pyproximal.optimization.primal.ADMML2`. Note that for the very same choice
+    of :math:`\mathbf{B}` and :math:`c`, the :func:`pyproximal.optimization.primal.LinearizedADMM`
+    can also be used (and this does not require a specific choice of :math:`f`).
 
     Parameters
     ----------
@@ -406,6 +413,11 @@ def ADMM(proxf, proxg, x0, tau, niter=10, callback=None, show=False):
         Inverted model
     z : :obj:`numpy.ndarray`
         Inverted second model
+
+    See Also
+    --------
+    ADMML2: ADMM with L2 misfit function
+    LinearizedADMM: Linearized ADMM
 
     Notes
     -----
@@ -448,6 +460,107 @@ def ADMM(proxf, proxg, x0, tau, niter=10, callback=None, show=False):
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
+                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
+                      (iiter + 1, x[0], pf, pg, pf + pg)
+                print(msg)
+    if show:
+        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
+        print('---------------------------------------------------------\n')
+    return x, z
+
+
+def ADMML2(proxg, Op, b, A, x0, tau, niter=10, callback=None, show=False, **kwargs_solver):
+    r"""Alternating Direction Method of Multipliers for L2 misfit term
+
+    Solves the following minimization problem using Alternating Direction
+    Method of Multipliers:
+
+    .. math::
+
+        \mathbf{x},\mathbf{z}  = \argmin_{\mathbf{x},\mathbf{z}}
+        \frac{1}{2}||\mathbf{Op}\mathbf{x} - \mathbf{b}||_2^2 + g(\mathbf{z}) \\
+        s.t. \; \mathbf{Ax}=\mathbf{z}
+
+    where :math:`g(\mathbf{z})` is any convex function that has a known proximal operator.
+
+    Parameters
+    ----------
+    proxg : :obj:`pyproximal.ProxOperator`
+        Proximal operator of g function
+    Op : :obj:`pylops.LinearOperator`
+        Linear operator of data misfit term
+    b : :obj:`numpy.ndarray`
+        Data
+    A : :obj:`pylops.LinearOperator`
+        Linear operator of regularization term
+    x0 : :obj:`numpy.ndarray`
+        Initial vector
+    tau : :obj:`float`, optional
+        Positive scalar weight, which should satisfy the following condition
+        to guarantees convergence: :math:`\tau \in (0, 1/\lambda_{max}(\mathbf{A}^H\mathbf{A})]`.
+    niter : :obj:`int`, optional
+        Number of iterations of iterative scheme
+    callback : :obj:`callable`, optional
+        Function with signature (``callback(x)``) to call after each iteration
+        where ``x`` is the current model vector
+    show : :obj:`bool`, optional
+        Display iterations log
+    **kwargs_solver
+        Arbitrary keyword arguments for :py:func:`scipy.sparse.linalg.lsqr` used
+        to solve the x-update
+
+    Returns
+    -------
+    x : :obj:`numpy.ndarray`
+        Inverted model
+    z : :obj:`numpy.ndarray`
+        Inverted second model
+
+    See Also
+    --------
+    ADMM: ADMM
+    LinearizedADMM: Linearized ADMM
+
+    Notes
+    -----
+    The ADMM algorithm can be expressed by the following recursion:
+
+    .. math::
+
+        \mathbf{x}^{k+1} = \argmin_{\mathbf{x}} \frac{1}{2}||\mathbf{Op}\mathbf{x}
+        - \mathbf{b}||_2^2 + \frac{1}{2\tau} ||\mathbf{Ax} - \mathbf{z}^k + \mathbf{u}^k||_2^2\\
+        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{Ax}^{k+1} + \mathbf{u}^{k})\\
+        \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{Ax}^{k+1} - \mathbf{z}^{k+1}
+
+    """
+    if show:
+        tstart = time.time()
+        print('ADMM\n'
+              '---------------------------------------------------------\n'
+              'Proximal operator (g): %s\n'
+              'tau = %10e\tniter = %d\n' % (type(proxg), tau, niter))
+        head = '   Itn       x[0]          f           g       J = f + g'
+        print(head)
+
+    sqrttau = 1. / sqrt(tau)
+    x = x0.copy()
+    u = z = np.zeros(A.shape[0], dtype=A.dtype)
+    for iiter in range(niter):
+        # create augumented system
+        x = RegularizedInversion(Op, [A, ], b,
+                                 dataregs=[z - u, ], epsRs=[sqrttau, ],
+                                 x0=x, **kwargs_solver)
+        Ax = A @ x
+        z = proxg.prox(Ax + u, tau)
+        u = u + Ax - z
+
+        # run callback
+        if callback is not None:
+            callback(x)
+
+        if show:
+            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
+                pf, pg = np.linalg.norm(Op @ x - b), proxg(Ax)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
                       (iiter + 1, x[0], pf, pg, pf + pg)
                 print(msg)
@@ -504,6 +617,11 @@ def LinearizedADMM(proxf, proxg, A, x0, tau, mu, niter=10,
         Inverted model
     z : :obj:`numpy.ndarray`
         Inverted second model
+
+    See Also
+    --------
+    ADMM: ADMM
+    ADMML2: ADMM with L2 misfit function
 
     Notes
     -----
