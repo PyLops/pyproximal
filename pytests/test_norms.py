@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from pylops.basicoperators import Identity, Diagonal
+from pylops.basicoperators import Identity, Diagonal, MatrixMult
 from pyproximal.utils import moreau
 from pyproximal.proximal import Box, Euclidean, L2, L1, L21, L21_plus_L1, Huber, Nuclear
 
@@ -34,7 +34,7 @@ def test_Euclidean(par):
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_L2(par):
-    """L2 norm and proximal/dual proximal
+    """L2 norm of Op*x-b and proximal/dual proximal
     """
     l2 = L2(Op=Identity(par['nx'], dtype=par['dtype']),
             b=np.zeros(par['nx'], dtype=par['dtype']),
@@ -50,7 +50,7 @@ def test_L2(par):
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_L2_diff(par):
-    """L2 norm of difference and proximal/dual proximal
+    """L2 norm of difference (x-b) and proximal/dual proximal
     """
     b = np.ones(par['nx'], dtype=par['dtype'])
     l2 = L2(b=b, sigma=par['sigma'])
@@ -73,6 +73,26 @@ def test_L2_op(par):
     d = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
     l2 = L2(Op=Diagonal(d, dtype=par['dtype']),
             b=b, sigma=par['sigma'], niter=500)
+
+    # norm
+    x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+    assert l2(x) == (par['sigma'] / 2.) * np.linalg.norm(d * x) ** 2
+
+    # prox: since Op is a Diagonal operator the denominator becomes
+    # 1 + sigma*tau*d[i] for every i
+    tau = 2.
+    den = 1. + par['sigma'] * tau * d ** 2
+    assert_array_almost_equal(l2.prox(x, tau), x / den, decimal=4)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_L2_dense(par):
+    """L2 norm of Op*x with dense Op and proximal/dual proximal
+    """
+    b = np.zeros(par['nx'], dtype=par['dtype'])
+    d = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+    l2 = L2(Op=MatrixMult(np.diag(d), dtype=par['dtype']),
+            b=b, sigma=par['sigma'], densesolver='numpy')
 
     # norm
     x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
