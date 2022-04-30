@@ -279,7 +279,7 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
     .. math::
 
-        \mathbf{x}^{k+1} = \prox_{\tau^k f}(\mathbf{y}^{k+1}  -
+        \mathbf{x}^{k+1} = \prox_{\tau^k \epsilon g}(\mathbf{y}^{k+1} -
         \tau^k \nabla f(\mathbf{y}^{k+1})) \\
         \mathbf{y}^{k+1} = \mathbf{x}^k + \omega^k
         (\mathbf{x}^k - \mathbf{x}^{k-1})
