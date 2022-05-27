@@ -34,7 +34,7 @@ def _softthreshold(x, thresh):
 
 
 def _current_sigma(sigma, count):
-    if isinstance(sigma, (int, float)):
+    if not callable(sigma):
         return sigma
     else:
         return sigma(count)
@@ -48,11 +48,12 @@ class L1(ProxOperator):
 
     Parameters
     ----------
-    sigma : :obj:`int`, optional
-        Multiplicative coefficient of L1 norm. This can be a constant number or
+    sigma : :obj:`float` or :obj:`list` or :obj:`np.ndarray` or :obj:`func`, optional
+        Multiplicative coefficient of L1 norm. This can be a constant number, a list
+        of values (for multidimensional inputs, acting on the second dimension) or
         a function that is called passing a counter which keeps track of how many
-        times the ``prox`` method has been invoked before and
-        returns the ``sigma`` to be used.
+        times the ``prox`` method has been invoked before and returns a scalar (or a list of)
+        ``sigma`` to be used.
     g : :obj:`np.ndarray`, optional
         Vector to be subtracted
 
@@ -95,7 +96,7 @@ class L1(ProxOperator):
         self.sigma = sigma
         self.g = g
         self.gdual = 0 if g is None else g
-        if isinstance(sigma, (int, float)):
+        if not callable(sigma):
             self.box = BoxProj(-sigma, sigma)
         else:
             self.box = BoxProj(-sigma(0), sigma(0))
