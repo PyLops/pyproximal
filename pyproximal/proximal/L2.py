@@ -97,7 +97,7 @@ class L2(ProxOperator):
         self.count = 0
 
         # create data term
-        if self.Op is not None:
+        if self.Op is not None and self.b is not None:
             self.OpTb = self.sigma * self.Op.H @ self.b
             # create A.T A upfront for explicit operators
             if self.Op.explicit:

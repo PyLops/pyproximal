@@ -77,18 +77,20 @@ def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1.,
               'Proximal operator (g): %s\n'
               'gammaf = %10e\tgammaf = %10e\tniter = %d\n' %
               (type(H), type(proxf), type(proxg), gammaf, gammag, niter))
-        head = '   Itn      x[0]       y[0]        f         g         H'
+        head = '   Itn      x[0]       y[0]        f         g         H         ck         dk'
         print(head)
 
     x, y = x0.copy(), y0.copy()
     for iiter in range(niter):
         ck = gammaf * H.ly(y)
         x = x - (1 / ck) * H.gradx(x.ravel())
-        x = proxf.prox(x, ck)
+        if proxf is not None:
+            x = proxf.prox(x, ck)
         H.updatex(x.copy())
         dk = gammag * H.lx(x)
         y = y - (1 / dk) * H.grady(y.ravel())
-        y = proxg.prox(y, dk)
+        if proxg is not None:
+            y = proxg.prox(y, dk)
         H.updatey(y.copy())
 
         # run callback
@@ -96,9 +98,12 @@ def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1.,
             callback(x, y)
 
         if show:
+            pf = proxf(x) if proxf is not None else 0.
+            pg = proxg(y) if proxg is not None else 0.
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                msg = '%6g  %5.5e  %5.2e  %5.2e  %5.2e  %5.2e' % \
-                      (iiter + 1, x[0], y[0], proxf(x), proxg(y), H(x, y))
+                msg = '%6g  %5.5e  %5.2e  %5.2e  %5.2e  %5.2e  %5.2e  %5.2e' % \
+                      (iiter + 1, x[0], y[0], pf if pf is not None else 0.,
+                       pg if pg is not None else 0., H(x, y), ck, dk)
                 print(msg)
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
