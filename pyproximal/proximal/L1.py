@@ -33,6 +33,13 @@ def _softthreshold(x, thresh):
     return x1
 
 
+def _current_sigma(sigma, count):
+    if isinstance(sigma, (int, float)):
+        return sigma
+    else:
+        return sigma(count)
+
+
 class L1(ProxOperator):
     r"""L1 norm proximal operator.
 
@@ -42,7 +49,10 @@ class L1(ProxOperator):
     Parameters
     ----------
     sigma : :obj:`int`, optional
-        Multiplicative coefficient of L1 norm
+        Multiplicative coefficient of L1 norm. This can be a constant number or
+        a function that is called passing a counter which keeps track of how many
+        times the ``prox`` method has been invoked before and
+        returns the ``sigma`` to be used.
     g : :obj:`np.ndarray`, optional
         Vector to be subtracted
 
@@ -85,18 +95,33 @@ class L1(ProxOperator):
         self.sigma = sigma
         self.g = g
         self.gdual = 0 if g is None else g
-        self.box = BoxProj(-sigma, sigma)
+        if isinstance(sigma, (int, float)):
+            self.box = BoxProj(-sigma, sigma)
+        else:
+            self.box = BoxProj(-sigma(0), sigma(0))
+        self.count = 0
 
     def __call__(self, x):
-        return self.sigma * np.sum(np.abs(x))
+        sigma = _current_sigma(self.sigma, self.count)
+        return sigma * np.sum(np.abs(x))
 
+    def _increment_count(func):
+        """Increment counter
+        """
+        def wrapped(self, *args, **kwargs):
+            self.count += 1
+            return func(self, *args, **kwargs)
+        return wrapped
+
+    @_increment_count
     @_check_tau
     def prox(self, x, tau):
+        sigma = _current_sigma(self.sigma, self.count)
         if self.g is None:
-            x = _softthreshold(x, tau * self.sigma)
+            x = _softthreshold(x, tau * sigma)
         else:
             # use precomposition property
-            x = _softthreshold(x - self.g, tau * self.sigma) + self.g
+            x = _softthreshold(x - self.g, tau * sigma) + self.g
         return x
 
     @_check_tau
