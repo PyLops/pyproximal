@@ -132,7 +132,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
         when dealing with problems with multiple right-hand-sides
     beta : obj:`float`, optional
         Backtracking parameter (must be between 0 and 1)
-    epsg : :obj:`float`, optional
+    epsg : :obj:`float` or :obj:`np.ndarray`, optional
         Scaling factor of g function
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
@@ -176,6 +176,12 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
     1/(2\tau)||\mathbf{x} - \mathbf{y}||_2^2`.
 
     """
+    # check if epgs is a ve
+    if np.asarray(epsg).size == 1.:
+        epsg_print = str(epsg)
+    else:
+        epsg_print = 'Multi'
+
     if show:
         tstart = time.time()
         print('Proximal Gradient\n'
@@ -183,10 +189,10 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
               'Proximal operator (f): %s\n'
               'Proximal operator (g): %s\n'
               'tau = %10e\tbeta=%10e\n'
-              'epsg = %10e\tniter = %d\t'
+              'epsg = %s\tniter = %d\t'
               'niterback = %d\n' % (type(proxf), type(proxg),
-                                    0 if tau is None else tau, beta, epsg,
-                                    niter, niterback))
+                                    0 if tau is None else tau, beta,
+                                    epsg_print, niter, niterback))
         head = '   Itn       x[0]          f           g       J=f+eps*g'
         print(head)
 
@@ -211,7 +217,9 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, x[0], pf, pg, pf + epsg * pg)
+                      (iiter + 1, x[0] if x.ndim == 1 else x[0, 0],
+                       pf, pg[0] if epsg_print == 'Multi' else pg,
+                       pf + np.sum(epsg * pg))
                 print(msg)
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
@@ -253,7 +261,7 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
         when dealing with problems with multiple right-hand-sides
     beta : obj:`float`, optional
         Backtracking parameter (must be between 0 and 1)
-    epsg : :obj:`float`, optional
+    epsg : :obj:`float` or :obj:`np.ndarray`, optional
         Scaling factor of g function
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
@@ -294,6 +302,12 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
        Imaging Sciences, vol. 2, pp. 183-202. 2009.
 
     """
+    # check if epgs is a ve
+    if np.asarray(epsg).size == 1.:
+        epsg_print = str(epsg)
+    else:
+        epsg_print = 'Multi'
+
     if acceleration not in ['vandenberghe', 'fista']:
         raise NotImplementedError('Acceleration should be vandenberghe '
                                   'or fista')
@@ -303,10 +317,10 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
               '---------------------------------------------------------\n'
               'Proximal operator (f): %s\n'
               'Proximal operator (g): %s\n'
-              'tau = %10e\tepsg = %10e\tniter = %d\n' % (type(proxf),
-                                                         type(proxg),
-                                                         0 if tau is None else tau,
-                                                         epsg, niter))
+              'tau = %10e\tepsg = %s\tniter = %d\n' % (type(proxf),
+                                                       type(proxg),
+                                                       0 if tau is None else tau,
+                                                         epsg_print, niter))
         head = '   Itn       x[0]          f           g       J=f+eps*g'
         print(head)
 
@@ -348,7 +362,9 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, x[0], pf, pg, pf + epsg * pg)
+                      (iiter + 1, x[0] if x.ndim == 1 else x[0, 0],
+                       pf, pg[0] if epsg_print == 'Multi' else pg,
+                       pf + np.sum(epsg * pg))
                 print(msg)
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
