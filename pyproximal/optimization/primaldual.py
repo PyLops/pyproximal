@@ -93,9 +93,9 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
         \mathbf{y}^{k+1} = \prox_{\mu g^*}(\mathbf{y}^{k} +
         \mu \mathbf{A}\bar{\mathbf{x}}^{k+1})
 
-    .. [1] A., Chambolle, and T., Pock, "A first-order primal-dual algorithm for
+    .. [1] A., Chambolle, and T., Pock, "A first-order primal-dual algorithm for
         convex problems with applications to imaging", Journal of Mathematical
-        Imaging and Vision, 40, 8pp. 120–145. 2011.
+        Imaging and Vision, 40, 8pp. 120-145. 2011.
 
     """
     if show:
