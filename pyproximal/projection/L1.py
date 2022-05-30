@@ -40,4 +40,8 @@ class L1BallProj():
         self.simplex = SimplexProj(n, radius, maxiter, xtol)
 
     def __call__(self, x):
-        return np.sign(x) * self.simplex(np.abs(x))
+        if np.iscomplexobj(x):
+            return np.exp(1j * np.angle(x)) * self.simplex(np.abs(x))
+        else:
+            return np.sign(x) * self.simplex(np.abs(x))
+

@@ -10,6 +10,7 @@ The subpackage proximal contains a number of proximal operators:
     AffineSet	                    Affines set indicator
     Quadratic                       Quadratic function
     Nonlinear	                    Nonlinear function
+    L0                              L0 Norm
     L0Ball                          L0 Ball
     L1	                            L1 Norm
     L1Ball                          L1 Ball
@@ -57,7 +58,7 @@ from .QuadraticEnvelope import *
 from .SingularValuePenalty import *
 
 __all__ = ['Box', 'Simplex', 'Intersection', 'AffineSet', 'Quadratic',
-           'Euclidean', 'EuclideanBall', 'L0Ball', 'L1', 'L1Ball', 'L2',
+           'Euclidean', 'EuclideanBall', 'L0', 'L0Ball', 'L1', 'L1Ball', 'L2',
            'L2Convolve', 'L21', 'L21_plus_L1', 'Huber', 'Nuclear',
            'NuclearBall', 'Orthogonal', 'VStack', 'Nonlinear', 'SCAD',
            'Log', 'ETP', 'Geman', 'QuadraticEnvelopeCard', 'SingularValuePenalty']
