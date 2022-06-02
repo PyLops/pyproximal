@@ -124,3 +124,21 @@ plt.xlabel('x')
 plt.title(r'$||x||_1$')
 plt.legend()
 plt.tight_layout()
+
+###############################################################################
+# We consider now the TV norm. 
+TV = pyproximal.TV(dim=1, sigma=1.)
+
+x = np.arange(-1, 1, 0.1)
+print('||x||_{TV}: ', l1(x))
+
+tau = 0.5
+xp = TV.prox(x, tau)
+
+plt.figure(figsize=(7, 2))
+plt.plot(x, x, 'k', lw=2, label='x')
+plt.plot(x, xp, 'r', lw=2, label='prox(x)')
+plt.xlabel('x')
+plt.title(r'$||x||_{TV}$')
+plt.legend()
+plt.tight_layout()
