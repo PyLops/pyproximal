@@ -74,6 +74,7 @@ Convex
     Orthogonal
     Quadratic
     Simplex
+    TV
 
 
 Non-Convex
@@ -138,6 +139,7 @@ Primal
     ADMML2
     LinearizedADMM
     ProximalGradient
+    GeneralizedProximalGradient
     ProximalPoint
     TwIST
 
