@@ -11,8 +11,9 @@ operators:
     ProximalPoint                   Proximal point algorithm (or proximal min.)
     ProximalGradient                Proximal gradient algorithm
     AcceleratedProximalGradient     Accelerated Proximal gradient algorithm
+    HQS                             Half Quadrating Splitting
     ADMM                            Alternating Direction Method of Multipliers
-    ADMML2                            ADMM with L2 misfit term
+    ADMML2                          ADMM with L2 misfit term
     LinearizedADMM                  Linearized ADMM
     TwIST                           Two-step Iterative Shrinkage/Threshold
     PlugAndPlay                     Plug-and-Play Prior with ADMM

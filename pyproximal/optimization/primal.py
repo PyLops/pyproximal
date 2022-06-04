@@ -372,7 +372,115 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
     return x
 
 
-def ADMM(proxf, proxg, x0, tau, niter=10, callback=None, show=False):
+def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True,
+        callback=None, callbackz=False, show=False):
+    r"""Half Quadratic splitting
+
+    Solves the following minimization problem using Half Quadratic splitting
+    algorithm:
+
+    .. math::
+
+        \mathbf{x},\mathbf{z}  = \argmin_{\mathbf{x},\mathbf{z}}
+        f(\mathbf{x}) + g(\mathbf{z}) \\
+        s.t. \; \mathbf{x}=\mathbf{z}
+
+    where :math:`f(\mathbf{x})` and :math:`g(\mathbf{z})` are any convex
+    function that has a known proximal operator.
+
+    Parameters
+    ----------
+    proxf : :obj:`pyproximal.ProxOperator`
+        Proximal operator of f function
+    proxg : :obj:`pyproximal.ProxOperator`
+        Proximal operator of g function
+    x0 : :obj:`numpy.ndarray`
+        Initial vector
+    tau : :obj:`float`, optional
+        Positive scalar weight, which should satisfy the following condition
+        to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
+        the Lipschitz constant of :math:`\nabla f`.
+    niter : :obj:`int`, optional
+        Number of iterations of iterative scheme
+    gfirst : :obj:`bool`, optional
+        Apply Proximal of operator ``g`` first (``True``) or Proximal of
+        operator ``f`` first (``False``)
+    callback : :obj:`callable`, optional
+        Function with signature (``callback(x)``) to call after each iteration
+        where ``x`` is the current model vector
+    callbackz : :obj:`bool`, optional
+        Modify callback signature to (``callback(x, z)``) when ``callbackz=True``
+    show : :obj:`bool`, optional
+        Display iterations log
+
+    Returns
+    -------
+    x : :obj:`numpy.ndarray`
+        Inverted model
+    z : :obj:`numpy.ndarray`
+        Inverted second model
+
+    Notes
+    -----
+    The HQS algorithm can be expressed by the following recursion [1]_:
+
+    .. math::
+
+        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{x}^{k})
+        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{z}^{k+1})\\
+
+    Note that ``x`` and ``z`` converge to each other, however if iterations are
+    stopped too early ``x`` is guaranteed to belong to the domain of ``f``
+    while ``z`` is guaranteed to belong to the domain of ``g``. Depending on
+    the problem either of the two may be the best solution.
+
+    .. [1] D., Geman, and C., Yang, "Nonlinear image recovery with halfquadratic
+         regularization", IEEE Transactions on Image Processing,
+         4, 7, pp. 932-946, 1995.
+
+    """
+    if show:
+        tstart = time.time()
+        print('HQS\n'
+              '---------------------------------------------------------\n'
+              'Proximal operator (f): %s\n'
+              'Proximal operator (g): %s\n'
+              'tau = %10e\tniter = %d\n' % (type(proxf), type(proxg),
+                                            tau, niter))
+        head = '   Itn       x[0]          f           g       J = f + g'
+        print(head)
+
+    x = x0.copy()
+    z = np.zeros_like(x)
+    for iiter in range(niter):
+        if gfirst:
+            z = proxg.prox(x, tau)
+            x = proxf.prox(z, tau)
+        else:
+            x = proxf.prox(z, tau)
+            z = proxg.prox(x, tau)
+
+        # run callback
+        if callback is not None:
+            if callbackz:
+                callback(x, z)
+            else:
+                callback(x)
+
+        if show:
+            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
+                pf, pg = proxf(x), proxg(x)
+                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
+                      (iiter + 1, x[0], pf, pg, pf + pg)
+                print(msg)
+    if show:
+        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
+        print('---------------------------------------------------------\n')
+    return x, z
+
+
+def ADMM(proxf, proxg, x0, tau, niter=10, gfirst=False,
+         callback=None, callbackz=False, show=False):
     r"""Alternating Direction Method of Multipliers
 
     Solves the following minimization problem using Alternating Direction
@@ -417,9 +525,14 @@ def ADMM(proxf, proxg, x0, tau, niter=10, callback=None, show=False):
         the Lipschitz constant of :math:`\nabla f`.
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
+    gfirst : :obj:`bool`, optional
+        Apply Proximal of operator ``g`` first (``True``) or Proximal of
+        operator ``f`` first (``False``)
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
+    callbackz : :obj:`bool`, optional
+        Modify callback signature to (``callback(x, z)``) when ``callbackz=True``
     show : :obj:`bool`, optional
         Display iterations log
 
@@ -445,7 +558,7 @@ def ADMM(proxf, proxg, x0, tau, niter=10, callback=None, show=False):
         \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{x}^{k+1} + \mathbf{u}^{k})\\
         \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{x}^{k+1} - \mathbf{z}^{k+1}
 
-    Note that ``x`` and ``z`` converge to each other, but if iterations are
+    Note that ``x`` and ``z`` converge to each other, however if iterations are
     stopped too early ``x`` is guaranteed to belong to the domain of ``f``
     while ``z`` is guaranteed to belong to the domain of ``g``. Depending on
     the problem either of the two may be the best solution.
@@ -465,14 +578,20 @@ def ADMM(proxf, proxg, x0, tau, niter=10, callback=None, show=False):
     x = x0.copy()
     u = z = np.zeros_like(x)
     for iiter in range(niter):
-        x = proxf.prox(z - u, tau)
-        z = proxg.prox(x + u, tau)
+        if gfirst:
+            z = proxg.prox(x + u, tau)
+            x = proxf.prox(z - u, tau)
+        else:
+            x = proxf.prox(z - u, tau)
+            z = proxg.prox(x + u, tau)
         u = u + x - z
 
         # run callback
         if callback is not None:
-            callback(x)
-
+            if callbackz:
+                callback(x, z)
+            else:
+                callback(x)
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
