@@ -67,7 +67,7 @@ class L1(ProxOperator):
         \operatorname{soft}(\mathbf{x}, \tau \sigma) =
         \begin{cases}
         x_i + \tau \sigma, & x_i - g_i < -\tau \sigma \\
-        g_i, & -\sigma \leq x_i - g_i \leq \tau\sigma \\
+        g_i, & -\tau\sigma \leq x_i - g_i \leq \tau\sigma \\
         x_i - \tau\sigma,  & x_i - g_i > \tau\sigma\\
         \end{cases}
 
