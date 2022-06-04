@@ -3,7 +3,7 @@ import numpy as np
 
 
 def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
-               gfirst=True, callback=None, show=False):
+               gfirst=True, callback=None, callbacky=False, show=False):
     r"""Primal-dual algorithm
 
     Solves the following (possibly) nonlinear minimization problem using
@@ -39,10 +39,12 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
         Linear operator of g
     x0 : :obj:`numpy.ndarray`
         Initial vector
-    tau : :obj:`float`
-        Stepsize of subgradient of :math:`f`
-    mu : :obj:`float`
-        Stepsize of subgradient of :math:`g^*`
+    tau : :obj:`float` or :obj:`np.ndarray`
+        Stepsize of subgradient of :math:`f`. This can be constant 
+        or function of iterations (in the latter cases provided as np.ndarray)
+    mu : :obj:`float` or :obj:`np.ndarray`
+        Stepsize of subgradient of :math:`g^*`. This can be constant 
+        or function of iterations (in the latter cases provided as np.ndarray)
     z : :obj:`numpy.ndarray`, optional
         Additional vector
     theta : :obj:`float`
@@ -58,6 +60,8 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
+    callbacky : :obj:`bool`, optional
+        Modify callback signature to (``callback(x, y)``) when ``callbacky=True``
     show : :obj:`bool`, optional
         Display iterations log
 
@@ -98,6 +102,15 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
         Imaging and Vision, 40, 8pp. 120-145. 2011.
 
     """
+    # check if tau and mu are scalars or arrays
+    fixedtau = fixedmu = False
+    if isinstance(tau, (int, float)):
+        tau = tau * np.ones(niter)
+        fixedtau = True
+    if isinstance(mu, (int, float)):
+        mu = mu * np.ones(niter)
+        fixedmu = True
+
     if show:
         tstart = time.time()
         print('Primal-dual: min_x f(Ax) + x^T z + g(x)\n'
@@ -106,9 +119,10 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
               'Proximal operator (g): %s\n'
               'Linear operator (A): %s\n'
               'Additional vector (z): %s\n'
-              'tau = %10e\tmu = %10e\ntheta = %.2f\t\tniter = %d\n' %
+              'tau = %s\t\tmu = %s\ntheta = %.2f\t\tniter = %d\n' %
               (type(proxf), type(proxg), type(A),
-               None if z is None else 'vector', tau, mu, theta, niter))
+               None if z is None else 'vector', str(tau[0]) if fixedtau else 'Variable',
+               str(mu[0]) if fixedmu else 'Variable', theta, niter))
         head = '   Itn       x[0]          f           g          z^x       J = f + g + z^x'
         print(head)
 
@@ -119,24 +133,26 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
     for iiter in range(niter):
         xold = x.copy()
         if gfirst:
-            y = proxg.proxdual(y + mu * A.matvec(xhat), mu)
+            y = proxg.proxdual(y + mu[iiter] * A.matvec(xhat), mu[iiter])
             ATy = A.rmatvec(y)
             if z is not None:
                 ATy += z
-            x = proxf.prox(x - tau * ATy, tau)
+            x = proxf.prox(x - tau[iiter] * ATy, tau[iiter])
             xhat = x + theta * (x - xold)
         else:
             ATy = A.rmatvec(y)
             if z is not None:
                 ATy += z
-            x = proxf.prox(x - tau * ATy, tau)
+            x = proxf.prox(x - tau[iiter] * ATy, tau[iiter])
             xhat = x + theta * (x - xold)
-            y = proxg.proxdual(y + mu * A.matvec(xhat), mu)
+            y = proxg.proxdual(y + mu[iiter] * A.matvec(xhat), mu[iiter])
 
         # run callback
         if callback is not None:
-            callback(x)
-
+            if callbacky:
+                callback(x, y)
+            else:
+                callback(x)
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(A.matvec(x))

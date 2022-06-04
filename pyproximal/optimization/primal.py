@@ -372,7 +372,8 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
     return x
 
 
-def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True, callback=None, show=False):
+def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True,
+        callback=None, callbackz=False, show=False):
     r"""Half Quadratic splitting
 
     Solves the following minimization problem using Half Quadratic splitting
@@ -396,7 +397,9 @@ def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True, callback=None, show=False)
     x0 : :obj:`numpy.ndarray`
         Initial vector
     tau : :obj:`float`, optional
-        CHECK!!!
+        Positive scalar weight, which should satisfy the following condition
+        to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
+        the Lipschitz constant of :math:`\nabla f`.
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
     gfirst : :obj:`bool`, optional
@@ -405,6 +408,8 @@ def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True, callback=None, show=False)
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
+    callbackz : :obj:`bool`, optional
+        Modify callback signature to (``callback(x, z)``) when ``callbackz=True``
     show : :obj:`bool`, optional
         Display iterations log
 
@@ -457,7 +462,10 @@ def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True, callback=None, show=False)
 
         # run callback
         if callback is not None:
-            callback(x)
+            if callbackz:
+                callback(x, z)
+            else:
+                callback(x)
 
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
@@ -471,7 +479,8 @@ def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True, callback=None, show=False)
     return x, z
 
 
-def ADMM(proxf, proxg, x0, tau, niter=10, gfirst=False, callback=None, show=False):
+def ADMM(proxf, proxg, x0, tau, niter=10, gfirst=False,
+         callback=None, callbackz=False, show=False):
     r"""Alternating Direction Method of Multipliers
 
     Solves the following minimization problem using Alternating Direction
@@ -522,6 +531,8 @@ def ADMM(proxf, proxg, x0, tau, niter=10, gfirst=False, callback=None, show=Fals
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
+    callbackz : :obj:`bool`, optional
+        Modify callback signature to (``callback(x, z)``) when ``callbackz=True``
     show : :obj:`bool`, optional
         Display iterations log
 
@@ -577,8 +588,10 @@ def ADMM(proxf, proxg, x0, tau, niter=10, gfirst=False, callback=None, show=Fals
 
         # run callback
         if callback is not None:
-            callback(x)
-
+            if callbackz:
+                callback(x, z)
+            else:
+                callback(x)
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
