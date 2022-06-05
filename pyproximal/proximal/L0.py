@@ -43,7 +43,7 @@ class L0(ProxOperator):
     Parameters
     ----------
     sigma : :obj:`float` or :obj:`list` or :obj:`np.ndarray` or :obj:`func`, optional
-        Multiplicative coefficient of L1 norm. This can be a constant number, a list
+        Multiplicative coefficient of L0 norm. This can be a constant number, a list
         of values (for multidimensional inputs, acting on the second dimension) or
         a function that is called passing a counter which keeps track of how many
         times the ``prox`` method has been invoked before and returns a scalar (or a list of)

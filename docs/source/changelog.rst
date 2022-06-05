@@ -3,6 +3,20 @@
 Changelog
 =========
 
+Version 0.4.0
+--------------
+*Released on: 05/06/2022*
+
+* Added :py:class:`pyproximal.optimization.primal.ADMML2`,
+  :py:class:`pyproximal.optimization.primal.HQS`,
+  and :py:class:`pyproximal.optimization.pnp.PlugAndPlay` solvers
+* Added :py:class:`pyproximal.proximal.ETP`, :py:class:`pyproximal.proximal.Geman`,
+  :py:class:`pyproximal.proximal.L0`, :py:class:`pyproximal.proximal.Log`,
+  :py:class:`pyproximal.proximal.QuadraticEnvelopeCard`, :py:class:`pyproximal.proximal.SCAD`
+  operators.
+* Allow `tau` parameter of proximal operators to be a vector to handle problems with
+  multiple right-hand sides.
+
 Version 0.3.0
 --------------
 *Released on: 23/03/2022*
@@ -26,7 +40,7 @@ Version 0.2.0
   and :py:class:`pyproximal.proximal.Nonlinear` operators
 * Added
   :py:class:`pyproximal.proximal.Nuclear`, and
-  :py:class:`pyproximal.proximal.NuclearBall` operator
+  :py:class:`pyproximal.proximal.NuclearBall` operators
 * Added :py:class:`pyproximal.optimization.primal.TwIST` solver
 * Added `acceleration` in
   :py:class:`pyproximal.optimization.primal.AcceleratedProximalGradient` solver
