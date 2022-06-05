@@ -1,3 +1,14 @@
+# 0.4.0
+* Added ``pyproximal.optimization.primal.ADMML2``,
+  ``pyproximal.optimization.primal.HQS``,
+  and ``pyproximal.optimization.pnp.PlugAndPlay`` solvers
+* Added ``pyproximal.proximal.ETP``, ``pyproximal.proximal.Geman``,
+  ``pyproximal.proximal.L0``, ``pyproximal.proximal.Log``,
+  ``pyproximal.proximal.QuadraticEnvelopeCard``, ``pyproximal.proximal.SCAD``
+  operators.
+* Allow `tau` parameter of proximal operators to be a vector to handle problems with
+  multiple right-hand sides.
+
 # 0.3.0
 * Added ``pyproximal.optimization.palm.PALM`` optimizer
 * Added ``callback`` to ``pyproximal.optimization.proximal.ProximalPoint`` 
