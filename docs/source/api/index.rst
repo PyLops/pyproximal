@@ -141,6 +141,7 @@ Primal
     HQS
     LinearizedADMM
     ProximalGradient
+    AcceleratedProximalGradient
     GeneralizedProximalGradient
     ProximalPoint
     TwIST
