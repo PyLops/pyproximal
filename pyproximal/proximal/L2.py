@@ -1,5 +1,5 @@
 import numpy as np
-
+from scipy.linalg import cho_factor, cho_solve
 from scipy.sparse.linalg import lsqr
 from pylops import MatrixMult, Identity
 from pyproximal.ProxOperator import _check_tau
@@ -39,9 +39,12 @@ class L2(ProxOperator):
         Warm start (``True``) or not (``False``). Uses estimate from previous
         call of ``prox`` method.
     densesolver : :obj:`str`, optional
-        Use ``numpy`` or ``scipy`` solver when dealing with explicit operators.
-        Choose ``densesolver=None`` when using PyLops versions earlier than
-        v1.18.1 or v2.0.0
+        Use ``numpy``, ``scipy``, or ``factorize`` when dealing with explicit
+        operators. The former two rely on dense solvers from either library,
+        whilst the last computes a factorization of the matrix to invert and
+        avoids to do so unless the :math:`\tau` or :math:`\sigma` paramets
+        have changed. Choose ``densesolver=None`` when using PyLops versions
+        earlier than v1.18.1 or v2.0.0
 
     Notes
     -----
@@ -96,6 +99,11 @@ class L2(ProxOperator):
         self.densesolver = densesolver
         self.count = 0
 
+        # when using factorize, store the first tau*sigma=0 so that the
+        # first time it will be recomputed (as tau cannot be 0)
+        if self.densesolver == 'factorize':
+            self.tausigma = 0
+
         # create data term
         if self.Op is not None and self.b is not None:
             self.OpTb = self.sigma * self.Op.H @ self.b
@@ -137,14 +145,23 @@ class L2(ProxOperator):
             if self.q is not None:
                 y -= tau * self.alpha * self.q
             if self.Op.explicit:
-                Op1 = MatrixMult(np.eye(self.Op.shape[1]) +
-                                 tau * self.sigma * self.ATA)
-                if self.densesolver is None:
-                    # to allow backward compatibility with PyLops versions earlier
-                    # than v1.18.1 and v2.0.0
-                    x = Op1.div(y)
+                if self.densesolver != 'factorize':
+                    Op1 = MatrixMult(np.eye(self.Op.shape[1]) +
+                                     tau * self.sigma * self.ATA)
+                    if self.densesolver is None:
+                        # to allow backward compatibility with PyLops versions earlier
+                        # than v1.18.1 and v2.0.0
+                        x = Op1.div(y)
+                    else:
+                        x = Op1.div(y, densesolver=self.densesolver)
                 else:
-                    x = Op1.div(y, densesolver=self.densesolver)
+                    if self.tausigma != tau * self.sigma:
+                        # recompute factorization
+                        self.tausigma = tau * self.sigma
+                        ATA = np.eye(self.Op.shape[1]) + \
+                              self.tausigma * self.ATA
+                        self.cl = cho_factor(ATA)
+                    x = cho_solve(self.cl, y)
             else:
                 Op1 = Identity(self.Op.shape[1], dtype=self.Op.dtype) + \
                       tau * self.sigma * self.Op.H * self.Op
