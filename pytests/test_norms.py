@@ -193,7 +193,7 @@ def test_Huber(par):
 def test_TV(par):
     """TV norm of x and proximal
     """
-    tv = TV(dim=1, sigma=par['sigma'])
+    tv = TV(dims=(par['nx'], ), sigma=par['sigma'])
     # norm
     x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
     derivOp = FirstDerivative(par['nx'], dtype=par['dtype'], kind='forward')
