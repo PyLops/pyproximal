@@ -95,7 +95,18 @@ iml1 = pyproximal.optimization.primal.LinearizedADMM(l2, l1, Gop, tau=tau,
 iml1 = iml1.reshape(img.shape)
 
 
-# Isotropic TV
+# Isotropic TV with Proximal Gradient
+sigma = .1
+tv = pyproximal.TV(dims=img.shape, sigma=sigma)
+
+# Solve
+tau = 1 / L
+
+imtv = pyproximal.optimization.primal.ProximalGradient(l2, tv, tau=tau, x0=np.zeros_like(img.ravel()),
+                                                       niter=100)
+imtv = imtv.reshape(img.shape)
+
+# Isotropic TV with Primal Dual
 sigma = .1
 l1iso = pyproximal.L21(ndim=2, sigma=sigma)
 
@@ -109,23 +120,27 @@ iml12 = pyproximal.optimization.primaldual.PrimalDual(l2, l1iso, Gop,
                                                       niter=100)
 iml12 = iml12.reshape(img.shape)
 
-fig, axs = plt.subplots(2, 2, figsize=(14, 14))
-axs[0][0].imshow(img, cmap='gray', vmin=0, vmax=1)
-axs[0][0].set_title('Original')
-axs[0][0].axis('off')
-axs[0][0].axis('tight')
-axs[0][1].imshow(noise_img, cmap='gray', vmin=0, vmax=1)
-axs[0][1].set_title('Noisy')
-axs[0][1].axis('off')
-axs[0][1].axis('tight')
-axs[1][0].imshow(iml1, cmap='gray', vmin=0, vmax=1)
-axs[1][0].set_title('TVaniso')
-axs[1][0].axis('off')
-axs[1][0].axis('tight')
-axs[1][1].imshow(iml12, cmap='gray', vmin=0, vmax=1)
-axs[1][1].set_title('TViso')
-axs[1][1].axis('off')
-axs[1][1].axis('tight')
+fig, axs = plt.subplots(1, 5, figsize=(14, 4))
+axs[0].imshow(img, cmap='gray', vmin=0, vmax=1)
+axs[0].set_title('Original')
+axs[0].axis('off')
+axs[0].axis('tight')
+axs[1].imshow(noise_img, cmap='gray', vmin=0, vmax=1)
+axs[1].set_title('Noisy')
+axs[1].axis('off')
+axs[1].axis('tight')
+axs[2].imshow(iml1, cmap='gray', vmin=0, vmax=1)
+axs[2].set_title('TVaniso')
+axs[2].axis('off')
+axs[2].axis('tight')
+axs[3].imshow(imtv, cmap='gray', vmin=0, vmax=1)
+axs[3].set_title('TViso (with ProxGrad)')
+axs[3].axis('off')
+axs[3].axis('tight')
+axs[4].imshow(iml12, cmap='gray', vmin=0, vmax=1)
+axs[4].set_title('TViso (with PD)')
+axs[4].axis('off')
+axs[4].axis('tight')
 plt.tight_layout()
 
 ###############################################################################

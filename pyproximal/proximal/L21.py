@@ -11,7 +11,7 @@ class L21(ProxOperator):
 
     Parameters
     ----------
-    ndims : :obj:`int`
+    ndim : :obj:`int`
         Number of dimensions :math:`N_{dim}`. Used to reshape the input array
         in a matrix of size :math:`N_{dim} \times N'_{x}` where
         :math:`N'_x = \frac{N_x}{N_{dim}}`. Note that the input

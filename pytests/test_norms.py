@@ -3,9 +3,9 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from pylops.basicoperators import Identity, Diagonal, MatrixMult
+from pylops.basicoperators import Identity, Diagonal, MatrixMult, FirstDerivative
 from pyproximal.utils import moreau
-from pyproximal.proximal import Box, Euclidean, L2, L1, L21, L21_plus_L1, Huber, Nuclear
+from pyproximal.proximal import Box, Euclidean, L2, L1, L21, L21_plus_L1, Huber, Nuclear, TV
 
 par1 = {'nx': 10, 'sigma': 1., 'dtype': 'float32'}  # even float32
 par2 = {'nx': 11, 'sigma': 2., 'dtype': 'float64'}  # odd float64
@@ -189,6 +189,18 @@ def test_Huber(par):
     assert moreau(hub, x, tau)
 
 
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_TV(par):
+    """TV norm of x and proximal
+    """
+    tv = TV(dims=(par['nx'], ), sigma=par['sigma'])
+    # norm
+    x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+    derivOp = FirstDerivative(par['nx'], dtype=par['dtype'], kind='forward')
+    dx = derivOp @ x
+    assert_array_almost_equal(tv(x), par['sigma'] * np.sum(np.abs(dx), axis=0))
+
+
 def test_Nuclear_FOM():
     """Nuclear norm benchmark with FOM solver
     """
@@ -228,7 +240,7 @@ def test_Weighted_Nuclear(par):
     # the exact same singular values)
     X = np.random.uniform(0., 0.1, (par['nx'], 2 * par['nx'])).astype(par['dtype'])
     S = np.linalg.svd(X, compute_uv=False)
-    assert (nucl(X.ravel()) - np.sum(weights[:S.size] * S)) < 1e-3
+    assert (nucl(X.ravel()) - np.sum(weights[:S.size] * S)) < 1e-2
 
     # prox / dualprox
     tau = 2.

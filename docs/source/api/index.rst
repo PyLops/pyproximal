@@ -75,6 +75,7 @@ Convex
     Orthogonal
     Quadratic
     Simplex
+    TV
 
 
 Non-Convex
@@ -140,6 +141,8 @@ Primal
     HQS
     LinearizedADMM
     ProximalGradient
+    AcceleratedProximalGradient
+    GeneralizedProximalGradient
     ProximalPoint
     TwIST
 

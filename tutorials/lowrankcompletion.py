@@ -42,6 +42,7 @@ import pyproximal
 
 from scipy import misc
 
+np.random.seed(0)
 plt.close('all')
 
 ###############################################################################
@@ -92,8 +93,8 @@ mu = .8
 f = pyproximal.L2(Rop, y)
 g = pyproximal.Nuclear((ny, nx), mu)
 
-Xpg = pyproximal.optimization.primal.AcceleratedProximalGradient(f, g, np.zeros(ny*nx),
-                                                                 tau=1., niter=100, show=True)
+Xpg = pyproximal.optimization.primal.ProximalGradient(f, g, np.zeros(ny*nx), acceleration='vandenberghe',
+                                                      tau=1., niter=100, show=True)
 Xpg = Xpg.reshape(ny, nx)
 
 # Recompute SVD and see how the singular values look like
@@ -104,8 +105,8 @@ Upg, Spg, Vhpg = np.linalg.svd(Xpg, full_matrices=False)
 mu1 = 0.8 * np.sum(Sx)
 g = pyproximal.proximal.NuclearBall((ny, nx), mu1)
 
-Xpgc = pyproximal.optimization.primal.AcceleratedProximalGradient(f, g, np.zeros(ny*nx),
-                                                                 tau=1., niter=100, show=True)
+Xpgc = pyproximal.optimization.primal.ProximalGradient(f, g, np.zeros(ny*nx), acceleration='vandenberghe',
+                                                       tau=1., niter=100, show=True)
 Xpgc = Xpgc.reshape(ny, nx)
 
 # Recompute SVD and see how the singular values look like
