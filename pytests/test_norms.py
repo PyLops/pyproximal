@@ -89,20 +89,21 @@ def test_L2_op(par):
 def test_L2_dense(par):
     """L2 norm of Op*x with dense Op and proximal/dual proximal
     """
-    b = np.zeros(par['nx'], dtype=par['dtype'])
-    d = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
-    l2 = L2(Op=MatrixMult(np.diag(d), dtype=par['dtype']),
-            b=b, sigma=par['sigma'], densesolver='numpy')
+    for densesolver in ('numpy', 'scipy', 'factorize'):
+        b = np.zeros(par['nx'], dtype=par['dtype'])
+        d = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+        l2 = L2(Op=MatrixMult(np.diag(d), dtype=par['dtype']),
+                b=b, sigma=par['sigma'], densesolver=densesolver)
 
-    # norm
-    x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
-    assert l2(x) == (par['sigma'] / 2.) * np.linalg.norm(d * x) ** 2
+        # norm
+        x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+        assert l2(x) == (par['sigma'] / 2.) * np.linalg.norm(d * x) ** 2
 
-    # prox: since Op is a Diagonal operator the denominator becomes
-    # 1 + sigma*tau*d[i] for every i
-    tau = 2.
-    den = 1. + par['sigma'] * tau * d ** 2
-    assert_array_almost_equal(l2.prox(x, tau), x / den, decimal=4)
+        # prox: since Op is a Diagonal operator the denominator becomes
+        # 1 + sigma*tau*d[i] for every i
+        tau = 2.
+        den = 1. + par['sigma'] * tau * d ** 2
+        assert_array_almost_equal(l2.prox(x, tau), x / den, decimal=4)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
