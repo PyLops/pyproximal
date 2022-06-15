@@ -127,7 +127,7 @@ plt.tight_layout()
 
 ###############################################################################
 # We consider now the TV norm. 
-TV = pyproximal.TV(dim=1, sigma=1.)
+TV = pyproximal.TV(dims=(nx, ), sigma=1.)
 
 x = np.arange(-1, 1, 0.1)
 print('||x||_{TV}: ', l1(x))
