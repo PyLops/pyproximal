@@ -451,10 +451,13 @@ def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True,
         Proximal operator of g function
     x0 : :obj:`numpy.ndarray`
         Initial vector
-    tau : :obj:`float`, optional
+    tau : :obj:`float` or :obj:`numpy.ndarray`, optional
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
-        the Lipschitz constant of :math:`\nabla f`.
+        the Lipschitz constant of :math:`\nabla f`. Finally note that
+        :math:`\tau` can be chosen to be a vector of size ``niter`` such that
+        different :math:`\tau` is used at different iterations (i.e., continuation
+        strategy)
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
     gfirst : :obj:`bool`, optional
@@ -494,14 +497,21 @@ def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True,
          4, 7, pp. 932-946, 1995.
 
     """
+    # check if epgs is a ve
+    if np.asarray(tau).size == 1.:
+        tau_print = str(tau)
+        tau = tau * np.ones(niter)
+    else:
+        tau_print = 'Variable'
+
     if show:
         tstart = time.time()
         print('HQS\n'
               '---------------------------------------------------------\n'
               'Proximal operator (f): %s\n'
               'Proximal operator (g): %s\n'
-              'tau = %10e\tniter = %d\n' % (type(proxf), type(proxg),
-                                            tau, niter))
+              'tau = %s\tniter = %d\n' % (type(proxf), type(proxg),
+                                          tau_print, niter))
         head = '   Itn       x[0]          f           g       J = f + g'
         print(head)
 
@@ -509,11 +519,11 @@ def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True,
     z = np.zeros_like(x)
     for iiter in range(niter):
         if gfirst:
-            z = proxg.prox(x, tau)
-            x = proxf.prox(z, tau)
+            z = proxg.prox(x, tau[iiter])
+            x = proxf.prox(z, tau[iiter])
         else:
-            x = proxf.prox(z, tau)
-            z = proxg.prox(x, tau)
+            x = proxf.prox(z, tau[iiter])
+            z = proxg.prox(x, tau[iiter])
 
         # run callback
         if callback is not None:
