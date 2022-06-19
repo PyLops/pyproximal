@@ -427,7 +427,7 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau=None,
     return x
 
 
-def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True,
+def HQS(proxf, proxg, x0, tau, niter=10, z0=None, gfirst=True,
         callback=None, callbackz=False, show=False):
     r"""Half Quadratic splitting
 
@@ -460,6 +460,8 @@ def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True,
         strategy)
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
+    z0 : :obj:`numpy.ndarray`, optional
+        Initial z vector (not required when ``gfirst=True``
     gfirst : :obj:`bool`, optional
         Apply Proximal of operator ``g`` first (``True``) or Proximal of
         operator ``f`` first (``False``)
@@ -484,13 +486,20 @@ def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True,
 
     .. math::
 
-        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{x}^{k})
-        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{z}^{k+1})\\
+        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{x}^{k}) \\
+        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{z}^{k+1})
 
-    Note that ``x`` and ``z`` converge to each other, however if iterations are
-    stopped too early ``x`` is guaranteed to belong to the domain of ``f``
-    while ``z`` is guaranteed to belong to the domain of ``g``. Depending on
-    the problem either of the two may be the best solution.
+    for ``gfirst=False``, or
+
+    .. math::
+
+        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{z}^{k}) \\
+        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{x}^{k+1})
+
+    for ``gfirst=False``. Note that ``x`` and ``z`` converge to each other,
+    however if iterations are stopped too early ``x`` is guaranteed to belong to
+    the domain of ``f`` while ``z`` is guaranteed to belong to the domain of ``g``.
+    Depending on the problem either of the two may be the best solution.
 
     .. [1] D., Geman, and C., Yang, "Nonlinear image recovery with halfquadratic
          regularization", IEEE Transactions on Image Processing,
@@ -516,7 +525,10 @@ def HQS(proxf, proxg, x0, tau, niter=10, gfirst=True,
         print(head)
 
     x = x0.copy()
-    z = np.zeros_like(x)
+    if z0 is not None:
+        z = z0.copy()
+    else:
+        z = np.zeros_like(x)
     for iiter in range(niter):
         if gfirst:
             z = proxg.prox(x, tau[iiter])
