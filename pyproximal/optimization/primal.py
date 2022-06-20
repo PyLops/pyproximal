@@ -104,7 +104,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
                      epsg=1., niter=10, niterback=100,
                      acceleration=None,
                      callback=None, show=False):
-    r"""Proximal gradient (optionnally accelerated)
+    r"""Proximal gradient (optionally accelerated)
 
     Solves the following minimization problem using (Accelerated) Proximal
     gradient algorithm:
@@ -140,7 +140,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
         Number of iterations of iterative scheme
     niterback : :obj:`int`, optional
         Max number of iterations of backtracking
-    acceleration:  :obj:`str`, optional
+    acceleration : :obj:`str`, optional
         Acceleration (``None``, ``vandenberghe`` or ``fista``)
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
@@ -155,15 +155,15 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
     Notes
     -----
-    The (Accelerated) Proximal point algorithm can be expressed by the
-    following recursion:
+    The Proximal point algorithm can be expressed by the following recursion:
 
     .. math::
 
-        \mathbf{y}^{k+1} = \mathbf{x}^k + \omega^k
-        (\mathbf{x}^k - \mathbf{x}^{k-1})
+
         \mathbf{x}^{k+1} = \prox_{\tau^k \epsilon g}(\mathbf{y}^{k+1}  -
         \tau^k \nabla f(\mathbf{y}^{k+1})) \\
+        \mathbf{y}^{k+1} = \mathbf{x}^k + \omega^k
+        (\mathbf{x}^k - \mathbf{x}^{k-1})
 
     where at each iteration :math:`\tau^k` can be estimated by back-tracking
     as follows:
@@ -180,12 +180,14 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
     where :math:`\tilde{f}_\tau(\mathbf{x}, \mathbf{y}) = f(\mathbf{y}) +
     \nabla f(\mathbf{y})^T (\mathbf{x} - \mathbf{y}) +
-    1/(2\tau)||\mathbf{x} - \mathbf{y}||_2^2`,
-    and
-    :math:`\omega^k = 0` for ``acceleration=None``,
-    :math:`\omega^k = k / (k + 3)` for ``acceleration=vandenberghe`` [1]_
-    or :math:`\omega^k = (t_{k-1}-1)/t_k` for ``acceleration=fista`` where
-    :math:`t_k = (1 + \sqrt{1+4t_{k-1}^{2}}) / 2` [2]_
+    1/(2\tau)||\mathbf{x} - \mathbf{y}||_2^2`.
+
+    Different accellerations are provided:
+
+    - ``acceleration=None``: :math:`\omega^k = 0`;
+    - `acceleration=vandenberghe`` [1]_: :math:`\omega^k = k / (k + 3)` for `
+    - ``acceleration=fista``: :math:`\omega^k = (t_{k-1}-1)/t_k` for  where
+      :math:`t_k = (1 + \sqrt{1+4t_{k-1}^{2}}) / 2` [2]_
 
     .. [1] Vandenberghe, L., "Fast proximal gradient methods", 2010.
     .. [2] Beck, A., and Teboulle, M. "A Fast Iterative Shrinkage-Thresholding
