@@ -138,11 +138,10 @@ Primal
     AcceleratedProximalGradient
     ADMM
     ADMML2
+    GeneralizedProximalGradient
     HQS
     LinearizedADMM
     ProximalGradient
-    AcceleratedProximalGradient
-    GeneralizedProximalGradient
     ProximalPoint
     TwIST
 
