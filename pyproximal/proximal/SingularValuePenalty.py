@@ -20,7 +20,7 @@ class SingularValuePenalty(ProxOperator):
     ----------
     dim : :obj:`tuple`
         Size of matrix :math:`\mathbf{X}`.
-    penalty : :class:`pyproximal.ProxOperator`
+    penalty : :obj:`pyproximal.ProxOperator`
         Function acting on the singular values.
 
     Notes
