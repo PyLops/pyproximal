@@ -42,7 +42,7 @@ class Log(ProxOperator):
     or at a local minimum. Consider therefore
 
     .. math::
-        f(z) = k \log(\gamma x + 1) + \frac{1}{2} (x - z)^2
+        f(z) = k \log(\gamma z + 1) + \frac{1}{2} (x - z)^2
 
     where :math:`k= \frac{\tau \sigma}{\log(\gamma + 1)}` is introduced for
     convenience. The condition that :math:`f'(z) = 0` yields the following equation
