@@ -20,6 +20,7 @@ Orthogonal projections
     AffineSetProj
     BoxProj
     EuclideanBallProj
+    HankelProj
     HyperPlaneBoxProj
     IntersectionProj
     L0BallProj
@@ -62,6 +63,7 @@ Convex
     Box
     Euclidean
     EuclideanBall
+    Hankel
     Huber
     Intersection
     L0
@@ -88,6 +90,7 @@ Non-Convex
     Geman
     Log
     QuadraticEnvelopeCard
+    QuadraticEnvelopeCardIndicator
     SCAD
 
 
@@ -100,7 +103,7 @@ Matrix-only
     Nuclear
     NuclearBall
     SingularValuePenalty
-
+    QuadraticEnvelopeRankL2
 
 Other
 ^^^^^

@@ -140,6 +140,7 @@ mathjax3_config = {
             "sgn": r"\operatorname{sgn}",
             "argmin": r"\operatorname*{argmin}",
             "diag": r"\operatorname{diag}",
+            "rank": r"\operatorname{rank}",
         }
     }
 }

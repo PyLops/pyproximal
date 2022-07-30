@@ -7,10 +7,11 @@ from pylops import MatrixMult, Identity
 import pyproximal
 from pyproximal.utils import moreau
 from pyproximal.proximal import L1, L2, Nonlinear, Orthogonal, Quadratic, \
-    SingularValuePenalty, VStack
+    SingularValuePenalty, VStack, QuadraticEnvelopeCardIndicator, \
+    QuadraticEnvelopeRankL2
 
-par1 = {'nx': 10, 'sigma': 1., 'dtype': 'float32'}  # even float32
-par2 = {'nx': 11, 'sigma': 2., 'dtype': 'float64'}  # odd float64
+par1 = {'nx': 10, 'ny': 10, 'sigma': 1., 'dtype': 'float32'}  # even float32
+par2 = {'nx': 11, 'ny': 14, 'sigma': 2., 'dtype': 'float64'}  # odd float64
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
@@ -139,3 +140,74 @@ def test_SingularValuePenalty(par):
     # prox / dualprox
     tau = 0.75
     assert moreau(penalty, X.ravel(), tau)
+
+
+@pytest.mark.parametrize("par,expected", [(par1, 94.89988856174841), (par2, 145.6421905545182)])
+def test_QuadraticEnvelopeCardIndicator_case01(par, expected):
+    """QuadraticEnvelopeCardIndicator penalty and proximal/dual proximal
+    """
+    np.random.seed(10)
+    fr0 = QuadraticEnvelopeCardIndicator(4)
+    # Quadratic envelope of the indicator function of the l0-penalty
+    x = np.random.normal(0., 10.0, par['nx']).astype(par['dtype'])
+
+    # Check value
+    assert fr0(x) == pytest.approx(expected)
+
+    # Check proximal operator
+    tau = 0.35
+    assert moreau(fr0, x, tau)
+
+
+def test_QuadraticEnvelopeCardIndicator_case02():
+    """QuadraticEnvelopeCardIndicator penalty and proximal/dual proximal
+    """
+    fr0 = QuadraticEnvelopeCardIndicator(5)
+    # Quadratic envelope of the indicator function of the l0-penalty
+    x = np.array([1, 1.5, 1.3, 4.1, 2.1, 1.6, 1.8, 1.8])
+
+    # Check value
+    assert fr0(x) == pytest.approx(6.206249999999999)
+
+    # Check proximal operator
+    tau = 0.75
+    expected = np.array([0, 0.68571429, 0, 4.1, 2.1, 1.08571429, 1.8, 1.8])
+    np.testing.assert_array_almost_equal(fr0.prox(x, tau), expected)
+
+
+def test_QuadraticEnvelopeCardIndicator_case03():
+    """QuadraticEnvelopeCardIndicator penalty and proximal/dual proximal
+    """
+    fr0 = QuadraticEnvelopeCardIndicator(4)
+    # Quadratic envelope of the indicator function of the l0-penalty
+    x = np.array([1, -1, 1, -0.1, 1])
+
+    # Check value
+    assert fr0(x) == pytest.approx(0.09624999999999995)
+
+    # Check proximal operator
+    tau = 0.75
+    expected = np.array([1, -1, 1, 0, 1])
+    np.testing.assert_array_almost_equal(fr0.prox(x, tau), expected)
+
+
+@pytest.mark.parametrize("par,expected", [(par1, 5.931525368112523), (par2, 14.146478354862971)])
+def test_QuadraticEnvelopeRankL2(par, expected):
+    """QuadraticEnvelopeRankL2 penalty and proximal/dual proximal
+    """
+    np.random.seed(10)
+    dim = (par['nx'], par['ny'])
+
+    # Quadratic envelope of the indicator function of rank penalty
+    r0 = 8
+    f = QuadraticEnvelopeRankL2(dim, r0, np.zeros(dim))
+    X = np.random.normal(0, 1, dim).astype(par["dtype"])
+
+    # Check value
+    assert f(X.ravel()) == pytest.approx(expected)
+
+    # Check proximal operator
+    tau = 0.75
+    assert moreau(f, X.ravel(), tau)
+
+

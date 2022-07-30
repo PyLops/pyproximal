@@ -5,7 +5,7 @@ from numpy.testing import assert_array_almost_equal
 from pylops.basicoperators import Identity
 from pyproximal.utils import moreau
 from pyproximal.proximal import Box, EuclideanBall, L0Ball, L1Ball, \
-    NuclearBall, Simplex, AffineSet
+    NuclearBall, Simplex, AffineSet, Hankel
 
 par1 = {'nx': 10, 'ny': 8, 'axis': 0, 'dtype': 'float32'}  # even float32 dir0
 par2 = {'nx': 11, 'ny': 8, 'axis': 1, 'dtype': 'float64'}  # odd float64 dir1
@@ -167,3 +167,22 @@ def test_Affine(par):
 
     # prox / dualprox
     assert moreau(aff, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_Hankel(par):
+    """Hankel matrix projection and proximal/dual proximal of related indicator
+    """
+    np.random.seed(10)
+    dim = (par['nx'], par['ny'])
+    hankel = Hankel(dim)
+    x = np.random.normal(0., 1., dim).astype(par['dtype'])
+
+    # evaluation
+    assert hankel(x) == False
+    xp = hankel.prox(x, 1.)
+    assert hankel(xp) == True
+
+    # prox / dualprox
+    tau = 2.
+    assert moreau(hankel, x.ravel(), tau)
