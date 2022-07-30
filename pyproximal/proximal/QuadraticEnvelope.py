@@ -117,7 +117,7 @@ class QuadraticEnvelopeCardIndicator(ProxOperator):
 
         \mathcal{Q}(\mathcal{I}_{r_0})(x) =
         \frac{1}{2k^*}\left(\sum_{i>r_0-k^*}|\tilde{x}_i|\right)^2
-        - \frac{1}{2}\left(\sum_{i>r_0-k^*}|\tilde{x}_i|^2
+        - \frac{1}{2}\left(\sum_{i>r_0-k^*}|\tilde{x}_i|\right)^2
 
     where :math:`r_0 \geq 0` and :math:`k^* \leq r_0`, see [3]_ for details. There are
     other, equivalent ways, of expressing this penalty, see e.g. [1]_ and [2]_.
