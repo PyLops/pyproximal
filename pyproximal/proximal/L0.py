@@ -99,7 +99,10 @@ class L0Ball(ProxOperator):
 
     Parameters
     ----------
-    radius : :obj:`float`
+    radius : :obj:`int` or :obj:`func`, optional
+        Radius. This can be a constant number or a function that is called passing a
+        counter which keeps track of how many times the ``prox`` method has been
+        invoked before and returns a scalar ``radius`` to be used.
         Radius
 
     Notes
@@ -112,11 +115,25 @@ class L0Ball(ProxOperator):
     def __init__(self, radius):
         super().__init__(None, False)
         self.radius = radius
-        self.ball = L0BallProj(self.radius)
+        self.ball = L0BallProj(self.radius if not callable(radius) else radius(0))
+        self.count = 0
 
     def __call__(self, x, tol=1e-4):
-        return np.linalg.norm(np.abs(x), ord=0) <= self.radius
+        radius = _current_sigma(self.radius, self.count)
+        return np.linalg.norm(np.abs(x), ord=0) <= radius
 
+    def _increment_count(func):
+        """Increment counter
+        """
+        def wrapped(self, *args, **kwargs):
+            self.count += 1
+            return func(self, *args, **kwargs)
+        return wrapped
+
+    @_increment_count
     @_check_tau
     def prox(self, x, tau):
-        return self.ball(x)
+        radius = _current_sigma(self.radius, self.count)
+        self.ball.radius = radius
+        y = self.ball(x)
+        return y
