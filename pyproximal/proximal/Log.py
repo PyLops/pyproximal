@@ -96,6 +96,75 @@ class Log(ProxOperator):
         r = np.vstack((np.zeros_like(c), (b[idx] + c) / (2 * self.gamma)))
         val = tau * self.elementwise(r) + (r - np.abs(x[idx])) ** 2 / 2
         idx_minima = np.argmin(val, axis=0)
-        out[idx] = r[idx_minima, range(r.shape[1])]
+        out[idx] = r[idx_minima, list(range(r.shape[1]))]
         out *= np.sign(x)
         return out
+
+class Log1(ProxOperator):
+    r"""Logarithmic penalty.
+
+    The logarithmic penalty (Log) is defined as
+
+    .. math::
+
+        \mathrm{Log}_{\sigma,\delta}(\mathbf{x}) = \sum_i \log(|x_i| + \delta)
+
+    where :math:`{\sigma>0}`, :math:`{\gamma>0}`.
+
+    Parameters
+    ----------
+    sigma : :obj:`float`
+        Regularization parameter.
+    delta : :obj:`float`, optional
+        Regularization parameter. Default is 1e-10.
+
+    Notes
+    -----
+    The logarithmic penalty gives rise to a log-thresholding that is
+    a smooth alternative falling in between the hard and soft thresholding.
+
+    The proximal operator is defined as [1]_:
+
+    .. math::
+
+        \prox_{\tau \sigma log}(\mathbf{x}) =
+        \begin{cases}
+        0.5 (x_i - \delta + \sqrt{(x_i+\delta)^2-2\tau \sigma}), & x_i - g_i < -x_0 \\
+        0, & -x_0 \leq x_i - g_i x_0 \\
+        0.5 (x_i + \delta - \sqrt{(x_i-\delta)^2-2\tau \sigma}),  & x_i - g_i > x_0\\
+        \end{cases}
+
+    where :math:`x_0=\sqrt{2 \tau \sigma} - \delta`.
+
+    .. [1] Malioutov, D., and Aravkin, A. "Iterative log thresholding",
+        Arxiv, 2013.
+
+    """
+
+    def __init__(self, sigma, delta=1e-10):
+        super().__init__(None, False)
+        if delta < 0:
+            raise ValueError('Variable "delta" must be positive.')
+        self.sigma = sigma
+        self.delta = delta
+
+    def __call__(self, x):
+        return np.sum(self.elementwise(x))
+
+    def elementwise(self, x):
+        return np.log(np.abs(x) + self.delta)
+
+    @_check_tau
+    def prox(self, x, tau):
+        tau1 = self.sigma * tau
+        thresh = np.sqrt(2*tau1) - self.delta
+        x1 = np.zeros_like(x, dtype=x.dtype)
+        if np.iscomplexobj(x):
+            x1[np.abs(x) > thresh] = 0.5 * np.exp(1j * np.angle(x[np.abs(x) > thresh])) * \
+                                     (np.abs(x[np.abs(x) > thresh]) - self.delta +
+                                      np.sqrt(np.abs(x[np.abs(x) > thresh] + self.delta) ** 2 - 2 * tau1))
+        else:
+            x1[x > thresh] = 0.5 * (x[x > thresh] - self.delta + np.sqrt(np.abs(x[x > thresh] + self.delta) ** 2 - 2 * tau1))
+            x1[x < -thresh] = 0.5 * (x[x < -thresh] + self.delta - np.sqrt(np.abs(x[x < -thresh] - self.delta) ** 2 - 2 * tau1))
+        return x1
+
