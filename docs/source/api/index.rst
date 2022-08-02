@@ -89,6 +89,7 @@ Non-Convex
     ETP
     Geman
     Log
+    Log1
     QuadraticEnvelopeCard
     QuadraticEnvelopeCardIndicator
     SCAD

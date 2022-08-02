@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 
 from pyproximal.utils import moreau
-from pyproximal.proximal import ETP, Geman, Log, SCAD, QuadraticEnvelopeCard
+from pyproximal.proximal import ETP, Geman, Log, Log1, SCAD, QuadraticEnvelopeCard
 
 par1 = {'nx': 10, 'sigma': 1., 'a': 2.1, 'gamma': 0.5, 'mu': 0.5, 'dtype': 'float32'}  # even float32
 par2 = {'nx': 11, 'sigma': 2., 'a': 3.7, 'gamma': 5.0, 'mu': 1.5, 'dtype': 'float64'}  # odd float64
@@ -46,6 +46,19 @@ def test_Log(par):
 
     # Check proximal operator
     tau = 2.
+    assert moreau(log, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_Log1(par):
+    """Log1 penalty and proximal/dual proximal
+    """
+    np.random.seed(10)
+    log = Log1(sigma=par['sigma'])
+
+    # Check proximal operator
+    tau = 2.
+    x = np.random.normal(0., 10.0, par['nx']).astype(par['dtype'])
     assert moreau(log, x, tau)
 
 
