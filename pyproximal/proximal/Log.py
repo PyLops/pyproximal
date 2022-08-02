@@ -100,21 +100,22 @@ class Log(ProxOperator):
         out *= np.sign(x)
         return out
 
+
 class Log1(ProxOperator):
-    r"""Logarithmic penalty.
+    r"""Logarithmic penalty 2.
 
     The logarithmic penalty (Log) is defined as
 
     .. math::
 
-        \mathrm{Log}_{\sigma,\delta}(\mathbf{x}) = \sum_i \log(|x_i| + \delta)
+        \mathrm{Log}_{\sigma,\delta}(\mathbf{x}) = \sigma \sum_i \log(|x_i| + \delta)
 
     where :math:`{\sigma>0}`, :math:`{\gamma>0}`.
 
     Parameters
     ----------
     sigma : :obj:`float`
-        Regularization parameter.
+        Multiplicative coefficient of Log norm.
     delta : :obj:`float`, optional
         Regularization parameter. Default is 1e-10.
 
@@ -129,9 +130,9 @@ class Log1(ProxOperator):
 
         \prox_{\tau \sigma log}(\mathbf{x}) =
         \begin{cases}
-        0.5 (x_i - \delta + \sqrt{(x_i+\delta)^2-2\tau \sigma}), & x_i - g_i < -x_0 \\
-        0, & -x_0 \leq x_i - g_i x_0 \\
-        0.5 (x_i + \delta - \sqrt{(x_i-\delta)^2-2\tau \sigma}),  & x_i - g_i > x_0\\
+        0.5 (x_i + \delta - \sqrt{(x_i-\delta)^2-2\tau \sigma}), & x_i < -x_0 \\
+        0, & -x_0 \leq x_i \leq  x_0 \\
+        0.5 (x_i - \delta + \sqrt{(x_i+\delta)^2-2\tau \sigma}), & x_i  > x_0\\
         \end{cases}
 
     where :math:`x_0=\sqrt{2 \tau \sigma} - \delta`.
