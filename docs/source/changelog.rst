@@ -3,6 +3,17 @@
 Changelog
 =========
 
+Version 0.5.0
+--------------
+*Released on: 20/08/2022*
+
+* Added  :py:class:`pyproximal.proximal.Log1` operator
+* Allow ``radius`` parameter of :py:class:`pyproximal.optimization.primal.L0` to be a function
+* Allow ``tau`` parameter of :py:class:`pyproximal.optimization.primal.HQS` to be a vector
+  and change over iterations
+* Added ``z0`` to :py:class:`pyproximal.optimization.primal.HQS`
+* Added ``factorize`` option to ``densesolver`` of :py:class:`pyproximal.proximal.L2`
+
 Version 0.4.0
 --------------
 *Released on: 05/06/2022*
@@ -14,7 +25,7 @@ Version 0.4.0
   :py:class:`pyproximal.proximal.L0`, :py:class:`pyproximal.proximal.Log`,
   :py:class:`pyproximal.proximal.QuadraticEnvelopeCard`, :py:class:`pyproximal.proximal.SCAD`
   operators.
-* Allow `tau` parameter of proximal operators to be a vector to handle problems with
+* Allow ``tau`` parameter of proximal operators to be a vector to handle problems with
   multiple right-hand sides.
 
 Version 0.3.0
