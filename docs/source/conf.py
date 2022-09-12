@@ -66,7 +66,9 @@ sphinx_gallery_conf = {
     # Modules for which function level galleries are created.
     'doc_module': 'pyproximal',
     # Insert links to documentation of objects in the examples
-    'reference_url': {'pyproximal': None}
+    'reference_url': {'pyproximal': None},
+    # Allow animations
+    'matplotlib_animations': True,
 }
 
 # Always show the source code that generates a plot
