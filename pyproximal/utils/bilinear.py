@@ -11,6 +11,8 @@ class BilinearOperator():
       :math:`\nabla_x H`
     - ``grady``: a method evaluating the gradient over :math:`\mathbf{y}`:
       :math:`\nabla_y H`
+    - ``grad``: a method returning the stacked gradient vector over
+      :math:`\mathbf{x},\mathbf{y}`: :math:`[\nabla_x H`, [\nabla_y H]`
     - ``lx``: Lipschitz constant of :math:`\nabla_x H`
     - ``ly``: Lipschitz constant of :math:`\nabla_y H`
 
@@ -31,6 +33,9 @@ class BilinearOperator():
         pass
 
     def grady(self, y):
+        pass
+
+    def grad(self, y):
         pass
 
     def lx(self, x):
@@ -100,7 +105,9 @@ class LowRankFactorizedMatrix(BilinearOperator):
         self.shapex = (self.n * self.m, self.n * self.k)
         self.shapey = (self.n * self.m, self.m * self.k)
 
-    def __call__(self, x, y):
+    def __call__(self, x, y=None):
+        if y is None:
+            x, y = x[:self.n * self.k],  x[self.n * self.k:]
         xold = self.x.copy()
         self.updatex(x)
         res = self.d - self._matvecy(y)
@@ -159,3 +166,11 @@ class LowRankFactorizedMatrix(BilinearOperator):
             r = r.reshape(self.n, self.m)
         g = -self.x.reshape(self.n, self.k).T @ r
         return g.ravel()
+
+    def grad(self, x):
+        self.updatex(x[:self.n * self.k])
+        self.updatey(x[self.n * self.k:])
+        gx = self.gradx(x[:self.n * self.k])
+        gy = self.grady(x[self.n * self.k:])
+        g = np.hstack([gx, gy])
+        return g
