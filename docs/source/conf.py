@@ -23,7 +23,7 @@ extensions = [
     'numpydoc',
     'nbsphinx',
     'sphinx_gallery.gen_gallery',
-    #'sphinx.ext.napoleon',
+    'sphinxemoji.sphinxemoji',
 ]
 
 # intersphinx configuration

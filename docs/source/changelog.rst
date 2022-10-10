@@ -7,7 +7,10 @@ Version 0.5.0
 --------------
 *Released on: 20/08/2022*
 
-* Added  :py:class:`pyproximal.proximal.Log1` operator
+|:vertical_traffic_light:| |:vertical_traffic_light:| This is the latest release supporting PyLops v1.
+|:vertical_traffic_light:| |:vertical_traffic_light:|
+
+* Added :py:class:`pyproximal.proximal.Log1` operator
 * Allow ``radius`` parameter of :py:class:`pyproximal.optimization.primal.L0` to be a function
 * Allow ``tau`` parameter of :py:class:`pyproximal.optimization.primal.HQS` to be a vector
   and change over iterations
