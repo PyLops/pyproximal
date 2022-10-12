@@ -1,6 +1,6 @@
 import numpy as np
 
-from pylops.optimization.sparsity import _softthreshold
+from pylops.optimization.cls_sparsity import _softthreshold
 from pyproximal.ProxOperator import _check_tau
 from pyproximal.projection import NuclearBallProj
 from pyproximal import ProxOperator
