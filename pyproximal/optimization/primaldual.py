@@ -1,9 +1,11 @@
 import time
 import numpy as np
 
+from pylops.utils.backend import get_array_module
 
-def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
-               gfirst=True, callback=None, callbacky=False, show=False):
+
+def PrimalDual(proxf, proxg, A, x0, tau, mu, y0=None, z=None, theta=1., niter=10,
+               gfirst=True, callback=None, callbacky=False, returny=False, show=False):
     r"""Primal-dual algorithm
 
     Solves the following (possibly) nonlinear minimization problem using
@@ -45,6 +47,8 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
     mu : :obj:`float` or :obj:`np.ndarray`
         Stepsize of subgradient of :math:`g^*`. This can be constant 
         or function of iterations (in the latter cases provided as np.ndarray)
+    z0 : :obj:`numpy.ndarray`
+        Initial auxiliary vector
     z : :obj:`numpy.ndarray`, optional
         Additional vector
     theta : :obj:`float`
@@ -62,6 +66,8 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
         where ``x`` is the current model vector
     callbacky : :obj:`bool`, optional
         Modify callback signature to (``callback(x, y)``) when ``callbacky=True``
+    returny : :obj:`bool`, optional
+        Return also ``y``
     show : :obj:`bool`, optional
         Display iterations log
 
@@ -102,13 +108,15 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
         Imaging and Vision, 40, 8pp. 120-145. 2011.
 
     """
+    ncp = get_array_module(x0)
+
     # check if tau and mu are scalars or arrays
     fixedtau = fixedmu = False
     if isinstance(tau, (int, float)):
-        tau = tau * np.ones(niter)
+        tau = tau * ncp.ones(niter)
         fixedtau = True
     if isinstance(mu, (int, float)):
-        mu = mu * np.ones(niter)
+        mu = mu * ncp.ones(niter)
         fixedmu = True
 
     if show:
@@ -128,8 +136,7 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
 
     x = x0.copy()
     xhat = x.copy()
-    y = np.zeros(A.shape[0], dtype=x.dtype)
-
+    y = y0.copy() if y0 is not None else ncp.zeros(A.shape[0], dtype=x.dtype)
     for iiter in range(niter):
         xold = x.copy()
         if gfirst:
@@ -165,7 +172,10 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, z=None, theta=1., niter=10,
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
         print('---------------------------------------------------------\n')
-    return x
+    if not returny:
+        return x
+    else:
+        return x, y
 
 
 def AdaptivePrimalDual(proxf, proxg, A, x0, tau, mu,
