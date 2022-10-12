@@ -183,7 +183,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
     \nabla f(\mathbf{y})^T (\mathbf{x} - \mathbf{y}) +
     1/(2\tau)||\mathbf{x} - \mathbf{y}||_2^2`.
 
-    Different accellerations are provided:
+    Different accelerations are provided:
 
     - ``acceleration=None``: :math:`\omega^k = 0`;
     - `acceleration=vandenberghe`` [1]_: :math:`\omega^k = k / (k + 3)` for `
@@ -211,10 +211,10 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
               '---------------------------------------------------------\n'
               'Proximal operator (f): %s\n'
               'Proximal operator (g): %s\n'
-              'tau = %10e\tbeta=%10e\n'
+              'tau = %s\tbeta=%10e\n'
               'epsg = %s\tniter = %d\t'
               'niterback = %d\n' % (type(proxf), type(proxg),
-                                    0 if tau is None else tau, beta,
+                                    'Adaptive' if tau is None else str(tau), beta,
                                     epsg_print, niter, niterback))
         head = '   Itn       x[0]          f           g       J=f+eps*g'
         print(head)
