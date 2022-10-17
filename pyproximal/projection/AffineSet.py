@@ -1,7 +1,7 @@
 from scipy.sparse.linalg import lsqr as sp_lsqr
-
 from pylops.optimization.basic import lsqr
 from pylops.utils.backend import get_array_module, get_module_name
+
 
 class AffineSetProj():
     r"""Affine set projection.
