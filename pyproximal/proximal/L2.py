@@ -1,7 +1,10 @@
 import numpy as np
 from scipy.linalg import cho_factor, cho_solve
-from scipy.sparse.linalg import lsqr
+from scipy.sparse.linalg import lsqr as sp_lsqr
 from pylops import MatrixMult, Identity
+from pylops.optimization.basic import lsqr
+from pylops.utils.backend import get_array_module, get_module_name
+
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
 
@@ -164,8 +167,11 @@ class L2(ProxOperator):
                     x = cho_solve(self.cl, y)
             else:
                 Op1 = Identity(self.Op.shape[1], dtype=self.Op.dtype) + \
-                      tau * self.sigma * self.Op.H * self.Op
-                x = lsqr(Op1, y, iter_lim=niter, x0=self.x0)[0]
+                      float(tau * self.sigma) * (self.Op.H * self.Op)
+                if get_module_name(get_array_module(x)) == 'numpy':
+                    x = sp_lsqr(Op1, y, iter_lim=niter, x0=self.x0)[0]
+                else:
+                    x = lsqr(Op1, y, niter=niter, x0=self.x0)[0].ravel()
             if self.warm:
                 self.x0 = x
         elif self.b is not None:
