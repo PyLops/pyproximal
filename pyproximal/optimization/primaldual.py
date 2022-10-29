@@ -113,10 +113,10 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, y0=None, z=None, theta=1., niter=10
     # check if tau and mu are scalars or arrays
     fixedtau = fixedmu = False
     if isinstance(tau, (int, float)):
-        tau = tau * ncp.ones(niter)
+        tau = tau * ncp.ones(niter, dtype=x0.dtype)
         fixedtau = True
     if isinstance(mu, (int, float)):
-        mu = mu * ncp.ones(niter)
+        mu = mu * ncp.ones(niter, dtype=x0.dtype)
         fixedmu = True
 
     if show:
