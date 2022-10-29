@@ -48,6 +48,11 @@ class L2(ProxOperator):
         avoids to do so unless the :math:`\tau` or :math:`\sigma` paramets
         have changed. Choose ``densesolver=None`` when using PyLops versions
         earlier than v1.18.1 or v2.0.0
+    **kwargs_solver : :obj:`dict`, optional
+        Dictionary containing extra arguments for
+        :py:func:`scipy.sparse.linalg.lsqr` solver when using
+        numpy data (or :py:func:`pylops.optimization.solver.lsqr` and
+        when using cupy data)
 
     Notes
     -----
@@ -89,7 +94,8 @@ class L2(ProxOperator):
 
     """
     def __init__(self, Op=None, b=None, q=None, sigma=1., alpha=1.,
-                 qgrad=True, niter=10, x0=None, warm=True, densesolver=None):
+                 qgrad=True, niter=10, x0=None, warm=True,
+                 densesolver=None, kwargs_solver=None):
         super().__init__(Op, True)
         self.b = b
         self.q = q
@@ -101,6 +107,7 @@ class L2(ProxOperator):
         self.warm = warm
         self.densesolver = densesolver
         self.count = 0
+        self.kwargs_solver = {} if kwargs_solver is None else kwargs_solver
 
         # when using factorize, store the first tau*sigma=0 so that the
         # first time it will be recomputed (as tau cannot be 0)
@@ -169,9 +176,11 @@ class L2(ProxOperator):
                 Op1 = Identity(self.Op.shape[1], dtype=self.Op.dtype) + \
                       float(tau * self.sigma) * (self.Op.H * self.Op)
                 if get_module_name(get_array_module(x)) == 'numpy':
-                    x = sp_lsqr(Op1, y, iter_lim=niter, x0=self.x0)[0]
+                    x = sp_lsqr(Op1, y, iter_lim=niter, x0=self.x0,
+                                **self.kwargs_solver)[0]
                 else:
-                    x = lsqr(Op1, y, niter=niter, x0=self.x0)[0].ravel()
+                    x = lsqr(Op1, y, niter=niter, x0=self.x0,
+                             **self.kwargs_solver)[0].ravel()
             if self.warm:
                 self.x0 = x
         elif self.b is not None:
