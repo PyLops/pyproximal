@@ -3,8 +3,8 @@ ISTA, FISTA, and TWIST for Compressive sensing
 ==============================================
 
 In this example we want to compare three popular solvers in compressive
-sensing problem, namely :py:class:`pylops.optimization.sparsity.ISTA`,
-:py:class:`pylops.optimization.sparsity.FISTA`, and
+sensing problem, namely :py:class:`pylops.optimization.sparsity.ista`,
+:py:class:`pylops.optimization.sparsity.fista`, and
 :py:class:`pyproximal.optimization.primal.TwIST`.
 
 Whilst all solvers try to solve an unconstrained problem with a L1
@@ -38,10 +38,11 @@ N, M = 15, 20
 A = np.random.randn(N, M)
 A = A / np.linalg.norm(A, axis=0)
 Aop = pylops.MatrixMult(A)
+Aop.explicit = False  # temporary solution whilst PyLops gets updated
 
 x = np.random.rand(M)
 x[x < 0.9] = 0
-y = Aop*x
+y = Aop * x
 
 ###############################################################################
 # We try now to recover the sparse signal with our 3 different solvers
@@ -50,13 +51,13 @@ maxit = 100
 
 # ISTA
 x_ista, niteri, costi = \
-    pylops.optimization.sparsity.ISTA(Aop, y, maxit, eps=eps, tol=1e-10,
-                                      show=False, returninfo=True)
+    pylops.optimization.sparsity.ista(Aop, y, niter=maxit, eps=eps, tol=1e-10,
+                                      show=False)
 
 # FISTA
 x_fista, niterf, costf = \
-    pylops.optimization.sparsity.FISTA(Aop, y, maxit, eps=eps,
-                                       tol=1e-10, show=False, returninfo=True)
+    pylops.optimization.sparsity.fista(Aop, y, niter=maxit, eps=eps,
+                                       tol=1e-10, show=False)
 
 # TWIST (Note that since the smallest eigenvalue is zero, we arbitrarily
 # choose a small value for the solver to converge stably)
@@ -77,10 +78,10 @@ m, s, b = ax.stem(x_ista, linefmt='--r', basefmt='--r',
 plt.setp(m, markersize=7)
 m, s, b = ax.stem(x_fista, linefmt='--g', basefmt='--g',
                   markerfmt='go', label='FISTA')
-plt.setp(m, markersize = 7)
+plt.setp(m, markersize=7)
 m, s, b = ax.stem(x_twist, linefmt='--b', basefmt='--b',
                   markerfmt='bo', label='TWIST')
-plt.setp(m, markersize = 7)
+plt.setp(m, markersize=7)
 ax.set_title('Model', size=15, fontweight='bold')
 ax.legend()
 plt.tight_layout()

@@ -87,7 +87,7 @@ class TV(ProxOperator):
         x = x.reshape(self.dims)
         sol = x
         if self.ndim == 1:
-            derivOp = FirstDerivative(self.dims[0], dims=None, dir=0, edge=False,
+            derivOp = FirstDerivative(dims=self.dims[0], axis=0, edge=False,
                                       dtype=x.dtype, kind="forward")
         else: 
             gradOp = Gradient(x.shape, edge=False, dtype=x.dtype, kind="forward")
