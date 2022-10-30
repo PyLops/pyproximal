@@ -38,6 +38,8 @@ x[iava] = np.random.normal(0, 1, mava)
 # operator
 A = np.random.normal(0, 1, (n, m))
 Aop = pylops.MatrixMult(A)
+Aop.explicit = False  # temporary solution whilst PyLops gets updated
+
 y = Aop * x
 
 ###############################################################################

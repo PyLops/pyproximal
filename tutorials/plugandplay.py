@@ -19,13 +19,15 @@ of choice can be used instead!
 import numpy as np
 import matplotlib.pyplot as plt
 import pylops
-from scipy import misc
 
 import pyproximal
 import bm3d
 
+from pylops.config import set_ndarray_multiplication
+
 plt.close('all')
 np.random.seed(0)
+set_ndarray_multiplication(False)
 
 ###############################################################################
 # Let's start by loading the famous Shepp logan phantom and creating the
