@@ -111,7 +111,7 @@ def PlugAndPlay(proxf, denoiser, dims, x0, tau, niter=10,
        "Plug-and-Play priors for model based reconstruction",
        IEEE. 2013.
 
-    .. [1] Meinhardt, T., Moeller, M, Hazirbas, C., and Cremer, D.
+    .. [2] Meinhardt, T., Moeller, M, Hazirbas, C., and Cremer, D.
        "Learning Proximal Operators: Using Denoising Networks for Regularizing Inverse Imaging Problems",
        arXiv. 2017.
 
