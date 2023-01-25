@@ -80,7 +80,7 @@ sigma = 0.05
 l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel(), niter=50, warm=True)
 
 # BM3D denoiser
-denoiser = lambda x, tau: bm3d.bm3d(x, sigma_psd=sigma * tau,
+denoiser = lambda x, tau: bm3d.bm3d(np.real(x), sigma_psd=sigma * tau,
                                     stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING)
 
 errhist = []
