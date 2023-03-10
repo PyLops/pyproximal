@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 
 from math import sqrt
-from pylops.optimization.leastsquares import RegularizedInversion
+from pylops.optimization.leastsquares import regularized_inversion
 from pylops.utils.backend import to_numpy
 from pyproximal.proximal import L2
 
@@ -762,9 +762,9 @@ def ADMML2(proxg, Op, b, A, x0, tau, niter=10, callback=None, show=False, **kwar
     u = z = np.zeros(A.shape[0], dtype=A.dtype)
     for iiter in range(niter):
         # create augumented system
-        x = RegularizedInversion(Op, [A, ], b,
-                                 dataregs=[z - u, ], epsRs=[sqrttau, ],
-                                 x0=x, **kwargs_solver)
+        x = regularized_inversion(Op, b, [A, ], x0=x,
+                                  dataregs=[z - u, ], epsRs=[sqrttau, ],
+                                  **kwargs_solver)[0]
         Ax = A @ x
         z = proxg.prox(Ax + u, tau)
         u = u + Ax - z
