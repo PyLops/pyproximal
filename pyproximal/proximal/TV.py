@@ -211,7 +211,7 @@ class TV(ProxOperator):
 
             #  Update divergence vectors and project
             if self.ndim == 1:
-                dx = derivOp(sol)
+                dx = derivOp @ sol
                 r -= 1. / (4 * gamma * mt**2) * dx
                 weights = np.maximum(1, np.abs(r))
             elif self.ndim == 2:
