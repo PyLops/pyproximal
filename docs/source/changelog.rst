@@ -3,6 +3,18 @@
 Changelog
 =========
 
+Version 0.6.0
+--------------
+*Released on: 18/03/2023*
+
+|:vertical_traffic_light:| |:vertical_traffic_light:| This is the first release supporting PyLops v2.
+|:vertical_traffic_light:| |:vertical_traffic_light:|
+
+* Added ``grad`` method to :py:class:`pyproximal.utils.bilinear.LowRankFactorizedMatrix` operator
+* Allow passing optional arguments to solvers in :py:class:`pyproximal.proximal.L2`
+* Modified codebase to integrate with pylops's ``cupy`` backend.
+* Modified codebase to integrate with ``pylops`` v2.
+
 Version 0.5.0
 --------------
 *Released on: 20/08/2022*

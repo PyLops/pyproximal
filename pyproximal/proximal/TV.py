@@ -48,13 +48,12 @@ class TV(ProxOperator):
     def __call__(self, x):
         x = x.reshape(self.dims)
         if self.ndim == 1:
-            derivOp = FirstDerivative(self.dims[0], dims=None, dir=0, edge=False,
+            derivOp = FirstDerivative(dims=self.dims[0], axis=0, edge=False,
                                       dtype=x.dtype, kind="forward")
             dx = derivOp @ x
             y = np.sum(np.abs(dx), axis=0)
         elif self.ndim >= 2:
             y = 0
-            grads = []
             gradOp = Gradient(self.dims, edge=False, dtype=x.dtype, kind="forward")
             grads = gradOp.matvec(x.ravel())
             grads = grads.reshape((self.ndim, ) + self.dims)
@@ -88,7 +87,7 @@ class TV(ProxOperator):
         x = x.reshape(self.dims)
         sol = x
         if self.ndim == 1:
-            derivOp = FirstDerivative(self.dims[0], dims=None, dir=0, edge=False,
+            derivOp = FirstDerivative(dims=self.dims[0], axis=0, edge=False,
                                       dtype=x.dtype, kind="forward")
         else: 
             gradOp = Gradient(x.shape, edge=False, dtype=x.dtype, kind="forward")
@@ -212,7 +211,7 @@ class TV(ProxOperator):
 
             #  Update divergence vectors and project
             if self.ndim == 1:
-                dx = derivOp(sol)
+                dx = derivOp @ sol
                 r -= 1. / (4 * gamma * mt**2) * dx
                 weights = np.maximum(1, np.abs(r))
             elif self.ndim == 2:

@@ -1,6 +1,6 @@
 numpy>=1.15.0
 scipy>=1.8.0
-pylops<=1.18.3
+pylops>=2.0.0
 numba
 scikit-image
 matplotlib
@@ -13,6 +13,7 @@ docutils<0.18
 Sphinx==4.2.0
 sphinx-rtd-theme
 sphinx-gallery
+pydata-sphinx-theme
 numpydoc
 nbsphinx
 image

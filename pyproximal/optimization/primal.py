@@ -3,7 +3,8 @@ import warnings
 import numpy as np
 
 from math import sqrt
-from pylops.optimization.leastsquares import RegularizedInversion
+from pylops.optimization.leastsquares import regularized_inversion
+from pylops.utils.backend import to_numpy
 from pyproximal.proximal import L2
 
 
@@ -258,7 +259,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, x[0] if x.ndim == 1 else x[0, 0],
+                      (iiter + 1, np.real(to_numpy(x[0])) if x.ndim == 1 else np.real(to_numpy(x[0, 0])),
                        pf, pg[0] if epsg_print == 'Multi' else pg,
                        pf + np.sum(epsg * pg))
                 print(msg)
@@ -761,9 +762,9 @@ def ADMML2(proxg, Op, b, A, x0, tau, niter=10, callback=None, show=False, **kwar
     u = z = np.zeros(A.shape[0], dtype=A.dtype)
     for iiter in range(niter):
         # create augumented system
-        x = RegularizedInversion(Op, [A, ], b,
-                                 dataregs=[z - u, ], epsRs=[sqrttau, ],
-                                 x0=x, **kwargs_solver)
+        x = regularized_inversion(Op, b, [A, ], x0=x,
+                                  dataregs=[z - u, ], epsRs=[sqrttau, ],
+                                  **kwargs_solver)[0]
         Ax = A @ x
         z = proxg.prox(Ax + u, tau)
         u = u + Ax - z
@@ -1029,7 +1030,7 @@ def TwIST(proxg, A, b, x0, alpha=None, beta=None, eigs=None, niter=10,
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, x[0], pf, pg, pf + pg)
+                      (iiter + 1, np.real(to_numpy(x[0])), pf, pg, pf + pg)
                 print(msg)
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))

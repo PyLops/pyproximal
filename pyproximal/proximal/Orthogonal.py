@@ -63,12 +63,11 @@ class Orthogonal(ProxOperator):
         self.Q = Q
         self.partial = partial
         self.alpha = alpha
-        self.b = b if b is not None else np.zeros(Q.shape[0], dtype=Q.dtype)
+        self.b = b if b is not None else 0
 
     def __call__(self, x):
         y = self.Q.matvec(x)
-        if self.b is not None:
-            y += self.b
+        y += self.b
         f = self.f(y)
         return f
 
@@ -81,10 +80,8 @@ class Orthogonal(ProxOperator):
                  self.Q.rmatvec(self.f.prox(y + self.b, self.alpha * tau) -
                                 self.b))
         else:
-            if self.b is not None:
-                y = y + self.b
+            y = y + self.b
             z = self.f.prox(y, tau)
-            if self.b is not None:
-                z = z - self.b
+            z = z - self.b
             z = self.Q.rmatvec(z)
         return z

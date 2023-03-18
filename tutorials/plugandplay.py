@@ -19,13 +19,15 @@ of choice can be used instead!
 import numpy as np
 import matplotlib.pyplot as plt
 import pylops
-from scipy import misc
 
 import pyproximal
 import bm3d
 
+from pylops.config import set_ndarray_multiplication
+
 plt.close('all')
 np.random.seed(0)
+set_ndarray_multiplication(False)
 
 ###############################################################################
 # Let's start by loading the famous Shepp logan phantom and creating the
@@ -78,7 +80,7 @@ sigma = 0.05
 l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel(), niter=50, warm=True)
 
 # BM3D denoiser
-denoiser = lambda x, tau: bm3d.bm3d(x, sigma_psd=sigma * tau,
+denoiser = lambda x, tau: bm3d.bm3d(np.real(x), sigma_psd=sigma * tau,
                                     stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING)
 
 errhist = []
