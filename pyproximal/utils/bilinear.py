@@ -129,6 +129,11 @@ class LowRankFactorizedMatrix(BilinearOperator):
         return X.ravel()
 
     def matvec(self, x):
+        if self.n == self.m:
+            raise NotImplementedError('Since n=m, this method'
+                                      'cannot distinguish automatically'
+                                      'between _matvecx and _matvecy. '
+                                      'Explicitely call either of those two methods.')
         if x.size == self.shapex[1]:
             y = self._matvecx(x)
         else:
@@ -150,7 +155,7 @@ class LowRankFactorizedMatrix(BilinearOperator):
         return np.linalg.norm(np.conj(Y).T @ Y, 'fro')
 
     def gradx(self, x):
-        r = self.d - self.matvec(x)
+        r = self.d - self._matvecx(x)
         if self.Op is not None:
             r = (self.Op.H @ r).reshape(self.n, self.m)
         else:
@@ -159,7 +164,7 @@ class LowRankFactorizedMatrix(BilinearOperator):
         return g.ravel()
 
     def grady(self, y):
-        r = self.d - self.matvec(y)
+        r = self.d - self._matvecy(y)
         if self.Op is not None:
             r = (self.Op.H @ r.ravel()).reshape(self.n, self.m)
         else:
