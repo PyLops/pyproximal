@@ -62,6 +62,7 @@ class BilinearOperator():
     def updatexy(self, xy):
         pass
 
+
 class LowRankFactorizedMatrix(BilinearOperator):
     r"""Low-Rank Factorized Matrix operator.
 
