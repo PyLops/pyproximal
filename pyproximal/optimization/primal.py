@@ -6,6 +6,7 @@ from math import sqrt
 from pylops.optimization.leastsquares import regularized_inversion
 from pylops.utils.backend import to_numpy
 from pyproximal.proximal import L2
+from pyproximal.utils.bilinear import BilinearOperator
 
 
 def _backtracking(x, tau, proxf, proxg, epsg, beta=0.5, niterback=10):
@@ -239,7 +240,11 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
         else:
             x, tau = _backtracking(y, tau, proxf, proxg, epsg,
                                    beta=beta, niterback=niterback)
-        
+
+        # update internal parameters for bilinear operator
+        if isinstance(proxf, BilinearOperator):
+            proxf.updatexy(x)
+
         # update y
         if acceleration == 'vandenberghe':
             omega = iiter / (iiter + 3)
