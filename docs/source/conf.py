@@ -77,8 +77,9 @@ plot_formats = ['png']
 
 # Sphinx project configuration
 templates_path = ['_templates']
-exclude_patterns = ['_build', '**.ipynb_checkpoints']
+exclude_patterns = ["_build", "**.ipynb_checkpoints", "**.ipynb", "**.md5"]
 source_suffix = '.rst'
+
 # The encoding of source files.
 source_encoding = 'utf-8-sig'
 master_doc = 'index'
@@ -102,7 +103,7 @@ html_static_path = ["_static"]
 html_last_updated_fmt = '%b %d, %Y'
 html_title = 'PyProximal'
 html_short_title = 'PyProximal'
-html_logo = 'pyproximal.png'
+html_logo = '_static/pyproximal.png'
 html_favicon = 'favicon.ico'
 html_extra_path = []
 pygments_style = 'default'
@@ -116,6 +117,10 @@ html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     'logo_only': True,
     'display_version': True,
+    "logo": {
+            "image_light": "pyproximal_b.png",
+            "image_dark": "pyproximal.png",
+    }
 }
 html_context = {
     'menu_links_name': 'Repository',

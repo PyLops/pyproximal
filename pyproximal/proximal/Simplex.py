@@ -49,7 +49,7 @@ class _Simplex(ProxOperator):
             x = x.reshape(self.dims)
             if self.axis == 0:
                 x = x.T
-            c = np.zeros(self.dims[self.otheraxis], dtype=np.bool)
+            c = np.zeros(self.dims[self.otheraxis], dtype=bool)
             for i in range(self.dims[self.otheraxis]):
                 c[i] = not (np.abs(np.sum(x)) - self.radius < tol or np.any(x[i] < 0))
             c = np.all(c)

@@ -46,7 +46,7 @@ cl = (cl + dcl/2)[:-1]
 # closest class. This is equivalent to solving our cost function and ignoring
 # the term that minimizes the total interface between the sets. As a result
 # our segmentation boundaries will be very crisp.
-ic = np.floor(ig / dcl).astype(np.int)
+ic = np.floor(ig / dcl).astype(np.int64)
 
 ###############################################################################
 # On the other hand, we can choose to get much smoother boundaries if we use
