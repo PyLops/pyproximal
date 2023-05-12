@@ -96,7 +96,7 @@ with pylops.disabled_ndarray_multiplication():
     sigma = 0.04
     l1 = pyproximal.proximal.L21(ndim=2)
     l2 = pyproximal.proximal.L2(Op=Dop, b=d.ravel(), niter=50, warm=True)
-    Gop = sigma * pylops.Gradient(dims=gt.shape, edge=True, kind='forward', dtype=np.complex)
+    Gop = sigma * pylops.Gradient(dims=gt.shape, edge=True, kind='forward', dtype=np.complex128)
 
     L = sigma ** 2 * 8
     tau = .99 / np.sqrt(L)
