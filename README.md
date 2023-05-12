@@ -1,4 +1,4 @@
-# PyProximal
+![PyProximal](https://github.com/PyLops/pyproximal/blob/dev/docs/source/_static/pyproximal_b.png)
 
 [![PyPI version](https://badge.fury.io/py/pyproximal.svg)](https://badge.fury.io/py/pyproximal)
 [![Build Status](https://travis-ci.com/PyLops/pyproximal.svg?branch=main)](https://travis-ci.com/PyLops/pyproximal)
