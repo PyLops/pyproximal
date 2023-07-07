@@ -2,11 +2,12 @@
 
 [![PyPI version](https://badge.fury.io/py/pyproximal.svg)](https://badge.fury.io/py/pyproximal)
 [![Build Status](https://travis-ci.com/PyLops/pyproximal.svg?branch=main)](https://travis-ci.com/PyLops/pyproximal)
-[![AzureDevOps Status](https://dev.azure.com/matteoravasi/PyLops/_apis/build/status/PyLops.pyproximal?branchName=main)](https://dev.azure.com/matteoravasi/PyLops/_build/latest?definitionId=10&branchName=main)
+[![AzureDevOps Status](https://dev.azure.com/matteoravasi/PyLops/_apis/build/status%2FPyLops.pyproximal?branchName=refs%2Fpull%2F129%2Fmerge)](https://dev.azure.com/matteoravasi/PyLops/_build/latest?definitionId=10&branchName=refs%2Fpull%2F129%2Fmerge)
 ![GithubAction Status](https://github.com/PyLops/pyproximal/workflows/PyProx/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pyproximal/badge/?version=latest)](https://pyproximal.readthedocs.io/en/latest/?badge=latest)
 [![OS-support](https://img.shields.io/badge/OS-linux,osx-850A8B.svg)](https://github.com/PyLops/pyproximal)
 [![Slack Status](https://img.shields.io/badge/chat-slack-green.svg)](https://pylops.slack.com)
+
 
 
 :vertical_traffic_light: :vertical_traffic_light: This library is under early development.
