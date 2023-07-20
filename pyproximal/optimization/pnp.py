@@ -12,7 +12,7 @@ class _Denoise(ProxOperator):
     denoiser : :obj:`func`
         Denoiser (must be a function with two inputs, the first is the signal
         to be denoised, the second is the `tau` constant of the y-update in
-        the ADMM optimization
+        the PnP optimization
     dims : :obj:`tuple`
         Dimensions used to reshape the vector ``x`` in the ``prox`` method
         prior to calling the ``denoiser``
@@ -64,24 +64,13 @@ def PlugAndPlay(proxf, denoiser, dims, x0, solver=ADMM, **kwargs_solver):
         Initial vector
     solver : :func:`pyproximal.optimization.primal` or :func:`pyproximal.optimization.primaldual`
         Solver of choice
-    tau : :obj:`float`, optional
-        Positive scalar weight, which should satisfy the following condition
-        to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
-        the Lipschitz constant of :math:`\nabla f`.
-    niter : :obj:`int`, optional
-        Number of iterations of iterative scheme
-    callback : :obj:`callable`, optional
-        Function with signature (``callback(x)``) to call after each iteration
-        where ``x`` is the current model vector
-    show : :obj:`bool`, optional
-        Display iterations log
+    kwargs_solver : :obj:`dict`
+        Additonal parameters required by the selected solver
 
     Returns
     -------
-    x : :obj:`numpy.ndarray`
-        Inverted model
-    z : :obj:`numpy.ndarray`
-        Inverted second model
+    out : :obj:`numpy.ndarray` or :obj:`tuple`
+        Output of the solver of choice
 
     Notes
     -----
