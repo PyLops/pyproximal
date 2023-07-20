@@ -213,10 +213,11 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
               'Proximal operator (f): %s\n'
               'Proximal operator (g): %s\n'
               'tau = %s\tbeta=%10e\n'
-              'epsg = %s\tniter = %d\t'
-              'niterback = %d\n' % (type(proxf), type(proxg),
+              'epsg = %s\tniter = %d\n'
+              ''
+              'niterback = %d\tacceleration = %s\n' % (type(proxf), type(proxg),
                                     'Adaptive' if tau is None else str(tau), beta,
-                                    epsg_print, niter, niterback))
+                                    epsg_print, niter, niterback, acceleration))
         head = '   Itn       x[0]          f           g       J=f+eps*g'
         print(head)
 
