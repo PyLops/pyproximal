@@ -1,7 +1,7 @@
 import time
 import numpy as np
 
-from pylops.utils.backend import get_array_module
+from pylops.utils.backend import get_array_module, to_numpy
 
 
 def PrimalDual(proxf, proxg, A, x0, tau, mu, y0=None, z=None, theta=1., niter=10,
@@ -167,7 +167,7 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, y0=None, z=None, theta=1., niter=10
                 pg = 0. if type(pg) == bool else pg
                 zx = 0. if z is None else np.dot(z, x)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e      %10.3e' % \
-                      (iiter + 1, x[0], pf, pg, zx, pf + pg + zx)
+                      (iiter + 1, np.real(to_numpy(x[0])), pf, pg, zx, pf + pg + zx)
                 print(msg)
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
@@ -334,7 +334,7 @@ def AdaptivePrimalDual(proxf, proxg, A, x0, tau, mu,
                 pg = 0. if type(pg) == bool else pg
                 zx = 0. if z is None else np.dot(z, x)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e      %10.3e' % \
-                      (iiter, x[0], pf, pg, zx, pf + pg + zx)
+                      (iiter + 1, np.real(to_numpy(x[0])), pf, pg, zx, pf + pg + zx)
                 print(msg)
 
     steps = (taus[:iiter + 1], mus[:iiter + 1], alphas[:iiter + 1])
