@@ -28,7 +28,7 @@ class L1BallProj():
 
     .. math::
 
-        P_{L1_{r}} (\mathbf{x}) = sign(x) P_{\operatorname{Simplex}(r)}
+        P_{L1_{r}} (\mathbf{x}) = sign(\mathbf{x}) P_{\operatorname{Simplex}(r)}(\mathbf{x})
 
     Note that this is the proximal operator of the corresponding
     indicator function :math:`\mathcal{I}_{L1_{r}}`.
