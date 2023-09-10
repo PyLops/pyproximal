@@ -185,7 +185,7 @@ def Simplex(n, radius, dims=None, axis=-1, maxiter=100,
     maxiter : :obj:`int`, optional
         Maximum number of iterations used by bisection
     ftol : :obj:`float`, optional
-        Function tolerance in bisection (only with ``engine='numba'``)
+        Function tolerance in bisection (only with ``engine='numba'`` or ``engine='cuda'``)
     xtol : :obj:`float`, optional
         Solution absolute tolerance in bisection
     call : :obj:`bool`, optional
@@ -224,5 +224,5 @@ def Simplex(n, radius, dims=None, axis=-1, maxiter=100,
         if engine == 'numba' and jit is None:
             logging.warning(jit_message)
         s = _Simplex(n, radius, dims=dims, axis=axis,
-                     maxiter=maxiter, ftol=ftol, xtol=xtol, call=call)
+                     maxiter=maxiter, xtol=xtol, call=call)
     return s
