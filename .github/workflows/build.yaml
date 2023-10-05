@@ -11,13 +11,13 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Get history and tags for SCM versioning to work
       run: |
         git fetch --prune --unshallow
         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -27,6 +27,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements-dev.txt; fi
     - name: Install pyproximal
       run: |
+        python -m setuptools_scm
         pip install .
     - name: Test with pytest
       run: |
