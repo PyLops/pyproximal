@@ -2,6 +2,7 @@ import numpy as np
 
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
+from pyproximal.proximal.L1 import _current_sigma
 
 
 def _l2(x, thresh):
@@ -26,13 +27,6 @@ def _l2(x, thresh):
     return y
 
 
-def _current_sigma(sigma, count):
-    if not callable(sigma):
-        return sigma
-    else:
-        return sigma(count)
-
-
 def _current_kappa(kappa, count):
     if not callable(kappa):
         return kappa
@@ -40,20 +34,20 @@ def _current_kappa(kappa, count):
         return kappa(count)
 
 
-class rMS(ProxOperator):
-    r"""relaxed Mumford-Shoh norm proximal operator.
+class RelaxedMumfordShah(ProxOperator):
+    r"""Relaxed Mumford-Shah norm proximal operator.
 
     Proximal operator of the relaxed Mumford-Shah norm:
-    :math:`\text{rMS}(x) = \min (\alpha\Vert x\Vert_2^2, \kappa).`.
+    :math:`\text{rMS}(x) = \min (\alpha\Vert x\Vert_2^2, \kappa)`.
 
     Parameters
     ----------
     sigma : :obj:`float` or :obj:`list` or :obj:`np.ndarray` or :obj:`func`, optional
-        Multiplicative coefficient of L2 norm that controls the smoothness. This can be a constant number, a list
-        of values (for multidimensional inputs, acting on the second dimension) or
-        a function that is called passing a counter which keeps track of how many
-        times the ``prox`` method has been invoked before and returns a scalar (or a list of)
-        ``sigma`` to be used.
+        Multiplicative coefficient of L2 norm that controls the smoothness of the solutuon.
+        This can be a constant number, a list of values (for multidimensional inputs, acting
+        on the second dimension) or a function that is called passing a counter which keeps
+        track of how many times the ``prox`` method has been invoked before and returns a
+        scalar (or a list of) ``sigma`` to be used.
     kappa : :obj:`float` or :obj:`list` or :obj:`np.ndarray` or :obj:`func`, optional
         Constant value in the rMS norm which essentially controls when the norm allows a jump. This can be a
         constant number, a list of values (for multidimensional inputs, acting on the second dimension) or
@@ -65,12 +59,12 @@ class rMS(ProxOperator):
 
     Notes
     -----
-    The :math:`\ell_1` proximal operator is defined as [1]_:
+    The :math:`rMS` proximal operator is defined as [1]_:
 
     .. math::
-        \text{prox}_{\text{rMS}}(x) =
+        \text{prox}_{\tau \text{rMS}}(x) =
         \begin{cases}
-        \frac{1}{1+2\alpha}x & \text{ if } & \vert x\vert \leq \sqrt{\frac{\kappa}{\alpha}(1 + 2\alpha)} \\
+        \frac{1}{1+2\tau\alpha}x & \text{ if } & \vert x\vert \leq \sqrt{\frac{\kappa}{\alpha}(1 + 2\tau\alpha)} \\
         \kappa & \text{ else }
         \end{cases}.
 
@@ -89,7 +83,7 @@ class rMS(ProxOperator):
     def __call__(self, x):
         sigma = _current_sigma(self.sigma, self.count)
         kappa = _current_sigma(self.kappa, self.count)
-        return np.minimum(sigma * np.linalg.norm(x)**2, kappa)
+        return np.minimum(sigma * np.linalg.norm(x) ** 2, kappa)
 
     def _increment_count(func):
         """Increment counter
@@ -106,11 +100,4 @@ class rMS(ProxOperator):
         kappa = _current_sigma(self.kappa, self.count)
 
         x = np.where(np.abs(x) <= np.sqrt(kappa / sigma * (1 + 2 * tau * sigma)), _l2(x, tau * sigma), x)
-        return x
-
-    @_check_tau
-    def proxdual(self, x, tau):
-        # x - tau * self.prox(x / tau, 1. / tau)
-        x = self._proxdual_moreau(x, tau)
-
         return x
