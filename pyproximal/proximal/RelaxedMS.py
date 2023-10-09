@@ -5,25 +5,25 @@ from pyproximal import ProxOperator
 from pyproximal.proximal.L1 import _current_sigma
 
 
-def _l2(x, thresh):
-    r"""scaling.
+def _l2(x, alpha):
+    r"""Scaling operation.
 
-    Applies soft thresholding to vector ``x - g``.
+    Applies the proximal of ``alpha||y - x||_2^2`` which is essentially a scaling operation.
 
     Parameters
     ----------
     x : :obj:`numpy.ndarray`
         Vector
-    thresh : :obj:`float`
-        Threshold
+    alpha : :obj:`float`
+        scaling parameter
 
     Returns
     -------
-    x1 : :obj:`numpy.ndarray`
-        Tresholded vector
+    y : :obj:`numpy.ndarray`
+        proximal of ``alpha||y - x||_2^2``
 
     """
-    y = 1 / (1 + 2 * thresh) * x
+    y = 1 / (1 + 2 * alpha) * x
     return y
 
 
@@ -76,8 +76,6 @@ class RelaxedMumfordShah(ProxOperator):
         super().__init__(None, False)
         self.sigma = sigma
         self.kappa = kappa
-        # self.g = g
-        # self.gdual = 0 if g is None else g
         self.count = 0
 
     def __call__(self, x):
