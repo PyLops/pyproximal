@@ -5,7 +5,7 @@ from pyproximal import ProxOperator
 
 
 def _l2(x, thresh):
-    r"""Soft thresholding.
+    r"""scaling.
 
     Applies soft thresholding to vector ``x - g``.
 
@@ -41,19 +41,25 @@ def _current_kappa(kappa, count):
 
 
 class rMS(ProxOperator):
-    r"""L1 norm proximal operator.
+    r"""relaxed Mumford-Shoh norm proximal operator.
 
-    Proximal operator of the :math:`\ell_1` norm:
-    :math:`\sigma\|\mathbf{x} - \mathbf{g}\|_1 = \sigma \sum |x_i - g_i|`.
+    Proximal operator of the relaxed Mumford-Shah norm:
+    :math:`\text{rMS}(x) = \min (\alpha\Vert x\Vert_2^2, \kappa).`.
 
     Parameters
     ----------
     sigma : :obj:`float` or :obj:`list` or :obj:`np.ndarray` or :obj:`func`, optional
-        Multiplicative coefficient of L1 norm. This can be a constant number, a list
+        Multiplicative coefficient of L2 norm that controls the smoothness. This can be a constant number, a list
         of values (for multidimensional inputs, acting on the second dimension) or
         a function that is called passing a counter which keeps track of how many
         times the ``prox`` method has been invoked before and returns a scalar (or a list of)
         ``sigma`` to be used.
+    kappa : :obj:`float` or :obj:`list` or :obj:`np.ndarray` or :obj:`func`, optional
+        Constant value in the rMS norm which essentially controls when the norm allows a jump. This can be a
+        constant number, a list of values (for multidimensional inputs, acting on the second dimension) or
+        a function that is called passing a counter which keeps track of how many
+        times the ``prox`` method has been invoked before and returns a scalar (or a list of)
+        ``kappa`` to be used.
     g : :obj:`np.ndarray`, optional
         Vector to be subtracted
 
@@ -62,41 +68,22 @@ class rMS(ProxOperator):
     The :math:`\ell_1` proximal operator is defined as [1]_:
 
     .. math::
-
-        \prox_{\tau \sigma \|\cdot\|_1}(\mathbf{x}) =
-        \operatorname{soft}(\mathbf{x}, \tau \sigma) =
+        \text{prox}_{\text{rMS}}(x) =
         \begin{cases}
-        x_i + \tau \sigma, & x_i - g_i < -\tau \sigma \\
-        g_i, & -\tau\sigma \leq x_i - g_i \leq \tau\sigma \\
-        x_i - \tau\sigma,  & x_i - g_i > \tau\sigma\\
-        \end{cases}
+        \frac{1}{1+2\alpha}x & \text{ if } & \vert x\vert \leq \sqrt{\frac{\kappa}{\alpha}(1 + 2\alpha)} \\
+        \kappa & \text{ else }
+        \end{cases}.
 
-    where :math:`\operatorname{soft}` is the so-called called *soft thresholding*.
-
-    Moreover, as the conjugate of the :math:`\ell_1` norm is the orthogonal projection of
-    its dual norm (i.e., :math:`\ell_\inf` norm) onto a unit ball, its dual
-    operator (when :math:`\mathbf{g}=\mathbf{0}`) is defined as:
-
-    .. math::
-
-        \prox^*_{\tau \sigma \|\cdot\|_1}(\mathbf{x}) = P_{\|\cdot\|_{\infty} <=\sigma}(\mathbf{x}) =
-        \begin{cases}
-        -\sigma, & x_i < -\sigma \\
-        x_i,& -\sigma \leq x_i \leq \sigma \\
-        \sigma,  & x_i > \sigma\\
-        \end{cases}
-
-    .. [1] Chambolle, and A., Pock, "A first-order primal-dual algorithm for
-        convex problems with applications to imaging", Journal of Mathematical
-        Imaging and Vision, 40, 8pp. 120–145. 2011.
+    .. [1] Strekalovskiy, E., and D. Cremers, 2014, Real-time minimization of the piecewise smooth
+            Mumford-Shah functional: European Conference on Computer Vision, 127–141.
 
     """
     def __init__(self, sigma=1., kappa=1., g=None):
         super().__init__(None, False)
         self.sigma = sigma
         self.kappa = kappa
-        self.g = g
-        self.gdual = 0 if g is None else g
+        # self.g = g
+        # self.gdual = 0 if g is None else g
         self.count = 0
 
     def __call__(self, x):
@@ -123,7 +110,7 @@ class rMS(ProxOperator):
 
     @_check_tau
     def proxdual(self, x, tau):
-        x - tau * self.prox(x / tau, 1. / tau)
-        # x = self._proxdual_moreau(x, tau)
+        # x - tau * self.prox(x / tau, 1. / tau)
+        x = self._proxdual_moreau(x, tau)
 
         return x
