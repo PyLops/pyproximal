@@ -20,7 +20,7 @@ Its corresponding proximal operator is given by
 
 
 rMS is a combination of Tikhonov and TV regularization. Once the rMS hits a certain threshold, the solution will be allowed
-to jump due to the constant penalty $\kappa$, and below this value rMS will be smooth due to Tikhonov regularization.
+to jump due to the constant penalty :math:`\kappa`, and below this value rMS will be smooth due to Tikhonov regularization.
 We show three denoising examples: one example that is well-suited for TV regularization and two examples where rMS
 outperforms TV and Tikhonov regularization, modeled after the experiments in [2].
 
