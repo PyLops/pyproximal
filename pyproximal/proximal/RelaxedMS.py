@@ -15,12 +15,12 @@ def _l2(x, alpha):
     x : :obj:`numpy.ndarray`
         Vector
     alpha : :obj:`float`
-        scaling parameter
+        Scaling parameter
 
     Returns
     -------
     y : :obj:`numpy.ndarray`
-        proximal of ``alpha||y - x||_2^2``
+        Scaled vector
 
     """
     y = 1 / (1 + 2 * alpha) * x
@@ -54,8 +54,6 @@ class RelaxedMumfordShah(ProxOperator):
         a function that is called passing a counter which keeps track of how many
         times the ``prox`` method has been invoked before and returns a scalar (or a list of)
         ``kappa`` to be used.
-    g : :obj:`np.ndarray`, optional
-        Vector to be subtracted
 
     Notes
     -----
@@ -72,7 +70,7 @@ class RelaxedMumfordShah(ProxOperator):
             Mumford-Shah functional: European Conference on Computer Vision, 127–141.
 
     """
-    def __init__(self, sigma=1., kappa=1., g=None):
+    def __init__(self, sigma=1., kappa=1.):
         super().__init__(None, False)
         self.sigma = sigma
         self.kappa = kappa
