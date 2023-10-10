@@ -92,6 +92,7 @@ Non-Convex
     Log1
     QuadraticEnvelopeCard
     QuadraticEnvelopeCardIndicator
+    RelaxedMumfordShah
     SCAD
 
 
