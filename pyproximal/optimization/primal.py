@@ -218,7 +218,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
               'niterback = %d\tacceleration = %s\n' % (type(proxf), type(proxg),
                                     'Adaptive' if tau is None else str(tau), beta,
                                     epsg_print, niter, niterback, acceleration))
-        head = '   Itn       x[0]          f           g       J=f+eps*g'
+        head = '   Itn       x[0]          f           g       J=f+eps*g       tau'
         print(head)
 
     backtracking = False
@@ -267,7 +267,8 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
                       (iiter + 1, np.real(to_numpy(x[0])) if x.ndim == 1 else np.real(to_numpy(x[0, 0])),
                        pf, pg[0] if epsg_print == 'Multi' else pg,
-                       pf + np.sum(epsg * pg))
+                       pf + np.sum(epsg * pg),
+                       tau)
                 print(msg)
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
@@ -401,8 +402,8 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau=None,
         sol = np.zeros_like(x)
         for i, proxg in enumerate(proxgs):
             tmp = 2 * y - zs[i] - tau * grad
-            tmp[:] = proxg.prox(tmp, tau *len(proxgs) )
-            zs[i] += epsg * (tmp - y)
+            tmp[:] = proxg.prox(tmp, epsg *tau *len(proxgs) )
+            zs[i] += (tmp - y)
             sol += zs[i] / len(proxgs)
         x[:] = sol.copy()
 
