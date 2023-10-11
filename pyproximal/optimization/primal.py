@@ -309,7 +309,7 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau=None,
     .. math::
 
         \mathbf{x} = \argmin_\mathbf{x} \sum_{i=1}^n f_i(\mathbf{x}) 
-        + \sum_{j=1}^m \tau_j g_j(\mathbf{x}),~~n,m \in \mathbb{N}^+
+        + \sum_{j=1}^m \epsilon_j g_j(\mathbf{x}),~~n,m \in \mathbb{N}^+
 
     where the :math:`f_i(\mathbf{x})` are smooth convex functions with a uniquely
     defined gradient and the :math:`g_j(\mathbf{x})` are any convex function that
@@ -330,7 +330,7 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau=None,
         backtracking is used to adaptively estimate the best tau at each
         iteration.
     epsg : :obj:`float` or :obj:`np.ndarray`, optional
-        Scaling factor of g function
+        Scaling factor(s) of ``g`` function(s)
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
     acceleration:  :obj:`str`, optional
@@ -353,11 +353,12 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau=None,
 
     .. math::
         \text{for } j=1,\cdots,n, \\
-        ~~~~\mathbf z_j^{k+1} = \mathbf z_j^{k} + \eta_k (prox_{\frac{\tau^k}{\omega_j} g_j}(2 \mathbf{x}^{k} - z_j^{k}) 
-        - \tau^k \sum_{i=1}^n \nabla f_i(\mathbf{x}^{k})) - \mathbf{x}^{k} \\
+        ~~~~\mathbf z_j^{k+1} = \mathbf z_j^{k} + \epsilon_j
+        \left[prox_{\frac{\tau^k}{\omega_j} g_j}\left(2 \mathbf{x}^{k} - \mathbf{z}_j^{k}
+        - \tau^k \sum_{i=1}^n \nabla f_i(\mathbf{x}^{k})\right) - \mathbf{x}^{k} \right] \\
         \mathbf{x}^{k+1} = \sum_{j=1}^n \omega_j f_j \\
         
-    where :math:`\sum_{j=1}^n \omega_j=1`. 
+    where :math:`\sum_{j=1}^n \omega_j=1`. In the current implementation :math:`\omega_j=1/n`.
     """
     # check if epgs is a vector
     if np.asarray(epsg).size == 1.:
@@ -394,23 +395,23 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau=None,
     for iiter in range(niter):
         xold = x.copy()
 
-        # proximal step
+        # gradient
         grad = np.zeros_like(x)
         for i, proxf in enumerate(proxfs):
             grad += proxf.grad(x)
 
-        sol = np.zeros_like(x)
+        # proximal step
+        x = np.zeros_like(x)
         for i, proxg in enumerate(proxgs):
-            tmp = 2 * y - zs[i] - tau * grad
-            tmp[:] = proxg.prox(tmp, epsg *tau *len(proxgs) )
-            zs[i] += (tmp - y)
-            sol += zs[i] / len(proxgs)
-        x[:] = sol.copy()
+            ztmp = 2 * y - zs[i] - tau * grad
+            ztmp = proxg.prox(ztmp, epsg * tau * len(proxgs))
+            zs[i] += (ztmp - y)
+            x += zs[i] / len(proxgs)
 
         # update y
         if acceleration == 'vandenberghe':
             omega = iiter / (iiter + 3)
-        elif acceleration== 'fista':
+        elif acceleration == 'fista':
             told = t
             t = (1. + np.sqrt(1. + 4. * t ** 2)) / 2.
             omega = ((told - 1.) / t)
@@ -782,7 +783,7 @@ def ADMML2(proxg, Op, b, A, x0, tau, niter=10, callback=None, show=False, **kwar
 
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf, pg = np.linalg.norm(Op @ x - b), proxg(Ax)
+                pf, pg = 0.5 * np.linalg.norm(Op @ x - b) ** 2, proxg(Ax)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
                       (iiter + 1, x[0], pf, pg, pf + pg)
                 print(msg)

@@ -2,7 +2,7 @@ import pytest
 
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from pylops import MatrixMult, Identity
+from pylops import Identity, MatrixMult, Restriction
 
 import pyproximal
 from pyproximal.utils import moreau
@@ -85,6 +85,20 @@ def test_Orthogonal(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
+def test_VStack_error(par):
+    """VStack operator error when input has wrong dimensions
+    """
+    np.random.seed(10)
+    nxs = [par['nx'] // 4] * 4
+    nxs[-1] = par['nx'] - np.sum(nxs[:-1])
+    l2 = L2()
+    vstack = VStack([l2] * 4, nxs)
+
+    with pytest.raises(ValueError):
+        vstack.prox(np.ones(nxs[0]), 2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
 def test_VStack(par):
     """L2 functional with VStack operator of multiple L1s
     """
@@ -93,6 +107,33 @@ def test_VStack(par):
     nxs[-1] = par['nx'] - np.sum(nxs[:-1])
     l2 = L2()
     vstack = VStack([l2] * 4, nxs)
+
+    # functional
+    x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+    assert_array_almost_equal(l2(x), vstack(x), decimal=4)
+
+    # gradient
+    assert_array_almost_equal(l2.grad(x), vstack.grad(x), decimal=4)
+
+    # prox / dualprox
+    tau = 2.
+    assert_array_equal(l2.prox(x, tau), vstack.prox(x, tau))
+
+    # moreau
+    assert moreau(vstack, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1), ])
+def test_VStack_restriction(par):
+    """L2 functional with VStack operator of multiple L1s using restriction
+    """
+    np.random.seed(10)
+    nxs = [par['nx'] // 2] * 2
+    nxs[-1] = par['nx'] - np.sum(nxs[:-1])
+    l2 = L2()
+    vstack = VStack([l2] * 2,
+                    restr=[Restriction(par['nx'], np.arange(par['nx'] // 2)),
+                           Restriction(par['nx'], par['nx'] // 2 + np.arange(par['nx'] // 2))])
 
     # functional
     x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])

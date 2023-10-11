@@ -51,10 +51,16 @@ class VStack(ProxOperator):
             self.xin = cum_nn[:-1]
             self.xin = np.insert(self.xin, 0, 0)
             self.xend = cum_nn
+            # store required size of input
+            self.nx = cum_nn[-1]
         else:
             self.restr = restr
+            # store required size of input
+            self.nx = np.sum([restr.iava.size for restr in self.restr])
 
     def __call__(self, x):
+        if x.size != self.nx:
+            raise ValueError(f'x must have size {self.nx}, instead the provided x has size {x.size}')
         f = 0.
         if hasattr(self, 'nn'):
             for iop, op in enumerate(self.ops):
@@ -66,6 +72,8 @@ class VStack(ProxOperator):
 
     @_check_tau
     def prox(self, x, tau):
+        if x.size != self.nx:
+            raise ValueError(f'x must have size {self.nx}, instead the provided x has size {x.size}')
         if hasattr(self, 'nn'):
             f = np.hstack([op.prox(x[self.xin[iop]:self.xend[iop]], tau)
                            for iop, op in enumerate(self.ops)])
@@ -76,6 +84,8 @@ class VStack(ProxOperator):
         return f
 
     def grad(self, x):
+        if x.size != self.nx:
+            raise ValueError(f'x must have size {self.nx}, instead the provided x has size {x.size}')
         if hasattr(self, 'nn'):
             f = np.hstack([op.grad(x[self.xin[iop]:self.xend[iop]])
                            for iop, op in enumerate(self.ops)])
