@@ -264,7 +264,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
-                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
+                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e  %10.3e' % \
                       (iiter + 1, np.real(to_numpy(x[0])) if x.ndim == 1 else np.real(to_numpy(x[0, 0])),
                        pf, pg[0] if epsg_print == 'Multi' else pg,
                        pf + np.sum(epsg * pg),
