@@ -404,7 +404,7 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau=None,
         x = np.zeros_like(x)
         for i, proxg in enumerate(proxgs):
             ztmp = 2 * y - zs[i] - tau * grad
-            ztmp = proxg.prox(ztmp, epsg * tau * len(proxgs))
+            ztmp = proxg.prox(ztmp, epsg * tau)
             zs[i] += (ztmp - y)
             x += zs[i] / len(proxgs)
 
