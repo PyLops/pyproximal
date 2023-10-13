@@ -16,7 +16,7 @@ authors = [
 license = {file = "LICENSE.md"}
 keywords = ["algebra", "inverse problems", "proximal", "convex optimization", "large-scale optimization"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Education",
