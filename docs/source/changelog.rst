@@ -7,7 +7,7 @@ Version 0.7.0
 --------------
 *Released on: 10/11/2023*
 
-* Added :py:class:`pyproximal.proximal.RelaxedMumfordShah`` operator
+* Added :py:class:`pyproximal.proximal.RelaxedMumfordShah` operator
 * Added cuda version to the proximal operator of :py:class:`pyproximal.proximal.Simplex`
 * Added bilinear update to :py:func:`pyproximal.optimization.primal.ProximalGradient`
 * Modified :py:func:`pyproximal.optimization.pnp.PlugAndPlay` function signature to allow using any proximal solver of choice
