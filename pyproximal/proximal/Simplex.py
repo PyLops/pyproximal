@@ -1,5 +1,7 @@
 import logging
 import numpy as np
+
+from pylops.utils.backend import get_array_module, to_cupy_conditional
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
 from pyproximal.projection import SimplexProj
@@ -7,6 +9,7 @@ from pyproximal.projection import SimplexProj
 try:
     from numba import jit
     from ._Simplex_numba import bisect_jit, simplex_jit, fun_jit
+    from ._Simplex_cuda import bisect_jit_cuda, simplex_jit_cuda, fun_jit_cuda
 except ModuleNotFoundError:
     jit = None
     jit_message = 'Numba not available, reverting to numpy.'
@@ -20,8 +23,8 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARNING)
 class _Simplex(ProxOperator):
     """Simplex operator (numpy version)
     """
-    def __init__(self, n, radius, dims=None, axis=-1, maxiter=100, xtol=1e-8,
-                 call=True):
+    def __init__(self, n, radius, dims=None, axis=-1,
+                 maxiter=100, xtol=1e-8, call=True):
         super().__init__(None, False)
         if dims is not None and len(dims) != 2:
             raise ValueError('provide only 2 dimensions, or None')
@@ -49,7 +52,7 @@ class _Simplex(ProxOperator):
             x = x.reshape(self.dims)
             if self.axis == 0:
                 x = x.T
-            c = np.zeros(self.dims[self.otheraxis], dtype=np.bool)
+            c = np.zeros(self.dims[self.otheraxis], dtype=bool)
             for i in range(self.dims[self.otheraxis]):
                 c[i] = not (np.abs(np.sum(x)) - self.radius < tol or np.any(x[i] < 0))
             c = np.all(c)
@@ -90,6 +93,7 @@ class _Simplex_numba(_Simplex):
         self.xtol = xtol
         self.call = call
 
+    @_check_tau
     def prox(self, x, tau):
         if self.dims is None:
             bisect_lower = -1
@@ -110,6 +114,50 @@ class _Simplex_numba(_Simplex):
                             self.maxiter, self.ftol, self.xtol)
             if self.axis == 0:
                 y = y.T
+        return y.ravel()
+
+
+class _Simplex_cuda(_Simplex):
+    """Simplex operator (cuda version)
+
+    This implementation is adapted from https://github.com/DIG-Kaust/HPC_Hackathon_DIG.
+
+   """
+    def __init__(self, n, radius, dims=None, axis=-1,
+                 maxiter=100, ftol=1e-8, xtol=1e-8, call=False,
+                 num_threads_per_blocks=32):
+        super().__init__(None, False)
+        if dims is not None and len(dims) != 2:
+            raise ValueError('provide only 2 dimensions, or None')
+        self.n = n
+        # self.coeffs = cuda.to_device(np.ones(self.n if dims is None else dims[axis]))
+        self.coeffs = np.ones(self.n if dims is None else dims[axis])
+        self.radius = radius
+        self.dims = dims
+        self.axis = axis
+        self.otheraxis = 1 if axis == 0 else 0
+        self.maxiter = maxiter
+        self.ftol = ftol
+        self.xtol = xtol
+        self.call = call
+        self.num_threads_per_blocks = num_threads_per_blocks
+
+    @_check_tau
+    def prox(self, x, tau):
+        ncp = get_array_module(x)
+        x = x.reshape(self.dims)
+        if self.axis == 0:
+            x = x.T
+        if type(self.coeffs) != type(x):
+            self.coeffs = to_cupy_conditional(x, self.coeffs)
+
+        y = ncp.empty_like(x)
+        num_blocks = (x.shape[0] + self.num_threads_per_blocks - 1) // self.num_threads_per_blocks
+        simplex_jit_cuda[num_blocks, self.num_threads_per_blocks](x, self.coeffs, self.radius,
+                                                                  0, 10000000000, self.maxiter,
+                                                                  self.ftol, self.xtol, y)
+        if self.axis == 0:
+            y = y.T
         return y.ravel()
 
 
@@ -137,18 +185,18 @@ def Simplex(n, radius, dims=None, axis=-1, maxiter=100,
     maxiter : :obj:`int`, optional
         Maximum number of iterations used by bisection
     ftol : :obj:`float`, optional
-        Function tolerance in bisection (only with ``engine='numba'``)
+        Function tolerance in bisection (only with ``engine='numba'`` or ``engine='cuda'``)
     xtol : :obj:`float`, optional
         Solution absolute tolerance in bisection
     call : :obj:`bool`, optional
         Evalutate call method (``True``) or not (``False``)
     engine : :obj:`str`, optional
-        Engine used for simplex computation (``numpy`` or ``numba``).
+        Engine used for simplex computation (``numpy``, ``numba``or ``cuda``).
 
     Raises
     ------
     KeyError
-        If ``engine`` is neither ``numpy`` nor ``numba``
+        If ``engine`` is neither ``numpy`` nor ``numba`` nor ``cuda``
     ValueError
         If ``dims`` is provided as a list (or tuple) with more or less than
         2 elements
@@ -163,12 +211,15 @@ def Simplex(n, radius, dims=None, axis=-1, maxiter=100,
     positive number can be provided.
 
     """
-    if not engine in ['numpy', 'numba']:
-        raise KeyError('engine must be numpy or numba')
+    if not engine in ['numpy', 'numba', 'cuda']:
+        raise KeyError('engine must be numpy or numba or cuda')
 
     if engine == 'numba' and jit is not None:
         s = _Simplex_numba(n, radius, dims=dims, axis=axis,
                            maxiter=maxiter, ftol=ftol, xtol=xtol, call=call)
+    elif engine == 'cuda' and jit is not None:
+        s = _Simplex_cuda(n, radius, dims=dims, axis=axis,
+                          maxiter=maxiter, ftol=ftol, xtol=xtol, call=call)
     else:
         if engine == 'numba' and jit is None:
             logging.warning(jit_message)

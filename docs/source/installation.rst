@@ -27,21 +27,35 @@ is not just a pure stylistic choice but comes with some *hidden* advantages, suc
 Step-by-step installation for users
 -----------------------------------
 
-Python environment
-~~~~~~~~~~~~~~~~~~
+Conda (recommended)
+===================
+If using ``conda``, install our ``conda-forge`` distribution via:
 
-Activate your Python environment, and simply type the following command in your terminal
-to install the PyPi distribution:
+.. code-block:: bash
+
+   >> conda install --channel conda-forge pyproximal
+
+Using the ``conda-forge`` distribution is recommended as all the dependencies (both required
+and optional) will be automatically installed for you.
+
+Pip
+===
+If you are using ``pip``, and simply type the following command in your terminal
+to install the PyPI distribution:
 
 .. code-block:: bash
 
    >> pip install pyproximal
 
-Alternatively, to access the latest source from github:
+Note that when installing via ``pip``, only *required* dependencies are installed.
+
+From Source
+===========
+To access the latest source from github:
 
 .. code-block:: bash
 
-   >> pip install https://github.com/PyLops/pyproximal/archive/master.zip
+   >> pip install https://github.com/PyLops/pyproximal.git@main
 
 or just clone the repository
 

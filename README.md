@@ -1,12 +1,13 @@
-# PyProximal
+![PyProximal](https://github.com/PyLops/pyproximal/blob/dev/docs/source/_static/pyproximal_b.png)
 
 [![PyPI version](https://badge.fury.io/py/pyproximal.svg)](https://badge.fury.io/py/pyproximal)
 [![Build Status](https://travis-ci.com/PyLops/pyproximal.svg?branch=main)](https://travis-ci.com/PyLops/pyproximal)
-[![AzureDevOps Status](https://dev.azure.com/matteoravasi/PyLops/_apis/build/status/PyLops.pyproximal?branchName=main)](https://dev.azure.com/matteoravasi/PyLops/_build/latest?definitionId=10&branchName=main)
+[![AzureDevOps Status](https://dev.azure.com/matteoravasi/PyLops/_apis/build/status%2FPyLops.pyproximal?branchName=refs%2Fpull%2F129%2Fmerge)](https://dev.azure.com/matteoravasi/PyLops/_build/latest?definitionId=10&branchName=refs%2Fpull%2F129%2Fmerge)
 ![GithubAction Status](https://github.com/PyLops/pyproximal/workflows/PyProx/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pyproximal/badge/?version=latest)](https://pyproximal.readthedocs.io/en/latest/?badge=latest)
 [![OS-support](https://img.shields.io/badge/OS-linux,osx-850A8B.svg)](https://github.com/PyLops/pyproximal)
 [![Slack Status](https://img.shields.io/badge/chat-slack-green.svg)](https://pylops.slack.com)
+
 
 
 :vertical_traffic_light: :vertical_traffic_light: This library is under early development.
@@ -75,11 +76,10 @@ xladmm, _ = LinearizedADMM(l2, l1, Dop, tau=tau, mu=mu,
 ```
 
 ## Why another library for proximal algorithms?
-
 Several other projects in the Python ecosystem provide implementations of proximal
 operators and/or algorithms, which present some clear overlap with this project.
 
-A (possibly not exahustive) list of other projects is:
+A (possibly not exhaustive) list of other projects is:
 
 * http://proximity-operator.net
 * https://github.com/ganguli-lab/proxalgs/blob/master/proxalgs/operators.py
@@ -110,39 +110,34 @@ This repository is organized as follows:
 * **tutorials**:  set of python script tutorials to be embedded in documentation using sphinx-gallery
 
 ## Getting started
-
 You need **Python 3.8 or greater**.
 
-*Note: Versions prior to v0.3.0 work alsi with Python 3.6 or greater, however they 
+*Note: Versions prior to v0.3.0 work also with Python 3.6 or greater, however they 
 require scipy version to be lower than v1.8.0.*
 
-
 #### From PyPi
-
-If you want to use PyProximal within your codes,
+you want to use PyProximal within your codes,
 install it in your Python environment by typing the following command in your terminal:
 
-```
-pip install pyproximal
-```
-
-Open a python terminal and type:
-
-```
-import pyproximal
+To get the most out of PyLops straight out of the box, we recommend `conda` to install PyLops:
+```bash
+conda install -c conda-forge pyproximal
 ```
 
+#### From PyPi
+You can also install pyproximal with `pip`:
+```bash
+pip install pylops
+```
 
 #### From Github
-
-You can also directly install from the master node (although this is not reccomended)
+Finally, you can also directly install from the main branch (although this is not recommended)
 
 ```
 pip install git+https://git@github.com/PyLops/pyproximal.git@main
 ```
 
 ## Contributing
-
 *Feel like contributing to the project? Adding new operators or tutorial?*
 
 We advise using the [Anaconda Python distribution](https://www.anaconda.com/download)
@@ -151,7 +146,6 @@ the following instructions and read carefully the [CONTRIBUTING](CONTRIBUTING.md
 file before getting started.
 
 ### 1. Fork and clone the repository
-
 Execute the following command in your terminal:
 
 ```

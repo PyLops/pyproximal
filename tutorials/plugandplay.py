@@ -11,9 +11,14 @@ has shown great performance in a variety of inverse problems.
 
 As an example, we will consider a simplified MRI experiment, where the
 data is created by appling a 2D Fourier Transform to the input model and
-by randomly sampling 60% of its values. We will also use the famous
+by randomly sampling 60% of its values. We will use the famous
 `BM3D <https://pypi.org/project/bm3d>`_ as the denoiser, but any other denoiser
 of choice can be used instead!
+
+Finally, whilst in the original paper, PnP is associated to the ADMM solver, subsequent
+research showed that the same principle can be applied to pretty much any proximal
+solver. We will show how to pass a solver of choice to our
+:func:`pyproximal.optimization.pnp.PlugAndPlay` solver.
 
 """
 import numpy as np
@@ -67,7 +72,7 @@ plt.tight_layout()
 
 ###############################################################################
 # At this point we create a denoiser instance using the BM3D algorithm and use
-# as Plug-and-Play Prior to the ADMM algorithm
+# as Plug-and-Play Prior to the PG and ADMM algorithms
 
 def callback(x, xtrue, errhist):
     errhist.append(np.linalg.norm(x - xtrue))
@@ -83,24 +88,46 @@ l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel(), niter=50, warm=True)
 denoiser = lambda x, tau: bm3d.bm3d(np.real(x), sigma_psd=sigma * tau,
                                     stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING)
 
-errhist = []
-xpnp = pyproximal.optimization.pnp.PlugAndPlay(l2, denoiser, x.shape,
-                                               tau=tau, x0=np.zeros(x.size),
-                                               niter=40, show=True,
-                                               callback=lambda xx: callback(xx, x.ravel(),
-                                                                            errhist))[0]
-xpnp = np.real(xpnp.reshape(x.shape))
+# PG-Pnp
+errhistpg = []
+xpnppg = pyproximal.optimization.pnp.PlugAndPlay(l2, denoiser, x.shape,
+                                                 solver=pyproximal.optimization.primal.ProximalGradient,
+                                                 tau=tau, x0=np.zeros(x.size),
+                                                 niter=40,
+                                                 acceleration='fista',
+                                                 show=True,
+                                                 callback=lambda xx: callback(xx, x.ravel(),
+                                                                              errhistpg))
+xpnppg = np.real(xpnppg.reshape(x.shape))
 
-fig, axs = plt.subplots(1, 2, figsize=(9, 5))
+# ADMM-PnP
+errhistadmm = []
+xpnpadmm = pyproximal.optimization.pnp.PlugAndPlay(l2, denoiser, x.shape,
+                                                   solver=pyproximal.optimization.primal.ADMM,
+                                                   tau=tau, x0=np.zeros(x.size),
+                                                   niter=40, show=True,
+                                                   callback=lambda xx: callback(xx, x.ravel(),
+                                                                                errhistadmm))[0]
+xpnpadmm = np.real(xpnpadmm.reshape(x.shape))
+
+fig, axs = plt.subplots(1, 3, figsize=(14, 5))
 axs[0].imshow(x, vmin=0, vmax=1, cmap="gray")
 axs[0].set_title("Model")
 axs[0].axis("tight")
-axs[1].imshow(xpnp, vmin=0, vmax=1, cmap="gray")
-axs[1].set_title("PnP Inversion")
+axs[1].imshow(xpnppg, vmin=0, vmax=1, cmap="gray")
+axs[1].set_title("PG-PnP Inversion")
 axs[1].axis("tight")
+axs[2].imshow(xpnpadmm, vmin=0, vmax=1, cmap="gray")
+axs[2].set_title("ADMM-PnP Inversion")
+axs[2].axis("tight")
 plt.tight_layout()
 
+###############################################################################
+# Finally, let's compare the error convergence of the two variations of PnP
+
 plt.figure(figsize=(12, 3))
-plt.plot(errhist, 'k', lw=2)
+plt.plot(errhistpg, 'k', lw=2, label='PG')
+plt.plot(errhistadmm, 'r', lw=2, label='ADMM')
 plt.title("Error norm")
+plt.legend()
 plt.tight_layout()

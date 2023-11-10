@@ -12,7 +12,7 @@ class _Denoise(ProxOperator):
     denoiser : :obj:`func`
         Denoiser (must be a function with two inputs, the first is the signal
         to be denoised, the second is the `tau` constant of the y-update in
-        the ADMM optimization
+        the PnP optimization
     dims : :obj:`tuple`
         Dimensions used to reshape the vector ``x`` in the ``prox`` method
         prior to calling the ``denoiser``
@@ -33,19 +33,19 @@ class _Denoise(ProxOperator):
         return xden.ravel()
 
 
-def PlugAndPlay(proxf, denoiser, dims, x0, tau, niter=10,
-                callback=None, show=False):
-    r"""Plug-and-Play Priors with ADMM optimization
+def PlugAndPlay(proxf, denoiser, dims, x0, solver=ADMM, **kwargs_solver):
+    r"""Plug-and-Play Priors with any proximal algorithm of choice
 
-    Solves the following minimization problem using the ADMM algorithm:
+    Solves the following minimization problem using any proximal a
+    lgorithm of choice:
 
     .. math::
 
         \mathbf{x},\mathbf{z}  = \argmin_{\mathbf{x}}
         f(\mathbf{x}) + \lambda g(\mathbf{x})
 
-    where :math:`f(\mathbf{x})` is a function that has a known proximal
-    operator where :math:`g(\mathbf{x})` is a function acting as implicit
+    where :math:`f(\mathbf{x})` is a function that has a known gradient or
+    proximal operator and :math:`g(\mathbf{x})` is a function acting as implicit
     prior. Implicit means that no explicit function should be defined: instead,
     a denoising algorithm of choice is used. See Notes for details.
 
@@ -62,28 +62,20 @@ def PlugAndPlay(proxf, denoiser, dims, x0, tau, niter=10,
         prior to calling the ``denoiser``
     x0 : :obj:`numpy.ndarray`
         Initial vector
-    tau : :obj:`float`, optional
-        Positive scalar weight, which should satisfy the following condition
-        to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
-        the Lipschitz constant of :math:`\nabla f`.
-    niter : :obj:`int`, optional
-        Number of iterations of iterative scheme
-    callback : :obj:`callable`, optional
-        Function with signature (``callback(x)``) to call after each iteration
-        where ``x`` is the current model vector
-    show : :obj:`bool`, optional
-        Display iterations log
+    solver : :func:`pyproximal.optimization.primal` or :func:`pyproximal.optimization.primaldual`
+        Solver of choice
+    kwargs_solver : :obj:`dict`
+        Additonal parameters required by the selected solver
 
     Returns
     -------
-    x : :obj:`numpy.ndarray`
-        Inverted model
-    z : :obj:`numpy.ndarray`
-        Inverted second model
+    out : :obj:`numpy.ndarray` or :obj:`tuple`
+        Output of the solver of choice
 
     Notes
     -----
-    Plug-and-Play Priors [1]_ can be expressed by the following recursion:
+    Plug-and-Play Priors [1]_ can be used with any proximal algorithm of choice. For example, when
+    ADMM is selected, the resulting scheme can be expressed by the following recursion:
 
     .. math::
 
@@ -119,6 +111,4 @@ def PlugAndPlay(proxf, denoiser, dims, x0, tau, niter=10,
     # Denoiser
     proxpnp = _Denoise(denoiser, dims=dims)
 
-    return ADMM(proxf, proxpnp, tau=tau, x0=x0,
-                niter=niter, callback=callback,
-                show=show)
+    return solver(proxf, proxpnp, x0=x0, **kwargs_solver)

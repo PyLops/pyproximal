@@ -16,6 +16,11 @@ class BilinearOperator():
     - ``lx``: Lipschitz constant of :math:`\nabla_x H`
     - ``ly``: Lipschitz constant of :math:`\nabla_y H`
 
+    Two additional methods (``updatex`` and ``updatey``) are provided to
+    update the :math:`\mathbf{x}` and :math:`\mathbf{y}` internal
+    variables. It is user responsability to choose when to invoke such
+    method (i.e., when to update the internal variables).
+
     Notes
     -----
     A bilinear operator is defined as a differentiable nonlinear function
@@ -45,14 +50,17 @@ class BilinearOperator():
         pass
 
     def updatex(self, x):
-        """Update x variable (used when evaluating the gradient over y
+        """Update x variable (to be used to update the internal variable x)
         """
         self.x = x
 
     def updatey(self, y):
-        """Update y variable (used when evaluating the gradient over y
+        """Update y variable (to be used to update the internal variable y)
         """
         self.y = y
+
+    def updatexy(self, xy):
+        pass
 
 
 class LowRankFactorizedMatrix(BilinearOperator):
@@ -83,15 +91,20 @@ class LowRankFactorizedMatrix(BilinearOperator):
 
     .. math::
 
-        \nabla_x H = \mathbf{Op}^H(\mathbf{Op}(\mathbf{X}\mathbf{Y})
+        \nabla_x H(\mathbf{x};\ mathbf{y}) =
+        \mathbf{Op}^H(\mathbf{Op}(\mathbf{X}\mathbf{Y})
         - \mathbf{d})\mathbf{Y}^H
 
     and gradient with respect to y equal to:
 
     .. math::
 
-        \nabla_y H = \mathbf{X}^H \mathbf{Op}^H(\mathbf{Op}
+        \nabla_y H(\mathbf{y}; \mathbf{x}) =
+        \mathbf{X}^H \mathbf{Op}^H(\mathbf{Op}
         (\mathbf{X}\mathbf{Y}) - \mathbf{d})
+
+    Note that in both cases, the currently stored x/y is used for
+    the second variable within parenthesis (after ;)
 
     """
     def __init__(self, X, Y, d, Op=None):
@@ -129,6 +142,11 @@ class LowRankFactorizedMatrix(BilinearOperator):
         return X.ravel()
 
     def matvec(self, x):
+        if self.n == self.m:
+            raise NotImplementedError('Since n=m, this method'
+                                      'cannot distinguish automatically'
+                                      'between _matvecx and _matvecy. '
+                                      'Explicitely call either of those two methods.')
         if x.size == self.shapex[1]:
             y = self._matvecx(x)
         else:
@@ -150,27 +168,29 @@ class LowRankFactorizedMatrix(BilinearOperator):
         return np.linalg.norm(np.conj(Y).T @ Y, 'fro')
 
     def gradx(self, x):
-        r = self.d - self.matvec(x)
+        r = self.d - self._matvecx(x)
         if self.Op is not None:
             r = (self.Op.H @ r).reshape(self.n, self.m)
         else:
             r = r.reshape(self.n, self.m)
-        g = -r @ self.y.reshape(self.k, self.m).T
+        g = -r @ np.conj(self.y.reshape(self.k, self.m).T)
         return g.ravel()
 
     def grady(self, y):
-        r = self.d - self.matvec(y)
+        r = self.d - self._matvecy(y)
         if self.Op is not None:
             r = (self.Op.H @ r.ravel()).reshape(self.n, self.m)
         else:
             r = r.reshape(self.n, self.m)
-        g = -self.x.reshape(self.n, self.k).T @ r
+        g = -np.conj(self.x.reshape(self.n, self.k).T) @ r
         return g.ravel()
 
     def grad(self, x):
-        self.updatex(x[:self.n * self.k])
-        self.updatey(x[self.n * self.k:])
         gx = self.gradx(x[:self.n * self.k])
         gy = self.grady(x[self.n * self.k:])
         g = np.hstack([gx, gy])
         return g
+
+    def updatexy(self, x):
+        self.updatex(x[:self.n * self.k])
+        self.updatey(x[self.n * self.k:])
