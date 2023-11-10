@@ -1,3 +1,12 @@
+# 0.7.0
+
+* Added ``pyproximal.proximal.RelaxedMumfordShah`` operator
+* Added cuda version to the proximal operator of ``pyproximal.proximal.Simplex`` 
+* Added bilinear update to ``pyproximal.optimization.primal.ProximalGradient``
+* Modified ``pyproximal.optimization.pnp.PlugAndPlay`` function signature to allow using any proximal solver of choice
+* Fixed print in ``pyproximal.optimization.primaldual.PrimalDual`` when using cupy arrays
+* Fixed ``pyproximal.utils.bilinear.LowRankFactorizedMatrix`` when ``n=m``
+
 # 0.6.0
 
 :vertical_traffic_light: :vertical_traffic_light: This is the first release supporting PyLops v2.
@@ -14,7 +23,7 @@
 :vertical_traffic_light: :vertical_traffic_light:
 
 * Added ``pyproximal.proximal.Log1`` operator
-* Allow ``radius`` parameter of ``pyproximal.optimization.primal.L0`` to be a function
+* Allow ``radius`` parameter of ``pyproximal.proximal.L0`` to be a function
 * Allow ``tau`` parameter of ``pyproximal.optimization.primal.HQS`` to be a vector
   and change over iterations
 * Added ``z0`` to ``pyproximal.optimization.primal.HQS``

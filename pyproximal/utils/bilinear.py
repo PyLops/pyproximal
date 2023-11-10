@@ -17,7 +17,7 @@ class BilinearOperator():
     - ``ly``: Lipschitz constant of :math:`\nabla_y H`
 
     Two additional methods (``updatex`` and ``updatey``) are provided to
-    update the :math:`\mathbf{x}` and :math:`\mathbf{x}` internal
+    update the :math:`\mathbf{x}` and :math:`\mathbf{y}` internal
     variables. It is user responsability to choose when to invoke such
     method (i.e., when to update the internal variables).
 
