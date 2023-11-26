@@ -11,6 +11,31 @@ par2 = {'n': 8, 'm': 10,  'dtype': 'float64'}  # float32
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
+def test_GPG_weights(par):
+    """Check GPG raises error if weight is not summing to 1
+    """
+    with pytest.raises(ValueError):
+        np.random.seed(0)
+        n, m = par['n'], par['m']
+
+        # Random mixing matrix
+        R = np.random.normal(0., 1., (n, m))
+        Rop = MatrixMult(R)
+
+        # Model and data
+        x = np.zeros(m)
+        y = Rop @ x
+
+        # Operators
+        l2 = L2(Op=Rop, b=y, niter=10, warm=True)
+        l1 = L1(sigma=5e-1)
+        _ = GeneralizedProximalGradient([l2, ], [l1, ],
+                                        x0=np.zeros(m),
+                                        tau=1.,
+                                        weights=[1., 1.])
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
 def test_PG_GPG(par):
     """Check equivalency of ProximalGradient and GeneralizedProximalGradient when using
     a single regularization term

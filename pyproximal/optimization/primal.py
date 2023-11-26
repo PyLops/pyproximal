@@ -102,8 +102,9 @@ def ProximalPoint(prox, x0, tau, niter=10, callback=None, show=False):
     return x
 
 
-def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
-                     epsg=1., niter=10, niterback=100,
+def ProximalGradient(proxf, proxg, x0, epsg=1.,
+                     tau=None, beta=0.5, eta=1.,
+                     niter=10, niterback=100,
                      acceleration=None,
                      callback=None, show=False):
     r"""Proximal gradient (optionally accelerated)
@@ -127,17 +128,19 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
         Proximal operator of g function
     x0 : :obj:`numpy.ndarray`
         Initial vector
+    epsg : :obj:`float` or :obj:`np.ndarray`, optional
+        Scaling factor of g function
     tau : :obj:`float` or :obj:`numpy.ndarray`, optional
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
         the Lipschitz constant of :math:`\nabla f`. When ``tau=None``,
         backtracking is used to adaptively estimate the best tau at each
-        iteration. Finally note that :math:`\tau` can be chosen to be a vector
+        iteration. Finally, note that :math:`\tau` can be chosen to be a vector
         when dealing with problems with multiple right-hand-sides
     beta : :obj:`float`, optional
         Backtracking parameter (must be between 0 and 1)
-    epsg : :obj:`float` or :obj:`np.ndarray`, optional
-        Scaling factor of g function
+    eta : :obj:`float`, optional
+        Relaxation parameter (must be between 0 and 1, 0 excluded).
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
     niterback : :obj:`int`, optional
@@ -161,9 +164,8 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
     .. math::
 
-
-        \mathbf{x}^{k+1} = \prox_{\tau^k \epsilon g}(\mathbf{y}^{k+1}  -
-        \tau^k \nabla f(\mathbf{y}^{k+1})) \\
+        \mathbf{x}^{k+1} = \mathbf{y}^k + \eta (\prox_{\tau^k \epsilon g}(\mathbf{y}^k -
+        \tau^k \nabla f(\mathbf{y}^k)) - \mathbf{y}^k) \\
         \mathbf{y}^{k+1} = \mathbf{x}^k + \omega^k
         (\mathbf{x}^k - \mathbf{x}^{k-1})
 
@@ -187,7 +189,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
     Different accelerations are provided:
 
     - ``acceleration=None``: :math:`\omega^k = 0`;
-    - `acceleration=vandenberghe`` [1]_: :math:`\omega^k = k / (k + 3)` for `
+    - ``acceleration=vandenberghe`` [1]_: :math:`\omega^k = k / (k + 3)` for `
     - ``acceleration=fista``: :math:`\omega^k = (t_{k-1}-1)/t_k` for  where
       :math:`t_k = (1 + \sqrt{1+4t_{k-1}^{2}}) / 2` [2]_
 
@@ -197,7 +199,7 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
        Imaging Sciences, vol. 2, pp. 183-202. 2009.
 
     """
-    # check if epgs is a ve
+    # check if epgs is a vector
     if np.asarray(epsg).size == 1.:
         epsg_print = str(epsg)
     else:
@@ -237,10 +239,15 @@ def ProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
 
         # proximal step
         if not backtracking:
-            x = proxg.prox(y - tau * proxf.grad(y), epsg * tau)
+            if eta == 1.:
+                x = proxg.prox(y - tau * proxf.grad(y), epsg * tau)
+            else:
+                x = x + eta * (proxg.prox(x - tau * proxf.grad(x), epsg * tau) - x)
         else:
             x, tau = _backtracking(y, tau, proxf, proxg, epsg,
                                    beta=beta, niterback=niterback)
+            if eta != 1.:
+                x = x + eta * (proxg.prox(x - tau * proxf.grad(x), epsg * tau) - x)
 
         # update internal parameters for bilinear operator
         if isinstance(proxf, BilinearOperator):
@@ -297,8 +304,9 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
                             callback=callback, show=show)
 
 
-def GeneralizedProximalGradient(proxfs, proxgs, x0, tau=None,
-                                epsg=1., niter=10,
+def GeneralizedProximalGradient(proxfs, proxgs, x0, tau,
+                                epsg=1., weights=None,
+                                eta=1., niter=10,
                                 acceleration=None,
                                 callback=None, show=False):
     r"""Generalized Proximal gradient
@@ -317,24 +325,27 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau=None,
 
     Parameters
     ----------
-    proxfs : :obj:`List of pyproximal.ProxOperator`
+    proxfs : :obj:`list of pyproximal.ProxOperator`
         Proximal operators of the :math:`f_i` functions (must have ``grad`` implemented)
-    proxgs : :obj:`List of pyproximal.ProxOperator`
+    proxgs : :obj:`list of pyproximal.ProxOperator`
         Proximal operators of the :math:`g_j` functions
     x0 : :obj:`numpy.ndarray`
         Initial vector
-    tau : :obj:`float` or :obj:`numpy.ndarray`, optional
+    tau : :obj:`float`
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
-        the Lipschitz constant of :math:`\sum_{i=1}^n \nabla f_i`. When ``tau=None``,
-        backtracking is used to adaptively estimate the best tau at each
-        iteration.
+        the Lipschitz constant of :math:`\sum_{i=1}^n \nabla f_i`.
     epsg : :obj:`float` or :obj:`np.ndarray`, optional
         Scaling factor(s) of ``g`` function(s)
+    weights : :obj:`float`, optional
+        Weighting factors of ``g`` functions. Must sum to 1.
+    eta : :obj:`float`, optional
+        Relaxation parameter (must be between 0 and 1, 0 excluded). Note that
+        this will be only used when ``acceleration=None``.
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
     acceleration:  :obj:`str`, optional
-        Acceleration (``vandenberghe`` or ``fista``)
+        Acceleration (``None``, ``vandenberghe`` or ``fista``)
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
@@ -353,16 +364,27 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau=None,
 
     .. math::
         \text{for } j=1,\cdots,n, \\
-        ~~~~\mathbf z_j^{k+1} = \mathbf z_j^{k} + \epsilon_j
-        \left[prox_{\frac{\tau^k}{\omega_j} g_j}\left(2 \mathbf{x}^{k} - \mathbf{z}_j^{k}
+        ~~~~\mathbf z_j^{k+1} = \mathbf z_j^{k} + \eta
+        \left[prox_{\frac{\tau^k \epsilon_j}{w_j} g_j}\left(2 \mathbf{x}^{k} - \mathbf{z}_j^{k}
         - \tau^k \sum_{i=1}^n \nabla f_i(\mathbf{x}^{k})\right) - \mathbf{x}^{k} \right] \\
-        \mathbf{x}^{k+1} = \sum_{j=1}^n \omega_j f_j \\
-        
-    where :math:`\sum_{j=1}^n \omega_j=1`. In the current implementation :math:`\omega_j=1/n`.
+        \mathbf{x}^{k+1} = \sum_{j=1}^n w_j \mathbf z_j^{k+1} \\
+
+    where :math:`\sum_{j=1}^n w_j=1`. In the current implementation, :math:`w_j=1/n` when
+    not provided.
+
     """
+    # check if weights sum to 1
+    if weights is None:
+        weights = np.ones(len(proxgs)) / len(proxgs)
+    if len(weights) != len(proxgs) or np.sum(weights) != 1.:
+        raise ValueError(f'omega={weights} must be an array of size {len(proxgs)} '
+                         f'summing to 1')
+    print(weights)
+
     # check if epgs is a vector
     if np.asarray(epsg).size == 1.:
         epsg_print = str(epsg)
+        epsg = epsg * np.ones(len(proxgs))
     else:
         epsg_print = 'Multi'
 
@@ -404,9 +426,9 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau=None,
         x = np.zeros_like(x)
         for i, proxg in enumerate(proxgs):
             ztmp = 2 * y - zs[i] - tau * grad
-            ztmp = proxg.prox(ztmp, epsg * tau)
-            zs[i] += (ztmp - y)
-            x += zs[i] / len(proxgs)
+            ztmp = proxg.prox(ztmp, tau * epsg[i] / weights[i])
+            zs[i] += eta * (ztmp - y)
+            x += weights[i] * zs[i]
 
         # update y
         if acceleration == 'vandenberghe':
@@ -417,7 +439,6 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau=None,
             omega = ((told - 1.) / t)
         else:
             omega = 0
-        
         y = x + omega * (x - xold)
 
         # run callback
