@@ -91,7 +91,7 @@ class LowRankFactorizedMatrix(BilinearOperator):
 
     .. math::
 
-        \nabla_x H(\mathbf{x};\ mathbf{y}) =
+        \nabla_x H(\mathbf{x};\ \mathbf{y}) =
         \mathbf{Op}^H(\mathbf{Op}(\mathbf{X}\mathbf{Y})
         - \mathbf{d})\mathbf{Y}^H
 
@@ -103,8 +103,8 @@ class LowRankFactorizedMatrix(BilinearOperator):
         \mathbf{X}^H \mathbf{Op}^H(\mathbf{Op}
         (\mathbf{X}\mathbf{Y}) - \mathbf{d})
 
-    Note that in both cases, the currently stored x/y is used for
-    the second variable within parenthesis (after ;)
+    Note that in both cases, the currently stored :math`\mathbf{x}`/:math`\mathbf{y}` variable
+    is used for the second variable within parenthesis (after ;).
 
     """
     def __init__(self, X, Y, d, Op=None):
