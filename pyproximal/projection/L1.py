@@ -3,7 +3,7 @@ from pyproximal.projection import SimplexProj
 
 
 class L1BallProj():
-    r"""L1 ball projection.
+    r""":math:`L_1` ball projection.
 
     Parameters
     ----------
