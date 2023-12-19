@@ -61,7 +61,6 @@ It has already been featured in a number of scientific publications XX and in a 
 As the adoption of the library grows across many disciplies, we believe that `PyProximal` will enable exciting scientific discoveries 
 in a variety of scientific problems with societal impact.
 
-
 # Mathematical framework
 
 Convex optimization is routinely used to solve problems of the form:
