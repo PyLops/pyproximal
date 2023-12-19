@@ -1,53 +1,39 @@
 ---
-title: 'Gala: A Python package for galactic dynamics'
+title: 'PyProximal - scalable convex optimization in Python'
 tags:
   - Python
-  - astronomy
-  - dynamics
-  - galactic dynamics
-  - milky way
+  - convex optimization
+  - proximal
 authors:
-  - name: Adrian M. Price-Whelan
-    orcid: 0000-0000-0000-0000
-    equal-contrib: true
-    affiliation: "1, 2" # (Multiple affiliations must be quoted)
-  - name: Author Without ORCID
-    equal-contrib: true # (This is how you can denote equal contributions between multiple authors)
-    affiliation: 2
-  - name: Author with no affiliation
+  - name: Matteo Ravasi
+    orcid: 0000-0003-0020-2721
     corresponding: true # (This is how to denote the corresponding author)
-    affiliation: 3
-  - given-names: Ludwig
-    dropping-particle: van
-    surname: Beethoven
-    affiliation: 3
+    affiliation: 1 # (Multiple affiliations must be quoted)
 affiliations:
- - name: Lyman Spitzer, Jr. Fellow, Princeton University, USA
-   index: 1
- - name: Institution Name, Country
-   index: 2
- - name: Independent Researcher, Country
-   index: 3
-date: 13 August 2017
+  - name: Earth Science and Engineering, Physical Sciences and Engineering (PSE), King Abdullah University of Science and Technology (KAUST), Thuwal, 23955-6900, Kingdom of Saudi Arabia
+    index: 1
+date: 19 December 2023
 bibliography: paper.bib
-
-# Optional fields if submitting to a AAS journal too, see this blog post:
-# https://blog.joss.theoj.org/2018/12/a-new-collaboration-with-aas-publishing
-aas-doi: 10.3847/xxxxx <- update this with the DOI from AAS once you know it.
-aas-journal: Astrophysical Journal <- The name of the AAS journal.
 ---
 
 # Summary
 
-The forces on stars, galaxies, and dark matter under external gravitational
-fields lead to the dynamical evolution of structures in the universe. The orbits
-of these bodies are therefore key to understanding the formation, history, and
-future state of galaxies. The field of "galactic dynamics," which aims to model
-the gravitating components of galaxies to study their structure and evolution,
-is now well-established, commonly taught, and frequently used in astronomy.
-Aside from toy problems and demonstrations, the majority of problems require
-efficient numerical tools, many of which require the same base code (e.g., for
-performing numerical orbit integration).
+A broad class of problems in scientific disciplines ranging from image processing and astrophysics, 
+to geophysics and medical imaging call for the optimization of convex, non-smooth objective functions. 
+PyProximal is a Python-based library providing users with an extensive suite of state-of-the-art proximal 
+operators and algorithms.
+
+Whereas practitioners are usually very familiar with gradient-based optimization and the associated 
+first- or second-order iterative schemes commonly used to solve unconstrained, smooth optimization problems, proximal
+algorithms can be viewed as analogous tools for non-smooth and possibly constrained versions of such problems. These
+algorithms sit at a higher level of abstraction than classical algorithms like steepest descent or Newton’s method and 
+require a basic operation to be performed at each iteration: the evaluation of the so-called proximal operator of the
+functional to be optimized.
+
+In summary, PyProximal aims to democratize the application of convex optimization to scientific problems, providing 
+users with all the required building blocks (i.e., proximal operators and algorithms) to define and solve complex,
+convex objective functions in a high-level, abstract fashion, shielding them away from any unneeded mathematical and 
+implementation details.
 
 # Statement of need
 
