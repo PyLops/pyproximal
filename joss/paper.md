@@ -67,16 +67,9 @@ Convex optimization is routinely used to solve problems of the form:
 
 \begin{equation}
 \label{eq:problem}
-\argmin_\mathbf{x} f(\mathbf{x}) +g(\mathbf{Lx})
+\min_\mathbf{x} f(\mathbf{x}) +g(\mathbf{Lx})
 \end{equation}
 
-where $f$ and $g$ are possibly non-smooth convex functionals and $\mathbf{A}$ is a linear operator. A special case, 
-appearing in many scientific applications, is represented by $f=1/2 \Vert y - \mathcal{A}(\mathbf{x})\Vert_2^2$, which identifies 
-the so-called data misfit term. Here, $\mathcal{A}$ is a (possibly non-linear) modeling operator representing the underlying physical 
-process the links the unknown model vector $\mathbf{x}$ to the vector of observations $\mathbf{y}$. In this case, 
-we usually refer to $g$ as the regularization term, where one or multiple terms are added to the objective function to 
-promote certain features in the sought after solution and/or constraint the optimization process to produce a solution
-within a given set of allowed vectors.
 
 # Citations
 
