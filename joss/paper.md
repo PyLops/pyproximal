@@ -78,6 +78,11 @@ Independent on the algorithm used to optimize such a cost function, a common fea
 represented by the fact that one must be able to repeatedly evaluate the proximal operator of $f$ and/or $g$. The proximal 
 operator of a function $f$ is defined as
 
+\begin{equation}
+\label{eq:prox}
+prox_{\tau f} (\mathbf{x}) = \argmin_{\mathbf{y}} f(\mathbf{y}) +
+        \frac{1}{2 \tau}||\mathbf{y} - \mathbf{x}||^2_2
+\end{equation}
 
 Whilst evaluating a proximal operator does itself require solving an optimization problem, these subproblems often 
 admit closed form solutions or can be solved very quickly with ad-hoc specialized methods. Several of such proximal 
@@ -96,6 +101,16 @@ Finally, there exists three main families of proximal algorithms that can be use
 
 ``PyProximal`` provides implementations for these three families of algorithms; moreover, our solvers include additional features 
 such as back-tracking for automatic selection of step-sizes, logging of cost function evolution, and custom callbacks.
+
+
+# Code structure
+
+``PyProximal`` aims to provide a modular, and easy-to-use Application Programming Interface (API) that scientists 
+can use to define and solve convex objective functions by means of proximal algorithms.
+
+The API is composed of two interconnected units as shown in Fig. 1.
+
+![Schematic representation of the ``PyProximal`` API.](figs/software.png){ width=70% }
 
 
 # References
