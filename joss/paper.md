@@ -59,7 +59,7 @@ learn and use in short time and with minimal additional effort.
 
 # Mathematical framework
 
-Convex optimization is routinely used to solve problems of the form:
+Convex optimization is routinely used to solve problems of the form [@Parikh:2013]:
 
 \begin{equation}
 \label{eq:problem}
@@ -77,5 +77,25 @@ within a given set of allowed vectors.
 Independent on the algorithm used to optimize such a cost function, a common feature of all proximal algorithms is
 represented by the fact that one must be able to repeatedly evaluate the proximal operator of $f$ and/or $g$. The proximal 
 operator of a function $f$ is defined as
+
+
+Whilst evaluating a proximal operator does itself require solving an optimization problem, these subproblems often 
+admit closed form solutions or can be solved very quickly with ad-hoc specialized methods. Several of such proximal 
+operators are efficiently implemented in the ``PyProximal`` library.
+
+Finally, there exists three main families of proximal algorithms that can be used to solve various flavors of equation 
+\autoref{eq:problem}, namely:
+
+- Proximal gradient method: this method, also commonly referred to as the FBS algorithm red, is usually the 
+  preferred choice when $A=I$ (i.e. identity operator). Accelerated versions such as the FISTA and TWist algorithms exist 
+  and are usually preferred to the vanilla FBS method;
+- Alternating direction of multipliers: this method is based on the well-known splitting strategy and can be used 
+  for a broader class of problem than FBS and its accelarated versions. …
+- Primal-dual: another popular algorithm able to tackle the generic problem in equation 1 with any choice of A. 
+  It reformulates the original problem into its primal-dual version of solves a saddle optimization problem.
+
+``PyProximal`` provides implementations for these three families of algorithms; moreover, our solvers include additional features 
+such as back-tracking for automatic selection of step-sizes, logging of cost function evolution, and custom callbacks.
+
 
 # References
