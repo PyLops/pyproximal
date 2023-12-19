@@ -20,33 +20,33 @@ bibliography: paper.bib
 
 A broad class of problems in scientific disciplines ranging from image processing and astrophysics, 
 to geophysics and medical imaging call for the optimization of convex, non-smooth objective functions. 
-Whereas practitioners are usually very familiar with gradient-based optimization algorithms, commonly used 
+Whereas practitioners are usually familiar with gradient-based algorithms, commonly used 
 to solve unconstrained, smooth optimization problems, proximal algorithms can be viewed as analogous tools for 
-non-smooth and possibly constrained versions of such problems. PyProximal is a Python-based library aimed at 
-democratize the application of convex optimization to scientific problems, providing all the required 
+non-smooth and possibly constrained versions of such problems. ``PyProximal`` is a Python-based library aimed at 
+democratizing the application of convex optimization to scientific problems, providing all the required 
 building blocks (i.e., proximal operators and algorithms) to define and solve complex, convex objective functions
-in a high-level, abstract fashion, shielding users away from any unneeded mathematical and implementation details.
+in a high-level manner, shielding users away from any unneeded mathematical and implementation details.
 
 
 # Statement of need
 
-`PyProximal` is a NUMFOCUS-affiliated Python package for convex optimization developed as an integral part of the `PyLops` framework. 
-It provides practitioners in a variety of scientific disciplines with an easy-to-use Python based framework to 
-define and solve composite convex objective functions arising in many modern inverse problems. Its API was
-designed to provide a class-based and user-friendly interface to proximal operators coupled with function-based 
-optimizers; because of its modular design, researchers in the field of convex optimization can also benefit from this 
-package when developing new algorithms in a number of ways: first, they can easily include their newly developed proximal operators 
-and solvers; second, they can compare these methods with state-of-the-art algorithms already provided in the package
+`PyProximal` is a Python package for convex optimization, developed as an integral part of the `PyLops` framework. 
+It provides practitioners with an easy-to-use framework to define and solve composite convex objective functions 
+arising in many modern inverse problems. Its API is designed to offer a class-based and user-friendly interface 
+to proximal operators, coupled with function-based optimizers; because of its modular design, researchers in the field 
+of convex optimization can also benefit from this package in a number of ways when developing new algorithms: first, 
+they can easily include their newly developed proximal operators and solvers; second, they can compare these methods 
+with state-of-the-art algorithms already provided in the package
 
-`PyProximal` heavily relies on and seamlessly integrates with `PyLops` [@Ravasi:2020], our main package for matrix-free linear algebra 
-and optimization. More specifically, some of `PyLops`'s linear operators and solvers used leveraged in the implementation 
-of proximal operators that require access to linear operators (e.g., numerical derivatives) and least-squares solvers 
-(e.g., conjugate gradient). Whilst other similar packages exist in the Python ecosystem, their design usually leads to a 
-tight coupling between linear operators and solvers and proximal operators and solvers. On the other hand, by following the 
-Separation of Concerns (SoC) design principle, we reduce to a minimum the overlap between the two libraries, easing both 
-their development and maintenance, as well as allowing newcomers to learn how to solve inverse problems in a step-by-step manner. 
+`PyProximal` heavily relies on and seamlessly integrates with `PyLops` [@Ravasi:2020], a Python package for matrix-free linear algebra 
+and optimization. More specifically, `PyLops` is leveraged in the implementation of proximal operators that require 
+access to linear operators (e.g., numerical derivatives) and/or least-squares solvers 
+(e.g., conjugate gradient). Whilst similar packages exist in the Python ecosystem, their design usually leads to a 
+tight coupling between linear and proximal operators, and their respective solvers. On the other hand, by following the 
+Separation of Concerns (SoC) design principle, the overlap between `PyLops` and `PyProximal` is reduced to a minimum, easing both 
+their development and maintenance, as well as allowing newcomers to learn how to solve inverse problems in a step-by-step fashion. 
 As such, `PyProximal` can be ultimately described as a light-weight extension of `PyLops` that users of the former can very easily 
-learn and use in short time and with minimal additional effort.
+learn and use with minimal additional effort.
 
 
 # Mathematical framework
