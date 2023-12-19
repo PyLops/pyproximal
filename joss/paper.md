@@ -80,7 +80,7 @@ operator of a function $f$ is defined as
 
 \begin{equation}
 \label{eq:prox}
-prox_{\tau f} (\mathbf{x}) = \argmin_{\mathbf{y}} f(\mathbf{y}) +
+prox_{\tau f} (\mathbf{x}) = \min_{\mathbf{y}} f(\mathbf{y}) +
         \frac{1}{2 \tau}||\mathbf{y} - \mathbf{x}||^2_2
 \end{equation}
 
