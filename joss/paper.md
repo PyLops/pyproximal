@@ -18,6 +18,26 @@ bibliography: paper.bib
 
 # Summary
 
+A broad class of problems in scientific disciplines ranging from image processing and astrophysics, 
+to geophysics and medical imaging call for the optimization of convex, non-smooth objective functions. 
+PyProximal is a Python-based library providing users with an extensive suite of state-of-the-art proximal 
+operators and algorithms.
+
+Whereas practitioners are usually very familiar with gradient-based optimization and the associated 
+first- or second-order iterative schemes commonly used to solve unconstrained, smooth optimization problems, proximal
+algorithms can be viewed as analogous tools for non-smooth and possibly constrained versions of such problems. These
+algorithms sit at a higher level of abstraction than classical algorithms like steepest descent or Newton’s method and 
+require a basic operation to be performed at each iteration: the evaluation of the so-called proximal operator of the
+functional to be optimized.
+
+In summary, PyProximal aims to democratize the application of convex optimization to scientific problems, providing 
+users with all the required building blocks (i.e., proximal operators and algorithms) to define and solve complex,
+convex objective functions in a high-level, abstract fashion, shielding them away from any unneeded mathematical and 
+implementation details.
+
+
+# Statement of need
+
 `PyProximal` is a NUMFOCUS-affiliated Python package for convex optimization developed as an integral part of the `PyLops` framework. 
 It provides practitioners in a variety of scientific disciplines with an easy-to-use Python based framework to 
 define and solve composite convex objective functions arising in many modern inverse problems. Its API was
@@ -39,47 +59,25 @@ learn and use in short time and with minimal additional effort.
 `PyProximal` was designed to be used by both researchers and students in applied mathematics and engineering courses.
 It has already been featured in a number of scientific publications XX and in a graduate-level course on inverse problems XX. 
 As the adoption of the library grows across many disciplies, we believe that `PyProximal` will enable exciting scientific discoveries 
-in a variety of scientific problems with societal impact. 
+in a variety of scientific problems with societal impact.
 
 
-# Statement of need
+# Mathematical framework
 
-`Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
-enables wrapping low-level languages (e.g., C) for speed without losing
-flexibility or ease-of-use in the user-interface. The API for `Gala` was
-designed to provide a class-based and user-friendly interface to fast (C or
-Cython-optimized) implementations of common operations such as gravitational
-potential and force evaluation, orbit integration, dynamical transformations,
-and chaos indicators for nonlinear dynamics. `Gala` also relies heavily on and
-interfaces well with the implementations of physical units and astronomical
-coordinate systems in the `Astropy` package [@astropy] (`astropy.units` and
-`astropy.coordinates`).
+Convex optimization is routinely used to solve problems of the form:
 
-`Gala` was designed to be used by both astronomical researchers and by
-students in courses on gravitational dynamics or astronomy. It has already been
-used in a number of scientific publications [@Pearson:2017] and has also been
-used in graduate courses on Galactic dynamics to, e.g., provide interactive
-visualizations of textbook material [@Binney:2008]. The combination of speed,
-design, and support for Astropy functionality in `Gala` will enable exciting
-scientific explorations of forthcoming data releases from the *Gaia* mission
-[@gaia] by students and experts alike.
-
-# Mathematics
-
-Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
-
-Double dollars make self-standing equations:
-
-$$\Theta(x) = \left\{\begin{array}{l}
-0\textrm{ if } x < 0\cr
-1\textrm{ else}
-\end{array}\right.$$
-
-You can also use plain \LaTeX for equations
-\begin{equation}\label{eq:fourier}
-\hat f(\omega) = \int_{-\infty}^{\infty} f(x) e^{i\omega x} dx
+\begin{equation}
+\label{eq:problem}
+\argmin_\mathbf{x} f(\mathbf{x}) +g(\mathbf{Lx})
 \end{equation}
-and refer to \autoref{eq:fourier} from text.
+
+where $f$ and $g$ are possibly non-smooth convex functionals and $\mathbf{A}$ is a linear operator. A special case, 
+appearing in many scientific applications, is represented by $f=1/2 \Vert y - \mathcal{A}(\mathbf{x})\Vert_2^2$, which identifies 
+the so-called data misfit term. Here, $\mathcal{A}$ is a (possibly non-linear) modeling operator representing the underlying physical 
+process the links the unknown model vector $\mathbf{x}$ to the vector of observations $\mathbf{y}$. In this case, 
+we usually refer to $g$ as the regularization term, where one or multiple terms are added to the objective function to 
+promote certain features in the sought after solution and/or constraint the optimization process to produce a solution
+within a given set of allowed vectors.
 
 # Citations
 
