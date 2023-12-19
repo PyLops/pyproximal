@@ -91,11 +91,11 @@ operators are efficiently implemented in the ``PyProximal`` library.
 Finally, there exists three main families of proximal algorithms that can be used to solve various flavors of equation 
 \autoref{eq:problem}, namely:
 
-- Proximal gradient method: this method, also commonly referred to as the FBS algorithm red, is usually the 
-  preferred choice when $A=I$ (i.e. identity operator). Accelerated versions such as the FISTA and TWist algorithms exist 
-  and are usually preferred to the vanilla FBS method;
-- Alternating direction of multipliers: this method is based on the well-known splitting strategy and can be used 
-  for a broader class of problem than FBS and its accelarated versions. …
+- Proximal gradient method [@Combettes:2011]: this method, also commonly referred to as the Forward-Backward Splitting (FBS)
+  algorithm, is usually the preferred choice when $\mathbf{L}=\mathbf{I}$ (i.e. identity operator). Accelerated versions such 
+  as the FISTA and TwIST algorithms exist and are usually preferred to the vanilla FBS method;
+- Alternating Direction Method of Multipliers [@Boyd:2011]: this method is based on the well-known splitting strategy and can be used 
+  for a broader class of problem than FBS and its accelerated versions.
 - Primal-dual: another popular algorithm able to tackle the generic problem in equation 1 with any choice of A. 
   It reformulates the original problem into its primal-dual version of solves a saddle optimization problem.
 
@@ -106,11 +106,19 @@ such as back-tracking for automatic selection of step-sizes, logging of cost fun
 # Code structure
 
 ``PyProximal`` aims to provide a modular, and easy-to-use Application Programming Interface (API) that scientists 
-can use to define and solve convex objective functions by means of proximal algorithms.
+can use to define and solve convex objective functions by means of proximal algorithms. The API is composed of 
+two main units as shown in Fig. 1. 
 
-The API is composed of two interconnected units as shown in Fig. 1.
+The first unit contains the entire suite of proximal operators, which are class-based objects that subclass 
+the ``pylops.ProxOperator`` parent class. For each of these operators, the solution to the proximal optimization 
+problem in equation \autoref{eq:prox} (and/or the dual proximal problem) is implemented in the ``prox`` 
+(and/or ``dualprox``) method. As in most cases a closed-form solution exists for such a problem, our
+implementation provides users with the most efficient way to evaluate a proximal operator. The second unit comprises
+of so-called proximal solvers, optimization algorithms that are suited to solve problems of the form in equation \autoref{eq:problem}.
 
-![Schematic representation of the ``PyProximal`` API.](figs/software.png){ width=70% }
+
+
+![Schematic representation of the ``PyProximal`` API.](figs/software.png){ width=90% }
 
 
 # References
