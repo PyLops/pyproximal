@@ -20,20 +20,12 @@ bibliography: paper.bib
 
 A broad class of problems in scientific disciplines ranging from image processing and astrophysics, 
 to geophysics and medical imaging call for the optimization of convex, non-smooth objective functions. 
-PyProximal is a Python-based library providing users with an extensive suite of state-of-the-art proximal 
-operators and algorithms.
-
-Whereas practitioners are usually very familiar with gradient-based optimization and the associated 
-first- or second-order iterative schemes commonly used to solve unconstrained, smooth optimization problems, proximal
-algorithms can be viewed as analogous tools for non-smooth and possibly constrained versions of such problems. These
-algorithms sit at a higher level of abstraction than classical algorithms like steepest descent or Newton’s method and 
-require a basic operation to be performed at each iteration: the evaluation of the so-called proximal operator of the
-functional to be optimized.
-
-In summary, PyProximal aims to democratize the application of convex optimization to scientific problems, providing 
-users with all the required building blocks (i.e., proximal operators and algorithms) to define and solve complex,
-convex objective functions in a high-level, abstract fashion, shielding them away from any unneeded mathematical and 
-implementation details.
+Whereas practitioners are usually very familiar with gradient-based optimization algorithms, commonly used 
+to solve unconstrained, smooth optimization problems, proximal algorithms can be viewed as analogous tools for 
+non-smooth and possibly constrained versions of such problems. PyProximal is a Python-based library aimed at 
+democratize the application of convex optimization to scientific problems, providing all the required 
+building blocks (i.e., proximal operators and algorithms) to define and solve complex, convex objective functions
+in a high-level, abstract fashion, shielding users away from any unneeded mathematical and implementation details.
 
 
 # Statement of need
@@ -91,12 +83,12 @@ operators are efficiently implemented in the ``PyProximal`` library.
 Finally, there exists three main families of proximal algorithms that can be used to solve various flavors of equation 
 \autoref{eq:problem}, namely:
 
-- Proximal gradient method [@Combettes:2011]: this method, also commonly referred to as the Forward-Backward Splitting (FBS)
+- Proximal Gradient [@Combettes:2011]: this method, also commonly referred to as the Forward-Backward Splitting (FBS)
   algorithm, is usually the preferred choice when $\mathbf{L}=\mathbf{I}$ (i.e. identity operator). Accelerated versions such 
   as the FISTA and TwIST algorithms exist and are usually preferred to the vanilla FBS method;
 - Alternating Direction Method of Multipliers [@Boyd:2011]: this method is based on the well-known splitting strategy and can be used 
   for a broader class of problem than FBS and its accelerated versions.
-- Primal-dual: another popular algorithm able to tackle the generic problem in equation 1 with any choice of A. 
+- Primal-Dual [@Chambolle:2011]: another popular algorithm able to tackle the generic problem in equation 1 with any choice of A. 
   It reformulates the original problem into its primal-dual version of solves a saddle optimization problem.
 
 ``PyProximal`` provides implementations for these three families of algorithms; moreover, our solvers include additional features 
@@ -116,9 +108,19 @@ problem in equation \autoref{eq:prox} (and/or the dual proximal problem) is impl
 implementation provides users with the most efficient way to evaluate a proximal operator. The second unit comprises
 of so-called proximal solvers, optimization algorithms that are suited to solve problems of the form in equation \autoref{eq:problem}.
 
-
-
 ![Schematic representation of the ``PyProximal`` API.](figs/software.png){ width=90% }
+
+# Representative PyProximal Use Cases
+
+PyProximal has already been featured in a number of scientific publications:
+
+- Joint inversion and segmentation of subsurface models: when inverting geophysical data for subsurface priorities, 
+  a prior information that we would like to include in the inversion process is represented by the presence of a 
+  discrete number of rock units, which can be parametrized in terms of their expected mean (or most likely value).  
+  Ravasi and Birnie (2022) framed such a problem as a joint inversion and segmentation where the underlying optimization 
+  is solved in alternating fashion using the Primal-dual algorithm.
+- Plug-and-Play (PnP) priors: introduced in 2013 by Vent, in the PnP framework any proximal operator is interpreted 
+  as a denoising problem and solved by means of any statistical or deep learning based denoiser. Recently, Romero
 
 
 # References
