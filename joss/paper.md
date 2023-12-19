@@ -56,10 +56,6 @@ their development and maintenance, as well as allowing newcomers to learn how to
 As such, `PyProximal` can be ultimately described as a light-weight extension of `PyLops` that users of the former can very easily 
 learn and use in short time and with minimal additional effort.
 
-`PyProximal` was designed to be used by both researchers and students in applied mathematics and engineering courses.
-It has already been featured in a number of scientific publications XX and in a graduate-level course on inverse problems XX. 
-As the adoption of the library grows across many disciplies, we believe that `PyProximal` will enable exciting scientific discoveries 
-in a variety of scientific problems with societal impact.
 
 # Mathematical framework
 
@@ -70,33 +66,16 @@ Convex optimization is routinely used to solve problems of the form:
 \min_\mathbf{x} f(\mathbf{x}) +g(\mathbf{Lx})
 \end{equation}
 
+where $f$ and $g$ are possibly non-smooth convex functionals and $\mathbf{A}$ is a linear operator. A special case, 
+appearing in many scientific applications, is represented by $f=1/2 \Vert y - \mathcal{A}(\mathbf{x})\Vert_2^2$, which identifies 
+the so-called data misfit term. Here, $\mathcal{A}$ is a (possibly non-linear) modeling operator representing the underlying physical 
+process the links the unknown model vector $\mathbf{x}$ to the vector of observations $\mathbf{y}$. In this case, 
+we usually refer to $g$ as the regularization term, where one or multiple terms are added to the objective function to 
+promote certain features in the sought after solution and/or constraint the optimization process to produce a solution
+within a given set of allowed vectors.
 
-# Citations
-
-Citations to entries in paper.bib should be in
-[rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
-format.
-
-If you want to cite a software repository URL (e.g. something on GitHub without a preferred
-citation) then you can do it with the example BibTeX entry below for @fidgit.
-
-For a quick reference, the following citation commands can be used:
-- `@author:2001`  ->  "Author et al. (2001)"
-- `[@author:2001]` -> "(Author et al., 2001)"
-- `[@author1:2001; @author2:2001]` -> "(Author1 et al., 2001; Author2 et al., 2002)"
-
-# Figures
-
-Figures can be included like this:
-![Caption for example figure.\label{fig:example}](figure.png)
-and referenced from text using \autoref{fig:example}.
-
-Figure sizes can be customized by adding an optional second parameter:
-![Caption for example figure.](figure.png){ width=20% }
-
-# Acknowledgements
-
-We acknowledge contributions from Brigitta Sipocz, Syrtis Major, and Semyeong
-Oh, and support from Kathryn Johnston during the genesis of this project.
+Independent on the algorithm used to optimize such a cost function, a common feature of all proximal algorithms is
+represented by the fact that one must be able to repeatedly evaluate the proximal operator of $f$ and/or $g$. The proximal 
+operator of a function $f$ is defined as
 
 # References
