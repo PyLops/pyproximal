@@ -127,7 +127,10 @@ Examples of PyProximal applications in different scientific fields include:
   based denoisers are used to evaluate the proximal operator of implicit regularizers. @Romero:2022 applies this concept
   in the context of seismic inversion, achieving results of superior quality in comparison to traditional model-based
   regularization techniques.
-- *EX3*: ...
+- *Multi-Core Fiber Lensless Imaging*: lensless imaging is a computational imaging technique to reconstruct biological 
+  samples at cellular scale. Compressive sensing coupled with rank-one projections has been shown to improve the
+  efficiency of the acquisition process [@Leblanc:2023]; this entails solving a $L_1$ regularized inverse problem with
+  the proximal gradient method.
 - *EX4*: ...
 - ....
 - 
