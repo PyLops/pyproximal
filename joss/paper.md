@@ -26,30 +26,30 @@ non-smooth and possibly constrained versions of such problems. These
 algorithms sit at a higher level of abstraction than gradient-based algorithms and 
 require a basic operation to be performed at each iteration: the evaluation of the so-called proximal operator of the
 functional to be optimized. ``PyProximal`` is a Python-based library aimed at 
-democratizing the application of convex optimization to scientific problems, providing all the required 
+democratizing the application of convex optimization to scientific problems; it provides the required 
 building blocks (i.e., proximal operators and algorithms) to define and solve complex, convex objective functions
-in a high-level manner, shielding users away from any unneeded mathematical and implementation details.
+in a high-level, abstract fashion, shielding users away from any unneeded mathematical and implementation details.
 
 
 # Statement of need
 
-`PyProximal` is a Python package for convex optimization, developed as an integral part of the `PyLops` framework. 
+`PyProximal` is a Python library for convex optimization, developed as an integral part of the `PyLops` framework. 
 It provides practitioners with an easy-to-use framework to define and solve composite convex objective functions 
 arising in many modern inverse problems. Its API is designed to offer a class-based and user-friendly interface 
 to proximal operators, coupled with function-based optimizers; because of its modular design, researchers in the field 
-of convex optimization can also benefit from this package in a number of ways when developing new algorithms: first, 
+of convex optimization can also benefit from this library in a number of ways when developing new algorithms: first, 
 they can easily include their newly developed proximal operators and solvers; second, they can compare these methods 
-with state-of-the-art algorithms already provided in the package.
+with state-of-the-art algorithms already provided in the library.
 
-`PyProximal` heavily relies on and seamlessly integrates with `PyLops` [@Ravasi:2020], a Python package for matrix-free linear algebra 
+`PyProximal` heavily relies on and seamlessly integrates with `PyLops` [@Ravasi:2020], a Python library for matrix-free linear algebra 
 and optimization. More specifically, `PyLops` is leveraged in the implementation of proximal operators that require 
 access to linear operators (e.g., numerical derivatives) and/or least-squares solvers 
-(e.g., conjugate gradient). Whilst similar packages exist in the Python ecosystem, their design usually leads to a 
+(e.g., conjugate gradient). Whilst libraries with similar capabilities exist in the Python ecosystem, their design usually leads to a 
 tight coupling between linear and proximal operators, and their respective solvers. On the other hand, by following the 
 Separation of Concerns (SoC) design principle, the overlap between `PyLops` and `PyProximal` is reduced to a minimum, easing both 
 their development and maintenance, as well as allowing newcomers to learn how to solve inverse problems in a step-by-step fashion. 
-As such, `PyProximal` can be ultimately described as a light-weight extension of `PyLops` that users of the former can very easily 
-learn and use with minimal additional effort.
+As such, `PyProximal` can be ultimately described as a light-weight extension of `PyLops` that users of the latter can easily 
+learn and adopt with minimal additional effort.
 
 
 # Mathematical framework
@@ -62,15 +62,14 @@ Convex optimization is routinely used to solve problems of the form [@Parikh:201
 \end{equation}
 
 where $f$ and $g$ are possibly non-smooth convex functionals and $\mathbf{L}$ is a linear operator. A special case 
-appearing in many scientific applications is represented by $f=1/2 \Vert y - \mathcal{A}(\mathbf{x})\Vert_2^2$. 
+appearing in many scientific applications is represented by $f=1/2 \Vert \mathbf{y} - \mathcal{A}(\mathbf{x})\Vert_2^2$. 
 Here, $\mathcal{A}$ is a (possibly non-linear) modeling operator, describing the underlying physical 
 process that links the unknown model vector $\mathbf{x}$ to the vector of observations $\mathbf{y}$. In this case, 
-we usually refer to $g$ as the regularization term, where one or multiple terms are added to the data misfit term to 
+we usually refer to $g$ as the regularizer, where one or multiple functions are added to the data misfit term to 
 promote certain features in the sought after solution and/or constraint the solution to fall within a given set of allowed vectors.
 
-Independent on the algorithm used to optimize such an objective function, a common feature of all proximal algorithms is
-represented by the fact that one must be able to repeatedly evaluate the proximal operator of $f$ and/or $g$. The proximal 
-operator of a function $f$ is defined as
+A common feature of all proximal algorithms is represented by the fact that one must be able to repeatedly 
+evaluate the proximal operator of $f$ and/or $g$. The proximal operator of a function $f$ is defined as
 
 \begin{equation}
 \label{eq:prox}
@@ -78,8 +77,8 @@ prox_{\tau f} (\mathbf{x}) = \min_{\mathbf{y}} f(\mathbf{y}) +
         \frac{1}{2 \tau}||\mathbf{y} - \mathbf{x}||^2_2
 \end{equation}
 
-Whilst evaluating a proximal operator does itself require solving an optimization problem, these subproblems often 
-admit closed form solutions or can be solved very quickly with ad-hoc specialized methods. Several of such proximal 
+Whilst evaluating a proximal operator does itself require solving an optimization problem, these problems often 
+admit closed form solutions or can be solved very efficiently with ad-hoc specialized methods. Several of such proximal 
 operators are efficiently implemented in the ``PyProximal`` library.
 
 Finally, there exists three main families of proximal algorithms that can be used to solve various flavors of 
@@ -109,7 +108,8 @@ the ``pylops.ProxOperator`` parent class. For each of these operators, the solut
 problem in \autoref{eq:prox} (and/or the dual proximal problem) is implemented in the ``prox`` 
 (and/or ``dualprox``) method. As in most cases a closed-form solution exists for such a problem, our
 implementation provides users with the most efficient way to evaluate a proximal operator. The second part comprises
-of so-called proximal solvers, optimization algorithms that are suited to solve problems of the form in \autoref{eq:problem}.
+of so-called proximal solvers, optimization algorithms that are suited to solve problems of the form in \autoref{eq:problem}. 
+Finally, some specialized solvers that rely on one or more of the previously described optimizers are also provided.
 
 ![Schematic representation of the ``PyProximal`` API.](figs/software.png){ width=90% }
 
@@ -119,11 +119,16 @@ Examples of PyProximal applications in different scientific fields include:
 
 - *Joint inversion and segmentation of subsurface models*: when inverting geophysical data for subsurface priorities, 
   prior information can be provided to inversion process in the form of discrete number of rock units; this can be 
-  parametrized in terms of their expected mean (or most likely value). @Ravasi:2022 framed such a problem 
-  as a joint inversion and segmentation where the underlying optimization is solved in alternating fashion using the 
-  Primal-Dual algorithm.
-- *Plug-and-Play (PnP) priors*: introduced in 2013 by Vent, in the PnP framework any proximal operator is interpreted 
-  as a denoising problem and solved by means of any statistical or deep learning based denoiser. Recently, Romero
-
-
+  parametrized in terms of their expected mean (or most likely value). @Ravasi:2022 and @Romero:2023 frame such a problem 
+  as a joint inversion and segmentation task, where the underlying objective function is optimized in alternating fashion 
+  using the Primal-Dual algorithm.
+- *Plug-and-Play (PnP) priors*: introduced in 2013 by @Venkatakrishnan:2013, the PnP framework lays its foundation on
+  the interpretation of the proximal operator as a denoising problem; as such, powerful statistical or deep learning 
+  based denoisers are used to evaluate the proximal operator of implicit regularizers. @Romero:2022 applies this concept
+  in the context of seismic inversion, achieving results of superior quality in comparison to traditional model-based
+  regularization techniques.
+- *EX3*: ...
+- *EX4*: ...
+- ....
+- 
 # References
