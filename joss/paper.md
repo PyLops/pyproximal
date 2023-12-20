@@ -7,14 +7,25 @@ tags:
 authors:
   - name: Matteo Ravasi
     orcid: 0000-0003-0020-2721
-    corresponding: true # (This is how to denote the corresponding author)
+    corresponding: true
     affiliation: 1 # (Multiple affiliations must be quoted)
+  - name: Olivier Leblanc
+    orcid: 0000-0003-3641-1875
+    affiliation: 2 
+  - name: Marcus Valtonen Ornhag
+    orcid: 0000-0001-8687-227X
+    affiliation: 3
 affiliations:
-  - name: Earth Science and Engineering, Physical Sciences and Engineering (PSE), King Abdullah University of Science and Technology (KAUST), Thuwal, 23955-6900, Kingdom of Saudi Arabia
-    index: 1
+  - name: Earth Science and Engineering, Physical Sciences and Engineering (PSE), King Abdullah University of Science and Technology (KAUST), Thuwal, Kingdom of Saudi Arabia
+    index: 1 
+  - name: ISPGroup, INMA/ICTEAM, UCLouvain, Louvain-la-Neuve, Belgium.
+    index: 2
+  - name: Ericsson, Lund, Sweden.
+    index: 3
 date: 19 December 2023
 bibliography: paper.bib
 ---
+
 
 # Summary
 
