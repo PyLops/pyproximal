@@ -9,19 +9,24 @@ authors:
     orcid: 0000-0003-0020-2721
     corresponding: true
     affiliation: 1 # (Multiple affiliations must be quoted)
-  - name: Olivier Leblanc
-    orcid: 0000-0003-3641-1875
-    affiliation: 2 
   - name: Marcus Valtonen Ornhag
     orcid: 0000-0001-8687-227X
+    affiliation: 2
+  - name: Olivier Leblanc
+    orcid: 0000-0003-3641-1875
     affiliation: 3
+  - name: Eneko Urunuela
+    orcid: 0000-0001-6849-9088
+    affiliation: 4
 affiliations:
   - name: Earth Science and Engineering, Physical Sciences and Engineering (PSE), King Abdullah University of Science and Technology (KAUST), Thuwal, Kingdom of Saudi Arabia
     index: 1 
-  - name: ISPGroup, INMA/ICTEAM, UCLouvain, Louvain-la-Neuve, Belgium.
-    index: 2
   - name: Ericsson, Lund, Sweden.
+    index: 2
+  - name: ISPGroup, INMA/ICTEAM, UCLouvain, Louvain-la-Neuve, Belgium.
     index: 3
+  - name: Basque Center on Cognition, Brain and Language (BCBL), Donostia-San Sebastián, Spain.
+    index: 4
 date: 19 December 2023
 bibliography: paper.bib
 ---
@@ -142,7 +147,5 @@ Examples of PyProximal applications in different scientific fields include:
   samples at cellular scale. Leveraging the rank-one projected interferometric sensing of the MCFLI has been shown to 
   improve the efficiency of the acquisition process [@Leblanc:2023]; this entails solving a regularized inverse problem with
   the proximal gradient method. Depending on the image to be reconstructed, the regularization term may for instance be $L_1$ or TV.
-- *EX4*: ...
-- ....
 
 # References
