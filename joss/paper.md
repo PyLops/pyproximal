@@ -61,7 +61,8 @@ they can easily include their newly developed proximal operators and solvers; se
 with state-of-the-art algorithms already provided in the library.
 
 `PyProximal` heavily relies on and seamlessly integrates with `PyLops` [@Ravasi:2020], a Python library for matrix-free linear algebra 
-and optimization. More specifically, `PyLops` is leveraged in the implementation of proximal operators that require 
+and optimization. As such, it can seamlessy handle problems with millions of unknowns and inherits 
+the interchangle CPU/GPU backend of PyLops [@Ravasi:2021]. More specifically, `PyLops` is leveraged in the implementation of proximal operators that require 
 access to linear operators (e.g., numerical derivatives) and/or least-squares solvers 
 (e.g., conjugate gradient). Whilst libraries with similar capabilities exist in the Python ecosystem, their design usually leads to a 
 tight coupling between linear and proximal operators, and their respective solvers. On the other hand, by following the 
