@@ -8,10 +8,13 @@ authors:
   - name: Matteo Ravasi
     orcid: 0000-0003-0020-2721
     corresponding: true
-    affiliation: 1 # (Multiple affiliations must be quoted)
+    affiliation: 1 
   - name: Marcus Valtonen Ornhag
     orcid: 0000-0001-8687-227X
     affiliation: 2
+  - name: Nick Luiken
+    orcid: 0000-0003-3307-1748
+    affiliation: 1 
   - name: Olivier Leblanc
     orcid: 0000-0003-3641-1875
     affiliation: 3
