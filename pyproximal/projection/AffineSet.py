@@ -1,5 +1,6 @@
 from scipy.sparse.linalg import lsqr as sp_lsqr
-from pylops.optimization.basic import lsqr
+from scipy.sparse.linalg import cg as sp_cg
+from pylops.optimization.basic import cg, lsqr
 from pylops.utils.backend import get_array_module, get_module_name
 
 
@@ -41,8 +42,8 @@ class AffineSetProj():
 
     def __call__(self, x):
         if get_module_name(get_array_module(x)) == 'numpy':
-            inv = sp_lsqr(self.Op * self.Op.H, self.Op * x - self.b, iter_lim=self.niter)[0]
+            inv = sp_cg(self.Op * self.Op.H, self.Op * x - self.b, maxiter=self.niter)[0]
         else:
-            inv = lsqr(self.Op * self.Op.H, self.Op * x - self.b, niter=self.niter)[0]
+            inv = cg(self.Op * self.Op.H, self.Op * x - self.b, niter=self.niter)[0]
         y = x - self.Op.H * inv.ravel() # currently ravel is added to ensure that the output is always a vector
         return y
