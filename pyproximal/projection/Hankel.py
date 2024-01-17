@@ -2,7 +2,7 @@ import numpy as np
 from scipy.linalg import hankel
 
 
-class HankelProj:
+class HankelProj():
     r"""Hankel matrix projection.
 
     Solves the least squares problem
