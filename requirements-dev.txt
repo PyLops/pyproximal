@@ -10,7 +10,7 @@ pytest
 pytest-runner
 setuptools_scm
 docutils<0.18
-Sphinx==4.2.0
+Sphinx
 sphinx-gallery
 pydata-sphinx-theme
 numpydoc
