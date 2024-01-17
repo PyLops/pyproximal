@@ -201,6 +201,7 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
     """
     # check if epgs is a vector
     if np.asarray(epsg).size == 1.:
+        epsg = epsg * np.ones(niter)
         epsg_print = str(epsg)
     else:
         epsg_print = 'Multi'
@@ -240,14 +241,14 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
         # proximal step
         if not backtracking:
             if eta == 1.:
-                x = proxg.prox(y - tau * proxf.grad(y), epsg * tau)
+                x = proxg.prox(y - tau * proxf.grad(y), epsg[iiter] * tau)
             else:
-                x = x + eta * (proxg.prox(x - tau * proxf.grad(x), epsg * tau) - x)
+                x = x + eta * (proxg.prox(x - tau * proxf.grad(x), epsg[iiter] * tau) - x)
         else:
-            x, tau = _backtracking(y, tau, proxf, proxg, epsg,
+            x, tau = _backtracking(y, tau, proxf, proxg, epsg[iiter],
                                    beta=beta, niterback=niterback)
             if eta != 1.:
-                x = x + eta * (proxg.prox(x - tau * proxf.grad(x), epsg * tau) - x)
+                x = x + eta * (proxg.prox(x - tau * proxf.grad(x), epsg[iiter] * tau) - x)
 
         # update internal parameters for bilinear operator
         if isinstance(proxf, BilinearOperator):
@@ -273,8 +274,8 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
                 pf, pg = proxf(x), proxg(x)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e  %10.3e' % \
                       (iiter + 1, np.real(to_numpy(x[0])) if x.ndim == 1 else np.real(to_numpy(x[0, 0])),
-                       pf, pg[0] if epsg_print == 'Multi' else pg,
-                       pf + np.sum(epsg * pg),
+                       pf, pg,
+                       pf + np.sum(epsg[iiter] * pg),
                        tau)
                 print(msg)
     if show:
