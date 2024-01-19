@@ -9,7 +9,7 @@ authors:
     orcid: 0000-0003-0020-2721
     corresponding: true
     affiliation: 1 
-  - name: Marcus Valtonen Ornhag
+  - name: Marcus Valtonen Örnhag
     orcid: 0000-0001-8687-227X
     affiliation: 2
   - name: Nick Luiken
@@ -18,13 +18,13 @@ authors:
   - name: Olivier Leblanc
     orcid: 0000-0003-3641-1875
     affiliation: 3
-  - name: Eneko Urunuela
+  - name: Eneko Uruñuela
     orcid: 0000-0001-6849-9088
     affiliation: 4
 affiliations:
   - name: Earth Science and Engineering, Physical Sciences and Engineering (PSE), King Abdullah University of Science and Technology (KAUST), Thuwal, Kingdom of Saudi Arabia
     index: 1 
-  - name: Ericsson, Lund, Sweden.
+  - name: Ericsson Research, Lund, Sweden.
     index: 2
   - name: ISPGroup, INMA/ICTEAM, UCLouvain, Louvain-la-Neuve, Belgium.
     index: 3
