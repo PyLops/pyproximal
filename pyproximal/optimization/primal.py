@@ -202,7 +202,7 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
     # check if epgs is a vector
     if np.asarray(epsg).size == 1.:
         epsg = epsg * np.ones(niter)
-        epsg_print = str(epsg)
+        epsg_print = str(epsg[0])
     else:
         epsg_print = 'Multi'
 
