@@ -61,7 +61,7 @@ or just clone the repository
 
 .. code-block:: bash
 
-   >> git clone https://github.com/mrava87/pyproximal.git
+   >> git clone https://github.com/PyLops/pyproximal.git
 
 or download the zip file from the repository (green button in the top right corner of the
 main github repo page) and install PyProximal from terminal using the command:
