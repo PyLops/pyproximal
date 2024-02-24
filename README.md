@@ -115,10 +115,6 @@ You need **Python 3.8 or greater**.
 *Note: Versions prior to v0.3.0 work also with Python 3.6 or greater, however they 
 require scipy version to be lower than v1.8.0.*
 
-#### From PyPi
-you want to use PyProximal within your codes,
-install it in your Python environment by typing the following command in your terminal:
-
 To get the most out of PyLops straight out of the box, we recommend `conda` to install PyLops:
 ```bash
 conda install -c conda-forge pyproximal
@@ -127,7 +123,7 @@ conda install -c conda-forge pyproximal
 #### From PyPi
 You can also install pyproximal with `pip`:
 ```bash
-pip install pylops
+pip install pyproximal
 ```
 
 #### From Github
