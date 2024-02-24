@@ -3,12 +3,19 @@ Nonlinear inversion with box constraints
 ========================================
 In this tutorial we focus on a modification of the `Quadratic program
 with box constraints` tutorial where the quadratic function is replaced by a
-nonlinear function. For this example we will use the well-known Rosenbrock
-function:
+nonlinear function:
 
     .. math::
         \mathbf{x} = \argmin_\mathbf{x} f(\mathbf{x}) \quad \text{s.t.} \quad \mathbf{x}
         \in \mathcal{I}_{\operatorname{Box}}
+
+For this example we will use the well-known Rosenbrock
+function:
+
+    .. math::
+        f(\mathbf{x}) = (a - x)^2 + b(y - x^2)^2
+
+where :math:`\mathbf{x}=[x, y]`, :math:`a=1`, and :math:`b=10`.
 
 We will learn how to handle nonlinear functionals in convex optimization, and
 more specifically dive into the details of the
@@ -199,9 +206,9 @@ xhist_admm_lbfgs = np.array(xhist)
 
 fig, ax = contour_rosenbrock(x, y)
 steps = np.array(steps)
-ax.plot(steps[:, 0], steps[:, 1], '.-k', lw=2, ms=20, alpha=0.4)
 ax.contour(X, Y, indic, colors='k')
 ax.scatter(1, 1, c='k', s=300)
+ax.plot(steps[:, 0], steps[:, 1], '.-k', lw=2, ms=20, alpha=0.4, label='GD')
 ax.plot(xhist_pg[:, 0], xhist_pg[:, 1], '.-b', ms=20, lw=2, label='PG')
 ax.plot(xhist_admm[:, 0], xhist_admm[:, 1], '.-g', ms=20, lw=2, label='ADMM')
 ax.plot(xhist_admm_lbfgs[:, 0], xhist_admm_lbfgs[:, 1], '.-m', ms=20, lw=2,
