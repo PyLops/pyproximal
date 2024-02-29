@@ -64,8 +64,9 @@ Several projects in the Python ecosystem provide implementations of proximal ope
 which present some overlap with those available in `PyProximal`. A (possibly not exhaustive) list of other projects is composed of
 *proxalgs* [@Maheswaranathan], *proxmin* [@Melchior], *The Proximity Operator Repository* [@Chierchia], *ProxImaL* [@Chan], 
 and *pyxu* [@Kashani]. A key common feature of all of the above mentioned packages is to be self-contained; as such, not only proximal operators and solvers
-are provided, but also linear operators that are useful for the applications that the package targets. On the other hand, `PyProximal` heavily relies on and seamlessly integrates with `PyLops` [@Ravasi:2020], a Python library for matrix-free linear algebra 
-and optimization. As such, it can seamlessy handle problems with millions of unknowns and inherits 
+are provided, but also linear operators that are useful for the applications that the package targets. Moreover, to the best of our knowledge, all of these packages
+provide purely CPU-based implementations (apart from *pyxu*). On the other hand, `PyProximal` heavily relies on and seamlessly integrates with `PyLops` [@Ravasi:2020], a Python library for matrix-free linear algebra 
+and optimization. As such, it can easily handle problems with millions of unknowns and inherits 
 the interchangle CPU/GPU backend of PyLops [@Ravasi:2021]. More specifically, `PyLops` is leveraged in the implementation of proximal operators that require 
 access to linear operators (e.g., numerical derivatives) and/or least-squares solvers 
 (e.g., conjugate gradient). Whilst libraries with similar capabilities exist in the Python ecosystem, their design usually leads to a 
