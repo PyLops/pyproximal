@@ -76,10 +76,10 @@ operators and/or algorithms which present some clear overlap with this project.
 A (possibly not exahustive) list of other projects is:
 
 * http://proximity-operator.net
-* https://github.com/ganguli-lab/proxalgs/blob/master/proxalgs/operators.py
+* https://github.com/ganguli-lab/proxalgs
 * https://github.com/pmelchior/proxmin
 * https://github.com/comp-imaging/ProxImaL
-* https://github.com/matthieumeo/pycsou
+* https://github.com/matthieumeo/pyxu
 
 All of these projects are self-contained, meaning that they implement both proximal
 and linear operators as needed to solve a variety of problems in different areas
