@@ -581,7 +581,8 @@ def HQS(proxf, proxg, x0, tau, niter=10, z0=None, gfirst=True,
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, x[0], pf, pg, pf + pg)
+                      (iiter + 1, np.real(to_numpy(x[0])), 
+                       pf, pg, pf + pg)
                 print(msg)
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
@@ -706,7 +707,8 @@ def ADMM(proxf, proxg, x0, tau, niter=10, gfirst=False,
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, x[0], pf, pg, pf + pg)
+                      (iiter + 1, np.real(to_numpy(x[0])),
+                       pf, pg, pf + pg)
                 print(msg)
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
@@ -807,7 +809,8 @@ def ADMML2(proxg, Op, b, A, x0, tau, niter=10, callback=None, show=False, **kwar
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = 0.5 * np.linalg.norm(Op @ x - b) ** 2, proxg(Ax)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, x[0], pf, pg, pf + pg)
+                      (iiter + 1, np.real(to_numpy(x[0])),
+                       pf, pg, pf + pg)
                 print(msg)
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
@@ -912,7 +915,8 @@ def LinearizedADMM(proxf, proxg, A, x0, tau, mu, niter=10,
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(Ax)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, x[0], pf, pg, pf + pg)
+                      (iiter + 1, np.real(to_numpy(x[0])),
+                       pf, pg, pf + pg)
                 print(msg)
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
@@ -1060,7 +1064,8 @@ def TwIST(proxg, A, b, x0, alpha=None, beta=None, eigs=None, niter=10,
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, np.real(to_numpy(x[0])), pf, pg, pf + pg)
+                      (iiter + 1, np.real(to_numpy(x[0])),
+                       pf, pg, pf + pg)
                 print(msg)
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
