@@ -3,11 +3,22 @@
 Changelog
 =========
 
+Version 0.8.0
+--------------
+*Released on: 11/03/2024*
+
+* Added :py:class:`pyproximal.projection.L01BallProj` and :py:class:`pyproximal.proximal.L01Ball` operators
+* Added ``eta`` to :py:func:`pyproximal.optimization.primal.ProximalGradient`
+* Added ``eta`` and ``weights`` to :py:func:`pyproximal.optimization.primal.GeneralizedProximalGradient`
+* Allow ``eta`` to :py:func:`pyproximal.optimization.primal.ProximalGradient` to have iteration-dependent ``epsg``
+* Switched from ``lsqr`` to ``cg`` in :py:func:`pyproximal.projection.AffineSetProj`
+
+
 Version 0.7.0
 --------------
 *Released on: 10/11/2023*
 
-* Added :py:class:`pyproximal.proximal.RelaxedMumfordShah`` operator
+* Added :py:class:`pyproximal.proximal.RelaxedMumfordShah` operator
 * Added cuda version to the proximal operator of :py:class:`pyproximal.proximal.Simplex`
 * Added bilinear update to :py:func:`pyproximal.optimization.primal.ProximalGradient`
 * Modified :py:func:`pyproximal.optimization.pnp.PlugAndPlay` function signature to allow using any proximal solver of choice
@@ -34,7 +45,7 @@ Version 0.5.0
 |:vertical_traffic_light:| |:vertical_traffic_light:|
 
 * Added :py:class:`pyproximal.proximal.Log1` operator
-* Allow ``radius`` parameter of :py:func:`pyproximal.optimization.primal.L0` to be a function
+* Allow ``radius`` parameter of :py:func:`pyproximal.proximal.L0` to be a function
 * Allow ``tau`` parameter of :py:func:`pyproximal.optimization.primal.HQS` to be a vector
   and change over iterations
 * Added ``z0`` to :py:func:`pyproximal.optimization.primal.HQS`

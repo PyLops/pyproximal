@@ -12,6 +12,7 @@ The subpackage proximal contains a number of proximal operators:
     Nonlinear	                    Nonlinear function
     L0                              L0 Norm
     L0Ball                          L0 Ball
+    L01pBall                        L0,1 Ball
     L1	                            L1 Norm
     L1Ball                          L1 Ball
     Euclidean	                    Euclidean Norm
@@ -67,7 +68,7 @@ from .SingularValuePenalty import *
 from .Hankel import *
 
 __all__ = ['Box', 'Simplex', 'Intersection', 'AffineSet', 'Quadratic',
-           'Euclidean', 'EuclideanBall', 'L0', 'L0Ball', 'L1', 'L1Ball', 'L2',
+           'Euclidean', 'EuclideanBall', 'L0', 'L0Ball', 'L01Ball', 'L1', 'L1Ball', 'L2',
            'L2Convolve', 'L21', 'L21_plus_L1', 'Huber', 'TV', 'RelaxedMumfordShah',
            'Nuclear', 'NuclearBall', 'Orthogonal', 'VStack', 'Nonlinear', 'SCAD',
            'Log', 'Log1', 'ETP', 'Geman', 'QuadraticEnvelopeCard', 'SingularValuePenalty',

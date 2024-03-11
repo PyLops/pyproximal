@@ -1,19 +1,26 @@
 r"""
-ISTA, FISTA, and TWIST for Compressive sensing
-==============================================
+IHT, ISTA, FISTA, and TWIST for Compressive sensing
+===================================================
 
-In this example we want to compare three popular solvers in compressive
-sensing problem, namely :py:class:`pylops.optimization.sparsity.ista`,
-:py:class:`pylops.optimization.sparsity.fista`, and
-:py:class:`pyproximal.optimization.primal.TwIST`.
+In this example we want to compare four popular solvers in compressive
+sensing problem, namely IHT, ISTA, FISTA, and TwIST. The first three can
+be implemented using the same solver, namely the
+:py:class:`pyproximal.optimization.primal.ProximalGradient`, whilst the latter
+is implemented in :py:class:`pyproximal.optimization.primal.TwIST`.
 
-Whilst all solvers try to solve an unconstrained problem with a L1
+The IHT solver tries to solve the following unconstrained problem with a L0Ball
+regularization term:
+
+.. math::
+    J = \|\mathbf{d} - \mathbf{Op} \mathbf{x}\|_2 \; s.t. \; \|\mathbf{x}\|_0 \le K
+
+The other solvers try instead to solve an unconstrained problem with a L1
 regularization term:
 
 .. math::
     J = \|\mathbf{d} - \mathbf{Op} \mathbf{x}\|_2 + \epsilon \|\mathbf{x}\|_1
 
-their convergence speed is different, which is something we want to focus in
+however their convergence speed is different, which is something we want to focus in
 this tutorial.
 
 """
@@ -26,6 +33,9 @@ import pyproximal
 
 plt.close('all')
 np.random.seed(0)
+
+def callback(x, pf, pg, eps, cost):
+    cost.append(pf(x) + eps * pg(x))
 
 ###############################################################################
 # Let's start by creating a dense mixing matrix and a sparse signal.
@@ -45,19 +55,38 @@ x[x < 0.9] = 0
 y = Aop * x
 
 ###############################################################################
-# We try now to recover the sparse signal with our 3 different solvers
-eps = 1e-2
+# We try now to recover the sparse signal with our 4 different solvers
+L = np.abs((Aop.H * Aop).eigs(1)[0])
+tau = 0.95 / L
+eps = 5e-3
 maxit = 100
 
+# IHT
+l0 = pyproximal.proximal.L0Ball(3)
+l2 = pyproximal.proximal.L2(Op=Aop, b=y)
+costf1 = []
+x_iht = pyproximal.optimization.primal.ProximalGradient(l2, l0, tau=tau, x0=np.zeros(M),
+                       epsg=eps, niter=maxit, acceleration='fista', show=False)
+
 # ISTA
-x_ista, niteri, costi = \
-    pylops.optimization.sparsity.ista(Aop, y, niter=maxit, eps=eps, tol=1e-10,
-                                      show=False)
+l1 = pyproximal.proximal.L1()
+l2 = pyproximal.proximal.L2(Op=Aop, b=y)
+costi = []
+x_ista = \
+    pyproximal.optimization.primal.ProximalGradient(l2, l1, tau=tau, x0=np.zeros(M),
+                                                    epsg=eps, niter=maxit, show=False,
+                                                    callback=lambda x: callback(x, l2, l1, eps, costi))
+niteri = len(costi)
 
 # FISTA
-x_fista, niterf, costf = \
-    pylops.optimization.sparsity.fista(Aop, y, niter=maxit, eps=eps,
-                                       tol=1e-10, show=False)
+l1 = pyproximal.proximal.L1()
+l2 = pyproximal.proximal.L2(Op=Aop, b=y)
+costf = []
+x_fista = \
+    pyproximal.optimization.primal.ProximalGradient(l2, l1, tau=tau, x0=np.zeros(M),
+                                                    epsg=eps, niter=maxit, acceleration='fista', show=False,
+                                                    callback=lambda x: callback(x, l2, l1, eps, costf))
+niterf = len(costf)
 
 # TWIST (Note that since the smallest eigenvalue is zero, we arbitrarily
 # choose a small value for the solver to converge stably)
@@ -72,6 +101,9 @@ x_twist, costt = \
 fig, ax = plt.subplots(1, 1, figsize=(8, 3))
 m, s, b = ax.stem(x, linefmt='k', basefmt='k',
                   markerfmt='ko', label='True')
+plt.setp(m, markersize=10)
+m, s, b = ax.stem(x_iht, linefmt='--c', basefmt='--c',
+                  markerfmt='co', label='IHT')
 plt.setp(m, markersize=10)
 m, s, b = ax.stem(x_ista, linefmt='--r', basefmt='--r',
                   markerfmt='ro', label='ISTA')
@@ -95,3 +127,13 @@ ax.set_xlabel('Iteration')
 ax.legend()
 ax.grid(True, which='both')
 plt.tight_layout()
+
+###############################################################################
+# To conclude, given the nature of the problem (small number of non-zero coefficients),
+# the IHT solver shows the fastest convergence - note that we do not display the
+# cost function since this is a constrained problem. This is however greatly influenced
+# by the fact that we assume exact knowledge of the number of non-zero coefficients.
+# When this information is not available, IHT may become suboptimal. In this case the
+# FISTA solver should always be preferred (over ISTA) and TwIST represents an
+# alternative worth checking.
+

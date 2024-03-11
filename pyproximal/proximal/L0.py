@@ -1,7 +1,7 @@
 import numpy as np
 
 from pyproximal.ProxOperator import _check_tau
-from pyproximal.projection import L0BallProj
+from pyproximal.projection import L0BallProj, L01BallProj
 from pyproximal import ProxOperator
 from pyproximal.proximal.L1 import _current_sigma
 
@@ -35,7 +35,7 @@ def _hardthreshold(x, thresh):
 
 
 class L0(ProxOperator):
-    r"""L0 norm proximal operator.
+    r""":math:`L_0` norm proximal operator.
 
     Proximal operator of the :math:`\ell_0` norm:
     :math:`\sigma\|\mathbf{x}\|_0 = \text{count}(x_i \ne 0)`.
@@ -92,7 +92,7 @@ class L0(ProxOperator):
 
 
 class L0Ball(ProxOperator):
-    r"""L0 ball proximal operator.
+    r""":math:`L_0` ball proximal operator.
 
     Proximal operator of the L0 ball: :math:`L0_{r} =
     \{ \mathbf{x}: ||\mathbf{x}||_0 \leq r \}`.
@@ -103,7 +103,6 @@ class L0Ball(ProxOperator):
         Radius. This can be a constant number or a function that is called passing a
         counter which keeps track of how many times the ``prox`` method has been
         invoked before and returns a scalar ``radius`` to be used.
-        Radius
 
     Notes
     -----
@@ -137,3 +136,60 @@ class L0Ball(ProxOperator):
         self.ball.radius = radius
         y = self.ball(x)
         return y
+
+
+class L01Ball(ProxOperator):
+    r""":math:`L_{0,1}` ball proximal operator.
+
+    Proximal operator of the :math:`L_{0,1}` ball: :math:`L_{0,1}^{r} =
+    \{ \mathbf{x}: \text{count}([||\mathbf{x}_1||_1, ||\mathbf{x}_2||_1, ...,
+    ||\mathbf{x}_1||_1] \ne 0) \leq r \}`
+
+    Parameters
+    ----------
+    ndim : :obj:`int`
+        Number of dimensions :math:`N_{dim}`. Used to reshape the input array
+        in a matrix of size :math:`N_{dim} \times N'_{x}` where
+        :math:`N'_x = \frac{N_x}{N_{dim}}`. Note that the input
+        vector ``x`` should be created by stacking vectors from different
+        dimensions.
+    radius : :obj:`int` or :obj:`func`, optional
+        Radius. This can be a constant number or a function that is called passing a
+        counter which keeps track of how many times the ``prox`` method has been
+        invoked before and returns a scalar ``radius`` to be used.
+
+    Notes
+    -----
+    As the L0 ball is an indicator function, the proximal operator
+    corresponds to its orthogonal projection
+    (see :class:`pyproximal.projection.L01BallProj` for details.
+
+    """
+    def __init__(self, ndim, radius):
+        super().__init__(None, False)
+        self.ndim = ndim
+        self.radius = radius
+        self.ball = L01BallProj(self.radius if not callable(radius) else radius(0))
+        self.count = 0
+
+    def __call__(self, x, tol=1e-4):
+        x = x.reshape(self.ndim, len(x) // self.ndim)
+        radius = _current_sigma(self.radius, self.count)
+        return np.linalg.norm(np.linalg.norm(x, ord=1, axis=0), ord=0) <= radius
+
+    def _increment_count(func):
+        """Increment counter
+        """
+        def wrapped(self, *args, **kwargs):
+            self.count += 1
+            return func(self, *args, **kwargs)
+        return wrapped
+
+    @_increment_count
+    @_check_tau
+    def prox(self, x, tau):
+        x = x.reshape(self.ndim, len(x) // self.ndim)
+        radius = _current_sigma(self.radius, self.count)
+        self.ball.radius = radius
+        y = self.ball(x)
+        return y.ravel()

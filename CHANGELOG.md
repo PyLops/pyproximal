@@ -1,3 +1,11 @@
+# 0.8.0
+
+* Added ``pyproximal.projection.L01BallProj`` and ``pyproximal.proximal.L01Ball`` operators
+* Added ``eta`` to ``pyproximal.optimization.primal.ProximalGradient``
+* Added ``eta`` and ``weights`` to ``pyproximal.optimization.primal.GeneralizedProximalGradient``
+* Allow ``eta`` to ``pyproximal.optimization.primal.ProximalGradient`` to have iteration-dependent ``epsg``
+* Switched from ``lsqr`` to ``cg`` in ``pyproximal.projection.AffineSetProj``
+
 # 0.7.0
 
 * Added ``pyproximal.proximal.RelaxedMumfordShah`` operator
