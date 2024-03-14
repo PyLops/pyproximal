@@ -7,7 +7,7 @@
 [![Documentation Status](https://readthedocs.org/projects/pyproximal/badge/?version=latest)](https://pyproximal.readthedocs.io/en/latest/?badge=latest)
 [![OS-support](https://img.shields.io/badge/OS-linux,osx-850A8B.svg)](https://github.com/PyLops/pyproximal)
 [![Slack Status](https://img.shields.io/badge/chat-slack-green.svg)](https://pylops.slack.com)
-
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.06326/status.svg)](https://doi.org/10.21105/joss.06326)
 
 
 :vertical_traffic_light: :vertical_traffic_light: This library is under early development.
@@ -184,6 +184,13 @@ make docupdate
 Note that if a new example or tutorial is created (and if any change is made to a previously available example or tutorial)
 you are required to rebuild the entire documentation before your changes will be visible.
 
+## Citing
+When using PyProximal in scientific publications, please cite the following paper:
+
+- Ravasi M, Örnhag M. V., Luiken N., Leblanc O. and Uruñuela E., 2024, *<b>PyProximal - scalable convex optimization in Python</b>*,
+  Journal of Open Source Software, 9(95), 6326. doi: 10.21105/joss.06326 [(link)](https://joss.theoj.org/papers/10.21105/joss.06326)
+
+ 
 
 ## Contributors
 * Matteo Ravasi, mrava87
