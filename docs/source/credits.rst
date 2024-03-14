@@ -7,3 +7,4 @@ Contributors
 *  `Nick Luiken <https://github.com/NickLuiken>`_, NickLuiken
 *  `Eneko Uruñuela <https://github.com/eurunuela>`_, eurunuela
 *  `Marcus Valtonen Örnhag <https://github.com/marcusvaltonen>`_, marcusvaltonen
+*  `Olivier Leblanc <https://github.com/olivierleblanc>`_, olivierleblanc

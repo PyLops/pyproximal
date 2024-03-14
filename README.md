@@ -197,3 +197,4 @@ When using PyProximal in scientific publications, please cite the following pape
 * Nick Luiken, NickLuiken
 * Eneko Uruñuela, eurunuela
 * Marcus Valtonen Örnhag, marcusvaltonen
+* Olivier Leblanc, olivierleblanc
