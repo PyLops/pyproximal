@@ -75,7 +75,7 @@ def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1.,
               'Bilinear operator: %s\n'
               'Proximal operator (f): %s\n'
               'Proximal operator (g): %s\n'
-              'gammaf = %10e\tgammaf = %10e\tniter = %d\n' %
+              'gammaf = %10e\tgammag = %10e\tniter = %d\n' %
               (type(H), type(proxf), type(proxg), gammaf, gammag, niter))
         head = '   Itn      x[0]       y[0]        f         g         H         ck         dk'
         print(head)
@@ -83,14 +83,14 @@ def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1.,
     x, y = x0.copy(), y0.copy()
     for iiter in range(niter):
         ck = gammaf * H.ly(y)
-        x = x - (1 / ck) * H.gradx(x.ravel())
+        x = x - (1. / ck) * H.gradx(x)
         if proxf is not None:
-            x = proxf.prox(x, ck)
+            x = proxf.prox(x, 1. / ck)
         H.updatex(x.copy())
         dk = gammag * H.lx(x)
-        y = y - (1 / dk) * H.grady(y.ravel())
+        y = y - (1. / dk) * H.grady(y)
         if proxg is not None:
-            y = proxg.prox(y, dk)
+            y = proxg.prox(y, 1. / dk)
         H.updatey(y.copy())
 
         # run callback
