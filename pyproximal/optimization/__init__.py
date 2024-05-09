@@ -34,6 +34,7 @@ Additional solvers are in ``pylops.optimization.sr3`` amd
 
     SR3                             Sparse Relaxed Regularized algorithm
     PALM                            Proximal Alternating Linearized Minimization
+    iPALM                           Inertial Proximal Alternating Linearized Minimization
 
 Finally this subpackage contains also a solver for image segmentation based
 on a special use of the Primal-Dual algorithm:

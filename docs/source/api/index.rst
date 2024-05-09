@@ -158,6 +158,7 @@ Primal
    :toctree: generated/
 
     PALM
+    iPALM
 
 .. currentmodule:: pyproximal.optimization.pnp
 
