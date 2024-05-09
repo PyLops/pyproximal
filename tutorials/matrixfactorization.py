@@ -26,6 +26,10 @@ from scipy import misc
 plt.close('all')
 np.random.seed(10)
 
+def callback(x, y, n, m, k, xtrue, snr_hist):
+    snr_hist.append(pylops.utils.metrics.snr(xtrue, x.reshape(n, k) @ y.reshape(k, m)))
+    
+
 ###############################################################################
 # Let's start by creating the matrix we want to factorize
 n, m, k = 100, 90, 10
@@ -48,29 +52,74 @@ Hop = pyproximal.utils.bilinear.LowRankFactorizedMatrix(Xin, Yin, A.ravel())
 
 ###############################################################################
 # We are now ready to run the PALM algorithm
-Xest, Yest = \
+snr_palm = []
+Xpalm, Ypalm = \
     pyproximal.optimization.palm.PALM(Hop, nn1, nn2, Xin.ravel(), Yin.ravel(),
-                                      gammaf=2, gammag=2, niter=2000, show=True)
-Xest, Yest = Xest.reshape(Xin.shape), Yest.reshape(Yin.shape)
-Aest = Xest @ Yest
+                                      gammaf=2, gammag=2, niter=2000, show=True,
+                                      callback=lambda x, y: callback(x, y, n, m, k, 
+                                                                     A, snr_palm))
+Xpalm, Ypalm = Xpalm.reshape(Xin.shape), Ypalm.reshape(Yin.shape)
+Apalm = Xpalm @ Ypalm
 
 ###############################################################################
-# And finally we display the individual components and the reconstructed matrix
+# Similarly we run the PALM algorithm with backtracking
+snr_palmbt = []
+Xpalmbt, Ypalmbt = \
+    pyproximal.optimization.palm.PALM(Hop, nn1, nn2, Xin.ravel(), Yin.ravel(),
+                                      gammaf=None, gammag=None, niter=2000, show=True,
+                                      callback=lambda x, y: callback(x, y, n, m, k, 
+                                                                     A, snr_palmbt))
+Xpalmbt, Ypalmbt = Xpalmbt.reshape(Xin.shape), Ypalmbt.reshape(Yin.shape)
+Apalmbt = Xpalmbt @ Ypalmbt
+
+###############################################################################
+# We now display the individual components and the reconstructed matrix
 
 fig, axs = plt.subplots(1, 5, figsize=(14, 3))
-axs[0].imshow(Xest, cmap='gray')
+fig.suptitle('PALM')
+axs[0].imshow(Xpalm, cmap='gray')
 axs[0].set_title('Xest')
 axs[0].axis('tight')
-axs[1].imshow(Yest, cmap='gray')
+axs[1].imshow(Ypalm, cmap='gray')
 axs[1].set_title('Yest')
 axs[1].axis('tight')
 axs[2].imshow(A, cmap='gray')
 axs[2].set_title('True')
 axs[2].axis('tight')
-axs[3].imshow(Aest, cmap='gray')
+axs[3].imshow(Apalm, cmap='gray')
 axs[3].set_title('Reconstructed')
 axs[3].axis('tight')
-axs[4].imshow(A-Aest, cmap='gray')
+axs[4].imshow(A-Apalm, cmap='gray')
 axs[4].set_title('Reconstruction error')
 axs[4].axis('tight')
+fig.tight_layout()
+
+fig, axs = plt.subplots(1, 5, figsize=(14, 3))
+fig.suptitle('PALM with back-tracking')
+axs[0].imshow(Xpalmbt, cmap='gray')
+axs[0].set_title('Xest')
+axs[0].axis('tight')
+axs[1].imshow(Ypalmbt, cmap='gray')
+axs[1].set_title('Yest')
+axs[1].axis('tight')
+axs[2].imshow(A, cmap='gray')
+axs[2].set_title('True')
+axs[2].axis('tight')
+axs[3].imshow(Apalmbt, cmap='gray')
+axs[3].set_title('Reconstructed')
+axs[3].axis('tight')
+axs[4].imshow(A-Apalmbt, cmap='gray')
+axs[4].set_title('Reconstruction error')
+axs[4].axis('tight')
+fig.tight_layout()
+
+###############################################################################
+# And finally compare the converge behaviour of the two methods
+fig, ax = plt.subplots(1, 1, figsize=(8, 5))
+ax.plot(snr_palm, 'k', lw=2, label='PALM')
+ax.plot(snr_palmbt, 'r', lw=2, label='PALM')
+ax.grid()
+ax.legend()
+ax.set_title('SNR')
+ax.set_xlabel('# Iteration')
 fig.tight_layout()

@@ -1,8 +1,41 @@
 import time
+import numpy as np
 
 
-def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1.,
-         niter=10, callback=None, show=False):
+def _backtracking(x, tau, H, proxf, ix, beta=0.5, niterback=10):
+    r"""Backtracking
+
+    Line-search algorithm for finding step sizes in palm algorithms when
+    the Lipschitz constant of the operator is unknown (or expensive to
+    estimate).
+
+    """
+    def ftilde(x, y, f, g, tau, ix):
+        xy = x - y[ix]
+        return f(*y) + np.dot(g, xy) + \
+               (1. / (2. * tau)) * np.linalg.norm(xy) ** 2
+
+    iiterback = 0
+    if ix == 0:
+        grad = H.gradx(x[ix])
+    else:
+        grad = H.grady(x[ix])
+    z = [x_.copy() for x_ in x]
+    while iiterback < niterback:
+        z[ix] = x[ix] - tau * grad
+        if proxf is not None:
+            z[ix] = proxf.prox(z[ix], tau)
+        ft = ftilde(z[ix], x, H, grad, tau, ix)
+        f = H(*z)
+        if f <= ft or tau < 1e-12:
+            break
+        tau *= beta
+        iiterback += 1
+    return z[ix], tau
+
+
+def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1., beta=0.5,
+         niter=10, niterback=100, callback=None, show=False):
     r"""Proximal Alternating Linearized Minimization
 
     Solves the following minimization problem using the Proximal Alternating
@@ -30,11 +63,17 @@ def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1.,
     y0 : :obj:`numpy.ndarray`
         Initial y vector
     gammaf : :obj:`float`, optional
-        Positive scalar weight for ``f`` function update
+        Positive scalar weight for ``f`` function update.
+        If ``None``, use backtracking
     gammag : :obj:`float`, optional
-        Positive scalar weight for ``g`` function update
+        Positive scalar weight for ``g`` function update.
+        If ``None``, use backtracking
+    beta : :obj:`float`, optional
+        Backtracking parameter (must be between 0 and 1)
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
+    niterback : :obj:`int`, optional
+        Max number of iterations of backtracking
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` and ``y`` are the current model vectors
@@ -61,7 +100,9 @@ def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1.,
 
     Here :math:`c_k=\gamma_f L_x` and :math:`d_k=\gamma_g L_y`, where
     :math:`L_x` and :math:`L_y` are the Lipschitz constant of :math:`\nabla_x H`
-    and :math:`\nabla_y H`, respectively.
+    and :math:`\nabla_y H`, respectively. When such constants cannot be easily
+    computed, a back-tracking algorithm can be instead employed to find suitable
+    :math:`c_k` and :math:`d_k` parameters.
 
     .. [1] Bolte, J., Sabach, S., and Teboulle, M. "Proximal alternating
        linearized minimization for nonconvex and nonsmooth problems",
@@ -75,22 +116,47 @@ def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1.,
               'Bilinear operator: %s\n'
               'Proximal operator (f): %s\n'
               'Proximal operator (g): %s\n'
-              'gammaf = %10e\tgammag = %10e\tniter = %d\n' %
-              (type(H), type(proxf), type(proxg), gammaf, gammag, niter))
+              'gammaf = %s\tgammag = %s\tniter = %d\n' %
+              (type(H), type(proxf), type(proxg), str(gammaf), str(gammag), niter))
         head = '   Itn      x[0]       y[0]        f         g         H         ck         dk'
         print(head)
 
+    backtrackingf, backtrackingg = False, False
+    if gammaf is None:
+        backtrackingf = True
+        tauf = 1.
+        ck = 0.
+    if gammaf is None:
+        backtrackingg = True
+        taug = 1.
+        dk = 0.
+
     x, y = x0.copy(), y0.copy()
     for iiter in range(niter):
-        ck = gammaf * H.ly(y)
-        x = x - (1. / ck) * H.gradx(x)
-        if proxf is not None:
-            x = proxf.prox(x, 1. / ck)
+        # x step
+        if not backtrackingf:
+            ck = gammaf * H.ly(y)
+            x = x - (1. / ck) * H.gradx(x)
+            if proxf is not None:
+                x = proxf.prox(x, 1. / ck)
+        else:
+            x, tauf = _backtracking([x, y], tauf, H,
+                                    proxf, 0, beta=beta,
+                                    niterback=niterback)
+        # update x parameter in H function
         H.updatex(x.copy())
-        dk = gammag * H.lx(x)
-        y = y - (1. / dk) * H.grady(y)
-        if proxg is not None:
-            y = proxg.prox(y, 1. / dk)
+
+        # y step
+        if not backtrackingg:
+            dk = gammag * H.lx(x)
+            y = y - (1. / dk) * H.grady(y)
+            if proxg is not None:
+                y = proxg.prox(y, 1. / dk)
+        else:
+            y, taug = _backtracking([x, y], tauf, H,
+                                    proxf, 1, beta=beta,
+                                    niterback=niterback)
+        # update y parameter in H function
         H.updatey(y.copy())
 
         # run callback
