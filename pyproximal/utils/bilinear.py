@@ -115,8 +115,8 @@ class LowRankFactorizedMatrix(BilinearOperator):
         self.y = Y
         self.d = d
         self.Op = Op
-        self.shapex = (self.n * self.m, self.n * self.k)
-        self.shapey = (self.n * self.m, self.m * self.k)
+        self.sizex = self.n * self.k
+        self.sizey = self.m * self.k
 
     def __call__(self, x, y=None):
         if y is None:
@@ -147,25 +147,23 @@ class LowRankFactorizedMatrix(BilinearOperator):
                                       'cannot distinguish automatically'
                                       'between _matvecx and _matvecy. '
                                       'Explicitely call either of those two methods.')
-        if x.size == self.shapex[1]:
+        if x.size == self.sizex:
             y = self._matvecx(x)
         else:
             y = self._matvecy(x)
         return y
 
     def lx(self, x):
+        if self.Op is not None:
+            ValueError('lx cannot be computed when using Op')
         X = x.reshape(self.n, self.k)
-        # TODO: not clear how to handle Op
-        #if self.Op is not None:
-        #    X = self.Op @ X
         return np.linalg.norm(np.conj(X).T @ X, 'fro')
 
     def ly(self, y):
-        Y = np.conj(y.reshape(self.k, self.m)).T
-        # TODO: not clear how to handle Op
-        #if self.Op is not None:
-        #    Y = self.Op.H @ Y
-        return np.linalg.norm(np.conj(Y).T @ Y, 'fro')
+        if self.Op is not None:
+            ValueError('ly cannot be computed when using Op')
+        Y = y.reshape(self.k, self.m)
+        return np.linalg.norm(Y @ np.conj(Y).T, 'fro')
 
     def gradx(self, x):
         r = self.d - self._matvecx(x)
