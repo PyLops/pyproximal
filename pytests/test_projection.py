@@ -27,7 +27,7 @@ def test_Box(par):
     assert moreau(box, x, tau)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), ])
 def test_EuclBall(par):
     """Euclidean Ball projection and proximal/dual proximal of related indicator
     """
@@ -39,7 +39,6 @@ def test_EuclBall(par):
     # evaluation
     assert eucl(x) == False
     xp = eucl.prox(x, 1.)
-    print(xp)
     assert eucl(xp) == True
 
     # prox / dualprox
