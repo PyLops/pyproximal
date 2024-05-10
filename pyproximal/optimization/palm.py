@@ -252,6 +252,9 @@ def iPALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1.,
     computed, a back-tracking algorithm can be instead employed to find suitable
     :math:`c_k` and :math:`d_k` parameters.
 
+    Finally, note that we have implemented the version of iPALM where :math:`\beta_x=\alpha_x`
+    and :math:`\beta_y=\alpha_y`.
+
     .. [1] Pock, T., and Sabach, S. "Inertial Proximal
        Alternating Linearized Minimization (iPALM) for Nonconvex and
        Nonsmooth Problems", SIAM Journal on Imaging Sciences, vol. 9. 2016.
