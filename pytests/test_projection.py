@@ -39,6 +39,7 @@ def test_EuclBall(par):
     # evaluation
     assert eucl(x) == False
     xp = eucl.prox(x, 1.)
+    print(xp)
     assert eucl(xp) == True
 
     # prox / dualprox
