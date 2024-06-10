@@ -120,7 +120,7 @@ class LowRankFactorizedMatrix(BilinearOperator):
 
     def __call__(self, x, y=None):
         if y is None:
-            x, y = x[:self.n * self.k],  x[self.n * self.k:]
+            x, y = x[:self.n * self.k], x[self.n * self.k:]
         xold = self.x.copy()
         self.updatex(x)
         res = self.d - self._matvecy(y)
