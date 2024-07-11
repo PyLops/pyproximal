@@ -73,16 +73,15 @@ class ProxOperator(object):
     def prox(self, x, tau, **kwargs):
         """Proximal operator applied to a vector
 
-        The  proximal operator can always be computed given its dual
+        The proximal operator can always be computed given its dual
         proximal operator using the Moreau decomposition as defined in
-        :func:`pyprox.moreau`. For this reason we can easily create a common
+        :func:`pyproximal.moreau`. For this reason we can easily create a common
         method for all proximal operators that can be evaluated provided the
         dual proximal is implemented.
 
         However, direct implementations are generally available. This can
         be done by simply implementing ``prox`` for a specific proximal
         operator, which will overwrite the general method.
-
 
         Parameters
         ----------
@@ -100,9 +99,9 @@ class ProxOperator(object):
 
         The dual of a proximal operator can always be computed given its
         proximal operator using the Moreau decomposition as defined in
-        :func:`pyprox.moreau`. For this reason we can easily create a common
+        :func:`pyproximal.moreau`. For this reason we can easily create a common
         method for all dual proximal operators that can be evaluated provided
-        he proximal is implemented.
+        the proximal is implemented.
 
         However, since the dual of a proximal operator of a function is
         equivalent to the proximal operator of the conjugate function, smarter
@@ -163,7 +162,7 @@ class ProxOperator(object):
         if isinstance(v, np.ndarray):
             return _SumOperator(self, v)
         else:
-            return NotImplemented
+            raise NotImplementedError('v must be of type numpy.ndarray')
 
     def postcomposition(self, sigma):
         r"""Postcomposition
@@ -191,7 +190,7 @@ class ProxOperator(object):
         if isinstance(sigma, float):
             return _PostcompositionOperator(self, sigma)
         else:
-            return NotImplemented
+            raise NotImplementedError('sigma must be of type float')
 
     def precomposition(self, a, b):
         r"""Precomposition
@@ -217,10 +216,12 @@ class ProxOperator(object):
             prox_{a^2 \tau f} (a \mathbf{x} + b) - b)
 
         """
-        if isinstance(a, float) and isinstance(b, float):
+        if isinstance(a, float) and isinstance(b, (float, np.ndarray)):
             return _PrecompositionOperator(self, a, b)
         else:
-            return NotImplemented
+            raise NotImplementedError('a must be of type float and b '
+                                      'must be of type float or '
+                                      'numpy.ndarray')
 
     def chain(self, g):
         r"""Chain
@@ -347,7 +348,7 @@ class _PrecompositionOperator(ProxOperator):
         #    raise ValueError('First input must be a ProxOperator')
         if not isinstance(a, float):
             raise ValueError('Second input must be a float')
-        if not isinstance(b, float):
+        if not isinstance(b, (float, np.ndarray)):
             raise ValueError('Second input must be a float')
         self.f, self.a, self.b = f, a, b
         super().__init__(None, True if f.grad else False)
