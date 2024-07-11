@@ -5,7 +5,7 @@ numba
 scikit-image
 matplotlib
 ipython
-bm3d
+bm3d<4.0.2 # temporary as gclib problem arises in readthedocs
 pytest
 pytest-runner
 setuptools_scm
