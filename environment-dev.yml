@@ -17,6 +17,7 @@ dependencies:
   - numba
   - icc_rt
   - pip:
+    - bm4d<4.2.3 # temporary as gclib problem arises in readthedocs
     - bm3d<4.0.2 # temporary as gclib problem arises in readthedocs
     - pytest-runner
     - setuptools_scm
