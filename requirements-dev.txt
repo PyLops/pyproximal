@@ -5,8 +5,7 @@ numba
 scikit-image
 matplotlib
 ipython
-bm4d<4.2.4 # temporary as gclib problem arises in readthedocs
-bm3d<4.0.2 # temporary as gclib problem arises in readthedocs
+bm3d
 pytest
 pytest-runner
 setuptools_scm
