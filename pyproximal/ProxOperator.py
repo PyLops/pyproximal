@@ -202,8 +202,8 @@ class ProxOperator(object):
         ----------
         a : :obj:`float`
             Multiplicative scalar
-        b : :obj:`float`
-            Additive Scalar
+        b : :obj:`float` or obj:`np.ndarray`
+            Additive scalar (or vector)
 
         Notes
         -----
