@@ -3,6 +3,18 @@
 Changelog
 =========
 
+Version 0.9.0
+--------------
+*Released on: 16/08/2024*
+
+* Added :py:class:`pyproximal.optimization.palm.iPALM` solver
+* Added :py:func:`pyproximal.optimization.palm._backtracking` method to be used when `gammaf=None` and/or `gammag=None`
+* Added :py:func:`pyproximal.utils.gradtest.gradtest_proximal` and :py:func:`pyproximal.utils.gradtest.gradtest_bilinear` methods
+* Added `tol` to :py:class:`pyproximal.optimization.primal.ProximalPoint` and
+  :py:class:`pyproximal.optimization.primal.ProximalGradient` solvers
+* Modified :py:class:`pyproximal.ProxOperator.precomposition` to allow `b` being also a vector
+
+
 Version 0.8.0
 --------------
 *Released on: 11/03/2024*
