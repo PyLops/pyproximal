@@ -1,11 +1,12 @@
-numpy>=1.15.0
+numpy>=1.15.0, <2.0.0
 scipy>=1.8.0
 pylops>=2.0.0
 numba
 scikit-image
 matplotlib
 ipython
-bm3d
+bm4d<4.2.4 # temporary as gclib problem arises in readthedocs
+bm3d<4.0.2 # temporary as gclib problem arises in readthedocs
 pytest
 pytest-runner
 setuptools_scm

@@ -130,6 +130,18 @@ Other operators
     BilinearOperator
     LowRankFactorizedMatrix
 
+Utility functions
+-----------------
+
+.. currentmodule:: pyproximal.utils.gradtest
+
+.. autosummary::
+   :toctree: generated/
+
+    gradtest_proximal
+    gradtest_bilinear
+
+
 
 Solvers
 -------
@@ -158,6 +170,7 @@ Primal
    :toctree: generated/
 
     PALM
+    iPALM
 
 .. currentmodule:: pyproximal.optimization.pnp
 

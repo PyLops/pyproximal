@@ -17,8 +17,7 @@ dependencies:
   - numba
   - icc_rt
   - pip:
-    - bm4d<4.2.4 # temporary fix as GLIBC_2.32 not found by readthedocs
-    - bm3d<4.0.2 # temporary fix as GLIBC_2.32 not found by readthedocs
+    - bm3d
     - pytest-runner
     - setuptools_scm
     - pydata-sphinx-theme

@@ -30,7 +30,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
 dependencies = [
-    "numpy >= 1.15.0",
+    "numpy >= 1.15.0, <2.0.0",
     "scipy >= 1.8.0",
     "pylops >= 2.0.0",
 ]

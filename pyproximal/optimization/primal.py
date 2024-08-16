@@ -33,7 +33,8 @@ def _backtracking(x, tau, proxf, proxg, epsg, beta=0.5, niterback=10):
     return z, tau
 
 
-def ProximalPoint(prox, x0, tau, niter=10, callback=None, show=False):
+def ProximalPoint(prox, x0, tau, niter=10,
+                  tol=None, callback=None, show=False):
     r"""Proximal point algorithm
 
     Solves the following minimization problem using Proximal point algorithm:
@@ -55,6 +56,9 @@ def ProximalPoint(prox, x0, tau, niter=10, callback=None, show=False):
         Positive scalar weight
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
+    tol : :obj:`float`, optional
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
@@ -80,10 +84,17 @@ def ProximalPoint(prox, x0, tau, niter=10, callback=None, show=False):
         print('Proximal point algorithm\n'
               '---------------------------------------------------------\n'
               'Proximal operator: %s\n'
-              'tau = %10e\tniter = %d\n' % (type(prox), tau, niter))
-        head = '   Itn       x[0]        f'
+              'tau = %10e\tniter = %d\ttol = %s\n' % (type(prox), tau, niter, str(tol)))
+        head = '   Itn       x[0]          f'
         print(head)
+
+
+    # initialize model
     x = x0.copy()
+    pf = np.inf
+    tolbreak = False
+
+    # iterate
     for iiter in range(niter):
         x = prox.prox(x, tau)
 
@@ -91,11 +102,27 @@ def ProximalPoint(prox, x0, tau, niter=10, callback=None, show=False):
         if callback is not None:
             callback(x)
 
+        # tolerance check: break iterations if overall
+        # objective does not decrease below tolerance
+        if tol is not None:
+            pfold = pf
+            pf = prox(x)
+            if np.abs(1.0 - pf / pfold) < tol:
+                tolbreak = True
+
+        # show iteration logger
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
+                if tol is None:
+                    pf = prox(x)
                 msg = '%6g  %12.5e  %10.3e' % \
-                      (iiter + 1, x[0], prox(x))
+                      (iiter + 1, x[0], pf)
                 print(msg)
+
+        # break if tolerance condition is met
+        if tolbreak:
+            break
+
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
         print('---------------------------------------------------------\n')
@@ -103,9 +130,10 @@ def ProximalPoint(prox, x0, tau, niter=10, callback=None, show=False):
 
 
 def ProximalGradient(proxf, proxg, x0, epsg=1.,
-                     tau=None, beta=0.5, eta=1.,
+                     tau=None, backtracking=False,
+                     beta=0.5, eta=1.,
                      niter=10, niterback=100,
-                     acceleration=None,
+                     acceleration=None, tol=None,
                      callback=None, show=False):
     r"""Proximal gradient (optionally accelerated)
 
@@ -137,6 +165,10 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
         backtracking is used to adaptively estimate the best tau at each
         iteration. Finally, note that :math:`\tau` can be chosen to be a vector
         when dealing with problems with multiple right-hand-sides
+    backtracking : :obj:`bool`, optional
+        Force backtracking, even if ``tau`` is not equal to ``None``. In this case
+        the chosen ``tau`` will be used as the initial guess in the first
+        step of backtracking
     beta : :obj:`float`, optional
         Backtracking parameter (must be between 0 and 1)
     eta : :obj:`float`, optional
@@ -147,6 +179,9 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
         Max number of iterations of backtracking
     acceleration : :obj:`str`, optional
         Acceleration (``None``, ``vandenberghe`` or ``fista``)
+    tol : :obj:`float`, optional
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
@@ -190,7 +225,7 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
 
     - ``acceleration=None``: :math:`\omega^k = 0`;
     - ``acceleration=vandenberghe`` [1]_: :math:`\omega^k = k / (k + 3)` for `
-    - ``acceleration=fista``: :math:`\omega^k = (t_{k-1}-1)/t_k` for  where
+    - ``acceleration=fista``: :math:`\omega^k = (t_{k-1}-1)/t_k` where
       :math:`t_k = (1 + \sqrt{1+4t_{k-1}^{2}}) / 2` [2]_
 
     .. [1] Vandenberghe, L., "Fast proximal gradient methods", 2010.
@@ -215,16 +250,16 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
               '---------------------------------------------------------\n'
               'Proximal operator (f): %s\n'
               'Proximal operator (g): %s\n'
-              'tau = %s\tbeta=%10e\n'
-              'epsg = %s\tniter = %d\n'
+              'tau = %s\tbacktrack = %s\tbeta = %10e\n'
+              'epsg = %s\tniter = %d\ttol = %s\n'
               ''
               'niterback = %d\tacceleration = %s\n' % (type(proxf), type(proxg),
-                                    'Adaptive' if tau is None else str(tau), beta,
-                                    epsg_print, niter, niterback, acceleration))
+                                                       str(tau), backtracking, beta,
+                                                       epsg_print, niter, str(tol),
+                                                       niterback, acceleration))
         head = '   Itn       x[0]          f           g       J=f+eps*g       tau'
         print(head)
 
-    backtracking = False
     if tau is None:
         backtracking = True
         tau = 1.
@@ -233,6 +268,8 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
     t = 1.
     x = x0.copy()
     y = x.copy()
+    pfg = np.inf
+    tolbreak = False
 
     # iterate
     for iiter in range(niter):
@@ -269,15 +306,32 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
         if callback is not None:
             callback(x)
 
+        # tolerance check: break iterations if overall
+        # objective does not decrease below tolerance
+        if tol is not None:
+            pfgold = pfg
+            pf, pg = proxf(x), proxg(x)
+            pfg = pf + np.sum(epsg[iiter] * pg)
+            if np.abs(1.0 - pfg / pfgold) < tol:
+                tolbreak = True
+
+        # show iteration logger
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf, pg = proxf(x), proxg(x)
+                if tol is None:
+                    pf, pg = proxf(x), proxg(x)
+                    pfg = pf + np.sum(epsg[iiter] * pg)
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e  %10.3e' % \
                       (iiter + 1, np.real(to_numpy(x[0])) if x.ndim == 1 else np.real(to_numpy(x[0, 0])),
                        pf, pg,
-                       pf + np.sum(epsg[iiter] * pg),
+                       pfg,
                        tau)
                 print(msg)
+
+        # break if tolerance condition is met
+        if tolbreak:
+            break
+
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
         print('---------------------------------------------------------\n')
@@ -286,7 +340,7 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
 
 def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
                                 epsg=1., niter=10, niterback=100,
-                                acceleration='vandenberghe',
+                                acceleration='vandenberghe', tol=None,
                                 callback=None, show=False):
     r"""Accelerated Proximal gradient
 
@@ -301,7 +355,7 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
                   'version v1.0.0 and AcceleratedProximalGradient will be removed.', FutureWarning)
     return ProximalGradient(proxf, proxg, x0, tau=tau, beta=beta,
                             epsg=epsg, niter=niter, niterback=niterback,
-                            acceleration=acceleration,
+                            acceleration=acceleration, tol=tol,
                             callback=callback, show=show)
 
 
