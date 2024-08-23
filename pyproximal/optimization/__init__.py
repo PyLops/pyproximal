@@ -11,6 +11,8 @@ operators:
     ProximalPoint                   Proximal point algorithm (or proximal min.)
     ProximalGradient                Proximal gradient algorithm
     AcceleratedProximalGradient     Accelerated Proximal gradient algorithm
+    AndersonProximalGradient        Proximal gradient algorithm with Anderson acceleration
+    GeneralizedProximalGradient     Generalized Proximal gradient algorithm
     HQS                             Half Quadrating Splitting
     ADMM                            Alternating Direction Method of Multipliers
     ADMML2                          ADMM with L2 misfit term

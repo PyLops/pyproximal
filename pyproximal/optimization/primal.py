@@ -156,7 +156,7 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
         Proximal operator of g function
     x0 : :obj:`numpy.ndarray`
         Initial vector
-    epsg : :obj:`float` or :obj:`np.ndarray`, optional
+    epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
         Scaling factor of g function
     tau : :obj:`float` or :obj:`numpy.ndarray`, optional
         Positive scalar weight, which should satisfy the following condition
@@ -195,7 +195,7 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
 
     Notes
     -----
-    The Proximal point algorithm can be expressed by the following recursion:
+    The Proximal gradient algorithm can be expressed by the following recursion:
 
     .. math::
 
@@ -359,6 +359,202 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
                             callback=callback, show=show)
 
 
+def AndersonProximalGradient(proxf, proxg, x0, epsg=1.,
+                             tau=None, niter=10, 
+                             nhistory=10, epsr=1e-10, 
+                             safeguard=False, tol=None, 
+                             callback=None, show=False):
+    r"""Proximal gradient with Anderson acceleration
+
+    Solves the following minimization problem using the Proximal
+    gradient algorithm with Anderson acceleration:
+
+    .. math::
+
+        \mathbf{x} = \argmin_\mathbf{x} f(\mathbf{x}) + \epsilon g(\mathbf{x})
+
+    where :math:`f(\mathbf{x})` is a smooth convex function with a uniquely
+    defined gradient and :math:`g(\mathbf{x})` is any convex function that
+    has a known proximal operator.
+
+    Parameters
+    ----------
+    proxf : :obj:`pyproximal.ProxOperator`
+        Proximal operator of f function (must have ``grad`` implemented)
+    proxg : :obj:`pyproximal.ProxOperator`
+        Proximal operator of g function
+    x0 : :obj:`numpy.ndarray`
+        Initial vector
+    epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
+        Scaling factor of g function
+    tau : :obj:`float` or :obj:`numpy.ndarray`, optional
+        Positive scalar weight, which should satisfy the following condition
+        to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
+        the Lipschitz constant of :math:`\nabla f`. When ``tau=None``,
+        backtracking is used to adaptively estimate the best tau at each
+        iteration. Finally, note that :math:`\tau` can be chosen to be a vector
+        when dealing with problems with multiple right-hand-sides
+    niter : :obj:`int`, optional
+        Number of iterations of iterative scheme
+    nhistory : :obj:`int`, optional
+        Number of previous iterates to be kept in memory (to compute the scaling factors
+    epsr : :obj:`float`, optional
+        Scaling factor for regularization added to the inverse of :math:\mathbf{R}^T \mathbf{R}`
+    safeguard : :obj:`bool`, optional
+        Apply safeguarding strategy to the update (``True``) or not (``False``)
+    tol : :obj:`float`, optional
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached
+    callback : :obj:`callable`, optional
+        Function with signature (``callback(x)``) to call after each iteration
+        where ``x`` is the current model vector
+    show : :obj:`bool`, optional
+        Display iterations log
+
+    Returns
+    -------
+    x : :obj:`numpy.ndarray`
+        Inverted model
+
+    Notes
+    -----
+    The Proximal gradient algorithm with Anderson acceleration can be expressed by the 
+    following recursion [1]_:
+
+    .. math::
+        m_k = min(m, k)\\
+        \mathbf{g}^{k} = \mathbf{x}^{k} - \tau^k \nabla f(\mathbf{x}^k)\\
+        \mathbf{r}^{k} = \mathbf{g}^{k} - \mathbf{g}^{k}\\
+        \mathbf{G}^{k} = [\mathbf{g}^{k},..., \mathbf{g}^{k-m_k}]\\
+        \mathbf{R}^{k} = [\mathbf{r}^{k},..., \mathbf{r}^{k-m_k}]\\
+        \alpha_k = (\mathbf{R}^{kT} \mathbf{R}^{k})^{-1} \mathbf{1} / \mathbf{1}^T
+        (\mathbf{R}^{kT} \mathbf{R}^{k})^{-1} \mathbf{1}\\
+        \mathbf{y}^{k+1} = \mathbf{G}^{k} \alpha_k\\
+        \mathbf{x}^{k+1} = \prox_{\tau^{k+1} g}(\mathbf{y}^{k+1})
+
+    where :math:`m` equals ``nhistory``, :math:`k=1,2,...,n_{iter}`, :math:`\mathbf{y}^{0}=\mathbf{x}^{0}`,
+    :math:`\mathbf{y}^{1}=\mathbf{x}^{0} - \tau^0 \nabla f(\mathbf{x}^0)`,
+    :math:`\mathbf{x}^{1}=\prox_{\tau^k g}(\mathbf{y}^{1})`, and 
+    :math:`\mathbf{g}^{0}=\mathbf{y}^{1}`.
+    
+    Refer to [1]_ for the guarded version of the algorithm (when ``safeguard=True``).
+
+    .. [1] Mai, V., and Johansson, M. "Anderson Acceleration of Proximal Gradient 
+       Methods", 2020.
+    
+    """
+    # check if epgs is a vector
+    if np.asarray(epsg).size == 1.:
+        epsg = epsg * np.ones(niter)
+        epsg_print = str(epsg[0])
+    else:
+        epsg_print = 'Multi'
+
+    if show:
+        tstart = time.time()
+        print('Proximal Gradient with Anderson Acceleration \n'
+              '---------------------------------------------------------\n'
+              'Proximal operator (f): %s\n'
+              'Proximal operator (g): %s\n'
+              'tau = %s\t\tepsg = %s\tniter = %d\n'
+              'nhist = %d\tepsr = %s\n'
+              'guard = %s\ttol = %s\n' % (type(proxf), type(proxg),
+                                          str(tau), epsg_print, niter,
+                                          nhistory, str(epsr), 
+                                          str(safeguard), str(tol)))
+        head = '   Itn       x[0]          f           g       J=f+eps*g       tau'
+        print(head)
+
+    # initialize model
+    y = x0 - tau * proxf.grad(x0)
+    x = proxg.prox(y, epsg[0] * tau)
+    g = y.copy()
+    r = g - x0
+    R, G = [g, ], [r, ]
+    pf = proxf(x)
+    pfg = np.inf
+    tolbreak = False
+
+    # iterate
+    for iiter in range(niter):
+        
+        # update fix point
+        g = x - tau * proxf.grad(x)
+        r = g - y
+
+        # update history vectors
+        R.insert(0, r)
+        G.insert(0, g)
+        if iiter >= nhistory - 1:
+           R.pop(-1)
+           G.pop(-1)
+        
+        # solve for alpha coefficients
+        Rstack = np.vstack(R)
+        Rinv = np.linalg.pinv(Rstack @ Rstack.T + epsr * np.linalg.norm(Rstack) ** 2)
+        ones = np.ones(min(nhistory, iiter + 2)) 
+        Rinvones = Rinv @ ones
+        alpha = Rinvones / (ones[None] @ Rinvones)
+        
+        if not safeguard:
+            # update auxiliary variable
+            y = np.vstack(G).T @ alpha
+
+            # update main variable
+            x = proxg.prox(y, epsg[iiter] * tau)
+        
+        else:
+            # update auxiliary variable
+            ytest = np.vstack(G).T @ alpha
+
+            # update main variable
+            xtest = proxg.prox(ytest, epsg[iiter] * tau)
+
+            # check if function is decreased, otherwise do basic PG step
+            pfold, pf = pf, proxf(xtest)
+            if pf <= pfold - tau * np.linalg.norm(proxf.grad(x)) ** 2 / 2:
+                y = ytest
+                x = xtest
+            else:
+                x = proxg.prox(g, epsg[iiter] * tau)
+                y = g
+
+        # run callback
+        if callback is not None:
+            callback(x)
+
+        # tolerance check: break iterations if overall
+        # objective does not decrease below tolerance
+        if tol is not None:
+            pfgold = pfg
+            pf, pg = proxf(x), proxg(x)
+            pfg = pf + np.sum(epsg[iiter] * pg)
+            if np.abs(1.0 - pfg / pfgold) < tol:
+                tolbreak = True
+
+        # show iteration logger
+        if show:
+            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
+                if tol is None:
+                    pf, pg = proxf(x), proxg(x)
+                    pfg = pf + np.sum(epsg[iiter] * pg)
+                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e  %10.3e' % \
+                      (iiter + 1, np.real(to_numpy(x[0])) if x.ndim == 1 else np.real(to_numpy(x[0, 0])),
+                       pf, pg,
+                       pfg,
+                       tau)
+                print(msg)
+
+        # break if tolerance condition is met
+        if tolbreak:
+            break
+
+    if show:
+        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
+        print('---------------------------------------------------------\n')
+    return x
+
+
 def GeneralizedProximalGradient(proxfs, proxgs, x0, tau,
                                 epsg=1., weights=None,
                                 eta=1., niter=10,
@@ -390,7 +586,7 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau,
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
         the Lipschitz constant of :math:`\sum_{i=1}^n \nabla f_i`.
-    epsg : :obj:`float` or :obj:`np.ndarray`, optional
+    epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
         Scaling factor(s) of ``g`` function(s)
     weights : :obj:`float`, optional
         Weighting factors of ``g`` functions. Must sum to 1.

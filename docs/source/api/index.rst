@@ -157,6 +157,7 @@ Primal
     AcceleratedProximalGradient
     ADMM
     ADMML2
+    AndersonProximalGradient
     GeneralizedProximalGradient
     HQS
     LinearizedADMM

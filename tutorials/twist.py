@@ -1,12 +1,13 @@
 r"""
-IHT, ISTA, FISTA, and TWIST for Compressive sensing
-===================================================
+IHT, ISTA, FISTA, AA-ISTA, and TWIST for Compressive sensing
+============================================================
 
-In this example we want to compare four popular solvers in compressive
-sensing problem, namely IHT, ISTA, FISTA, and TwIST. The first three can
+In this example we want to compare five popular solvers in compressive
+sensing problem, namely IHT, ISTA, FISTA, AA-ISTA, and TwIST. The first three can
 be implemented using the same solver, namely the
 :py:class:`pyproximal.optimization.primal.ProximalGradient`, whilst the latter
-is implemented in :py:class:`pyproximal.optimization.primal.TwIST`.
+two are implemented using the :py:class:`pyproximal.optimization.primal.AndersonProximalGradient` and
+:py:class:`pyproximal.optimization.primal.TwIST` solvers, respectively
 
 The IHT solver tries to solve the following unconstrained problem with a L0Ball
 regularization term:
@@ -48,7 +49,6 @@ N, M = 15, 20
 A = np.random.randn(N, M)
 A = A / np.linalg.norm(A, axis=0)
 Aop = pylops.MatrixMult(A)
-Aop.explicit = False  # temporary solution whilst PyLops gets updated
 
 x = np.random.rand(M)
 x[x < 0.9] = 0
@@ -88,6 +88,17 @@ x_fista = \
                                                     callback=lambda x: callback(x, l2, l1, eps, costf))
 niterf = len(costf)
 
+# Anderson accelerated ISTA
+l1 = pyproximal.proximal.L1()
+l2 = pyproximal.proximal.L2(Op=Aop, b=y)
+costa = []
+x_ander = \
+    pyproximal.optimization.primal.AndersonProximalGradient(l2, l1, tau=tau, x0=np.zeros(M),
+                                                            epsg=eps, niter=maxit, 
+                                                            nhistory=5, show=False,
+                                                            callback=lambda x: callback(x, l2, l1, eps, costa))
+nitera = len(costa)
+
 # TWIST (Note that since the smallest eigenvalue is zero, we arbitrarily
 # choose a small value for the solver to converge stably)
 l1 = pyproximal.proximal.L1(sigma=eps)
@@ -111,6 +122,9 @@ plt.setp(m, markersize=7)
 m, s, b = ax.stem(x_fista, linefmt='--g', basefmt='--g',
                   markerfmt='go', label='FISTA')
 plt.setp(m, markersize=7)
+m, s, b = ax.stem(x_ander, linefmt='--m', basefmt='--m',
+                  markerfmt='mo', label='AA-ISTA')
+plt.setp(m, markersize=7)
 m, s, b = ax.stem(x_twist, linefmt='--b', basefmt='--b',
                   markerfmt='bo', label='TWIST')
 plt.setp(m, markersize=7)
@@ -118,9 +132,13 @@ ax.set_title('Model', size=15, fontweight='bold')
 ax.legend()
 plt.tight_layout()
 
+###############################################################################
+# Finally, let's compare the converge behaviour of the different algorithms
+
 fig, ax = plt.subplots(1, 1, figsize=(8, 3))
 ax.semilogy(costi, 'r', lw=2, label=r'$x_{ISTA} (niter=%d)$' % niteri)
 ax.semilogy(costf, 'g', lw=2, label=r'$x_{FISTA} (niter=%d)$' % niterf)
+ax.semilogy(costa, 'm', lw=2, label=r'$x_{AA-ISTA} (niter=%d)$' % nitera)
 ax.semilogy(costt, 'b', lw=2, label=r'$x_{TWIST} (niter=%d)$' % maxit)
 ax.set_title('Cost function', size=15, fontweight='bold')
 ax.set_xlabel('Iteration')
@@ -134,6 +152,6 @@ plt.tight_layout()
 # cost function since this is a constrained problem. This is however greatly influenced
 # by the fact that we assume exact knowledge of the number of non-zero coefficients.
 # When this information is not available, IHT may become suboptimal. In this case the
-# FISTA solver should always be preferred (over ISTA) and TwIST represents an
-# alternative worth checking.
+# FISTA or AA-ISTA solvers should always be preferred (over ISTA) and TwIST represents 
+# an alternative worth checking.
 
