@@ -59,7 +59,7 @@ y = Aop * x
 L = np.abs((Aop.H * Aop).eigs(1)[0])
 tau = 0.95 / L
 eps = 5e-3
-maxit = 100
+maxit = 300
 
 # IHT
 l0 = pyproximal.proximal.L0Ball(3)
@@ -99,6 +99,7 @@ x_ander = \
                                                             callback=lambda x: callback(x, l2, l1, eps, costa))
 nitera = len(costa)
 
+
 # TWIST (Note that since the smallest eigenvalue is zero, we arbitrarily
 # choose a small value for the solver to converge stably)
 l1 = pyproximal.proximal.L1(sigma=eps)
@@ -135,11 +136,11 @@ plt.tight_layout()
 ###############################################################################
 # Finally, let's compare the converge behaviour of the different algorithms
 
-fig, ax = plt.subplots(1, 1, figsize=(8, 3))
-ax.semilogy(costi, 'r', lw=2, label=r'$x_{ISTA} (niter=%d)$' % niteri)
-ax.semilogy(costf, 'g', lw=2, label=r'$x_{FISTA} (niter=%d)$' % niterf)
-ax.semilogy(costa, 'm', lw=2, label=r'$x_{AA-ISTA} (niter=%d)$' % nitera)
-ax.semilogy(costt, 'b', lw=2, label=r'$x_{TWIST} (niter=%d)$' % maxit)
+fig, ax = plt.subplots(1, 1, figsize=(8, 4))
+ax.loglog(costi, 'r', lw=2, label=r'$x_{ISTA} (niter=%d)$' % niteri)
+ax.loglog(costf, 'g', lw=2, label=r'$x_{FISTA} (niter=%d)$' % niterf)
+ax.loglog(costa, 'm', lw=2, label=r'$x_{AA-ISTA} (niter=%d)$' % nitera)
+ax.loglog(costt, 'b', lw=2, label=r'$x_{TWIST} (niter=%d)$' % maxit)
 ax.set_title('Cost function', size=15, fontweight='bold')
 ax.set_xlabel('Iteration')
 ax.legend()
@@ -154,4 +155,3 @@ plt.tight_layout()
 # When this information is not available, IHT may become suboptimal. In this case the
 # FISTA or AA-ISTA solvers should always be preferred (over ISTA) and TwIST represents 
 # an alternative worth checking.
-
