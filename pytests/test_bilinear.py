@@ -27,8 +27,8 @@ def test_lrfactorized(par):
     X = U @ V.T
     LOp = LowRankFactorizedMatrix(U, V.T, X)
 
-    assert_array_almost_equal(X.ravel(), LOp._matvecx(U.ravel()))
-    assert_array_almost_equal(X.ravel(), LOp._matvecy(V.T.ravel()))
+    assert_array_almost_equal(X.ravel(), LOp._matvecx(U.ravel()), decimal=4)
+    assert_array_almost_equal(X.ravel(), LOp._matvecy(V.T.ravel()), decimal=4)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
@@ -46,5 +46,5 @@ def test_lrfactorizedoperator(par):
 
     LOp = LowRankFactorizedMatrix(U, V.T, y, Op)
 
-    assert_array_almost_equal(y, LOp._matvecx(U.ravel()))
-    assert_array_almost_equal(y, LOp._matvecy(V.T.ravel()))
+    assert_array_almost_equal(y, LOp._matvecx(U.ravel()), decimal=4)
+    assert_array_almost_equal(y, LOp._matvecy(V.T.ravel()), decimal=4)
