@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [ ubuntu-latest ]
+        platform: [ ubuntu-latest ] # temporarily removed macos-latest because of different behavior with numpy v2
         python-version: ["3.9", "3.10", "3.11"]
 
     runs-on: ${{ matrix.platform }}
