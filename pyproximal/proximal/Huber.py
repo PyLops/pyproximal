@@ -32,8 +32,8 @@ class Huber(ProxOperator):
 
     .. math::
 
-        \prox^*_{\tau H_\alpha(\cdot)}(\mathbf{x}) =
-        \left( 1 - \frac{\tau}{\max\{\|\mathbf{x}\|_2, \tau\} + \alpha} \right) \mathbf{x}
+        \prox_{\tau H_\alpha(\cdot)}(\mathbf{x}) =
+        \left( 1 - \frac{\tau}{\max\{\|\mathbf{x}\|_2, \tau + \alpha \} } \right) \mathbf{x}
 
     """
     def __init__(self, alpha):
