@@ -1,14 +1,23 @@
 Changelog
 =========
 
+# 0.10.0
+
+* Added ``pyproximal.optimization.primal.AndersonProximalGradient`` solver
+* Added ``pyproximal.proximal.HuberCircular`` operator
+* Added `fungrad` method to ``pyproximal.proximal.Nonlinear``
+* Modified ``pyproximal.proximal.Huber`` operator as previously 
+  erroneously implemented using the definition of Circular Huber norm
+
+ 
 # 0.9.0
 
-* Added :py:class:`pyproximal.optimization.palm.iPALM` solver
-* Added :py:func:`pyproximal.optimization.palm._backtracking` method to be used when `gammaf=None` and/or `gammag=None`
-* Added :py:func:`pyproximal.utils.gradtest.gradtest_proximal` and :py:func:`pyproximal.utils.gradtest.gradtest_bilinear` methods
-* Added `tol` to :py:class:`pyproximal.optimization.primal.ProximalPoint` and
-  :py:class:`pyproximal.optimization.primal.ProximalGradient` solvers
-* Modified :py:class:`pyproximal.ProxOperator.precomposition` to allow `b` being also a vector
+* Added ``pyproximal.optimization.palm.iPALM`` solver
+* Added ``pyproximal.optimization.palm._backtracking`` method to be used when `gammaf=None` and/or `gammag=None`
+* Added ``pyproximal.utils.gradtest.gradtest_proximal`` and ``pyproximal.utils.gradtest.gradtest_bilinear`` methods
+* Added `tol` to ``pyproximal.optimization.primal.ProximalPoint`` and
+  ``pyproximal.optimization.primal.ProximalGradient`` solvers
+* Modified ``pyproximal.ProxOperator.precomposition`` to allow `b` being also a vector
 
 
 # 0.8.0

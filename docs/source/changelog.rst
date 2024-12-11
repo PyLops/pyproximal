@@ -3,6 +3,17 @@
 Changelog
 =========
 
+Version 0.10.0
+--------------
+*Released on: 11/12/2024*
+
+* Added :py:func:`pyproximal.optimization.primal.AndersonProximalGradient` solver
+* Added :py:class:`pyproximal.proximal.HuberCircular` operator
+* Added `fungrad` method to :py:class:`pyproximal.proximal.Nonlinear`
+* Modified :py:class:`pyproximal.proximal.Huber` operator as previously 
+  erroneously implemented using the definition of Circular Huber norm
+
+
 Version 0.9.0
 --------------
 *Released on: 16/08/2024*
