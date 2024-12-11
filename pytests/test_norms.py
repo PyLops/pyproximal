@@ -5,8 +5,8 @@ from numpy.testing import assert_array_almost_equal
 
 from pylops.basicoperators import Identity, Diagonal, MatrixMult, FirstDerivative
 from pyproximal.utils import moreau
-from pyproximal.proximal import Box, Euclidean, L2, L1, L21, L21_plus_L1, \
-    Huber, Nuclear, RelaxedMumfordShah, TV
+from pyproximal.proximal import Euclidean, L2, L1, L21, L21_plus_L1, \
+    Huber, HuberCircular, Nuclear, RelaxedMumfordShah, TV
 
 par1 = {'nx': 10, 'sigma': 1., 'dtype': 'float32'}  # even float32
 par2 = {'nx': 11, 'sigma': 2., 'dtype': 'float64'}  # odd float64
@@ -183,7 +183,23 @@ def test_Huber(par):
     hub = Huber(alpha=par['sigma'])
 
     # norm
+    x = np.random.uniform(0., 0.1 * par['sigma'], par['nx']).astype(par['dtype'])
+    assert hub(x) == np.sum(x ** 2) / (2 * par['sigma'])
+
+    # prox / dualprox
+    tau = 2.
+    assert moreau(hub, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_HuberCircular(par):
+    """Circular Huber norm and proximal/dual proximal
+    """
+    hub = HuberCircular(alpha=par['sigma'])
+
+    # norm
     x = np.random.uniform(0., 0.1, par['nx']).astype(par['dtype'])
+    x = (0.1 * par['sigma']) * x / np.linalg.norm(x)  # to ensure that is smaller than sigma
     assert hub(x) == np.linalg.norm(x) ** 2 / (2 * par['sigma'])
 
     # prox / dualprox
