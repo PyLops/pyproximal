@@ -22,6 +22,7 @@ The subpackage proximal contains a number of proximal operators:
     L21	                            L2,1 Norm
     L21_plus_L1	                    L2,1 + L1 mixed-norm
     Huber	                        Huber Norm
+    HuberCircular	                Circular Huber Norm
     TV                              Total Variation Norm
     RelaxedMumfordShah              Relaxed Mumford Shah Norm
     Nuclear                         Nuclear Norm
@@ -69,7 +70,7 @@ from .Hankel import *
 
 __all__ = ['Box', 'Simplex', 'Intersection', 'AffineSet', 'Quadratic',
            'Euclidean', 'EuclideanBall', 'L0', 'L0Ball', 'L01Ball', 'L1', 'L1Ball', 'L2',
-           'L2Convolve', 'L21', 'L21_plus_L1', 'Huber', 'TV', 'RelaxedMumfordShah',
+           'L2Convolve', 'L21', 'L21_plus_L1', 'Huber', 'HuberCircular', 'TV', 'RelaxedMumfordShah',
            'Nuclear', 'NuclearBall', 'Orthogonal', 'VStack', 'Nonlinear', 'SCAD',
            'Log', 'Log1', 'ETP', 'Geman', 'QuadraticEnvelopeCard', 'SingularValuePenalty',
            'QuadraticEnvelopeCardIndicator', 'QuadraticEnvelopeRankL2',

@@ -345,7 +345,7 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
     r"""Accelerated Proximal gradient
 
     This is a thin wrapper around :func:`pyproximal.optimization.primal.ProximalGradient` with
-    ``vandenberghe`` or ``fista``acceleration. See :func:`pyproximal.optimization.primal.ProximalGradient`
+    ``vandenberghe`` or ``fista`` acceleration. See :func:`pyproximal.optimization.primal.ProximalGradient`
     for details.
 
     """

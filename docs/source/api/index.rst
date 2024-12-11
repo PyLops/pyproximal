@@ -66,6 +66,7 @@ Convex
     EuclideanBall
     Hankel
     Huber
+    HuberCircular
     Intersection
     L0
     L0Ball
