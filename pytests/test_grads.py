@@ -52,6 +52,7 @@ def test_l2(par):
                           raiseerror=True, atol=1e-3,
                           verb=False)
 
+
 @pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_lowrank(par):
     """LowRankFactorizedMatrix gradient

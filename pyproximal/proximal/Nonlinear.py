@@ -14,6 +14,8 @@ class Nonlinear(ProxOperator):
     - ``fun``: a method evaluating the generic function :math:`f`
     - ``grad``: a method evaluating the gradient of the generic function
       :math:`f`
+    - ``fungrad``: a method evaluating both the generic function :math:`f` 
+      and its gradient
     - ``optimize``: a method that solves the optimization problem associated
       with the proximal operator of :math:`f`. Note that the
       ``gradprox`` method must be used (instead of ``grad``) as this will
@@ -58,11 +60,21 @@ class Nonlinear(ProxOperator):
     def _gradprox(self, x, tau):
         return self.grad(x) + 1. / tau * (x - self.y)
 
+    def _fungradprox(self, x, tau):
+        f, g = self.fungrad(x)
+        f = f + 1. / (2 * tau) * ((x - self.y) ** 2).sum()
+        g = g + 1. / tau * (x - self.y)
+        return f, g
+
     def fun(self, x):
         raise NotImplementedError('The method fun has not been implemented.'
                                   'Refer to the documentation for details on '
                                   'how to subclass this operator.')
     def grad(self, x):
+        raise NotImplementedError('The method grad has not been implemented.'
+                                  'Refer to the documentation for details on '
+                                  'how to subclass this operator.')
+    def fungrad(self, x):
         raise NotImplementedError('The method grad has not been implemented.'
                                   'Refer to the documentation for details on '
                                   'how to subclass this operator.')

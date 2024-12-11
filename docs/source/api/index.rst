@@ -66,6 +66,7 @@ Convex
     EuclideanBall
     Hankel
     Huber
+    HuberCircular
     Intersection
     L0
     L0Ball
@@ -157,6 +158,7 @@ Primal
     AcceleratedProximalGradient
     ADMM
     ADMML2
+    AndersonProximalGradient
     GeneralizedProximalGradient
     HQS
     LinearizedADMM

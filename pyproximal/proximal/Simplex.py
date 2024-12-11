@@ -204,7 +204,7 @@ def Simplex(n, radius, dims=None, axis=-1, maxiter=100,
     Notes
     -----
     As the Simplex is an indicator function, the proximal operator corresponds
-    to its orthogonal projection (see :class:`pyprox.projection.SimplexProj`
+    to its orthogonal projection (see :class:`pyproximal.projection.SimplexProj`
     for details.
 
     Note that ``tau`` does not have effect for this proximal operator, any

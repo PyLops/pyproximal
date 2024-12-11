@@ -5,8 +5,8 @@ channels:
   - numba
 dependencies:
   - python>=3.8.12
-  - numpy>=1.15.0, <2.0.0
-  - scipy>=1.8.0
+  - numpy>=1.21.0
+  - scipy>=1.11.0
   - pylops>=2.0.0
   - scikit-image
   - matplotlib
