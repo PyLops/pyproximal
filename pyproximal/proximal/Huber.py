@@ -19,7 +19,7 @@ class Huber(ProxOperator):
         |x_i| - \frac{\alpha}{2}, & |x_i| > \alpha
         \end{cases}
 
-    which behaves like a :math:`\ell_2` norm for :math:`|x_i| \leq \alpha` and a
+    which behaves like a :math:`\ell_2^2` norm for :math:`|x_i| \leq \alpha` and a
     :math:`\ell_1` norm for :math:`|x_i| > \alpha`.
 
     Parameters
@@ -82,8 +82,8 @@ class HuberCircular(ProxOperator):
         \|\mathbf{x}\|_2 - \frac{\alpha}{2}, & \|\mathbf{x}\|_2 > \alpha \\
         \end{cases}
 
-    which behaves like a :math:`\ell_2` norm for :math:`\|\mathbf{x}\|_2 \leq \alpha` and a
-    :math:`\ell_1` norm for :math:`\|\mathbf{x}\|_2 > \alpha`.
+    which behaves like a :math:`\ell_2^2` norm for :math:`\|\mathbf{x}\|_2 \leq \alpha` and a
+    :math:`\ell_2` norm for :math:`\|\mathbf{x}\|_2 > \alpha`.
 
     Parameters
     ----------
