@@ -42,7 +42,7 @@ as making new operators and very much encouraged.
 
 Ready to contribute?
 
-1. Fork the `PyLops` repo.
+1. Fork the `PyProximal` repo.
 
 2. Clone your fork locally:
     ```
