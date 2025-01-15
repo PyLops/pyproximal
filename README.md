@@ -9,10 +9,6 @@
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.06326/status.svg)](https://doi.org/10.21105/joss.06326)
 
 
-:vertical_traffic_light: :vertical_traffic_light: This library is under early development.
-Expect things to constantly change until version v1.0.0. :vertical_traffic_light: :vertical_traffic_light:
-
-
 ## Objective
 This Python library provides all the needed building blocks for solving
 non-smooth convex optimization problems using the so-called **proximal algorithms**.

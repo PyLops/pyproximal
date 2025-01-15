@@ -576,9 +576,9 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau,
 
     Parameters
     ----------
-    proxfs : :obj:`list of pyproximal.ProxOperator`
+    proxfs : :obj:`list`
         Proximal operators of the :math:`f_i` functions (must have ``grad`` implemented)
-    proxgs : :obj:`list of pyproximal.ProxOperator`
+    proxgs : :obj:`list`
         Proximal operators of the :math:`g_j` functions
     x0 : :obj:`numpy.ndarray`
         Initial vector
@@ -630,7 +630,6 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau,
     if len(weights) != len(proxgs) or np.sum(weights) != 1.:
         raise ValueError(f'omega={weights} must be an array of size {len(proxgs)} '
                          f'summing to 1')
-    print(weights)
 
     # check if epgs is a vector
     if np.asarray(epsg).size == 1.:
@@ -649,9 +648,9 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau,
               'Proximal operators (f): %s\n'
               'Proximal operators (g): %s\n'
               'tau = %10e\nepsg = %s\tniter = %d\n' % ([type(proxf) for proxf in proxfs],
-                                                         [type(proxg) for proxg in proxgs],
-                                                         0 if tau is None else tau,
-                                                         epsg_print, niter))
+                                                       [type(proxg) for proxg in proxgs],
+                                                       0 if tau is None else tau,
+                                                       epsg_print, niter))
         head = '   Itn       x[0]          f           g       J=f+eps*g'
         print(head)
 
@@ -857,19 +856,19 @@ def ADMM(proxf, proxg, x0, tau, niter=10, gfirst=False,
     function that has a known proximal operator.
 
     ADMM can also solve the problem of the form above with a more general
-    constraint: :math:`\mathbf{Ax}+\mathbf{Bz}=c`. This routine implements
+    constraint: :math:`\mathbf{Ax}+\mathbf{Bz}=\mathbf{c}`. This routine implements
     the special case where :math:`\mathbf{A}=\mathbf{I}`, :math:`\mathbf{B}=-\mathbf{I}`,
-    and :math:`c=0`, as a general algorithm can be obtained for any choice of
+    and :math:`\mathbf{c}=\mathbf{0}`, as a general algorithm can be obtained for any choice of
     :math:`f` and :math:`g` provided they have a known proximal operator.
 
     On the other hand, for more general choice of :math:`\mathbf{A}`, :math:`\mathbf{B}`,
-    and :math:`c`, the iterations are not generalizable, i.e. thye depends on the choice of
-    :math:`f` and :math:`g` functions. For this reason, we currently only provide an additional
+    and :math:`\mathbf{c}`, the iterations are not generalizable, i.e. they depend on the choice of
+    the :math:`f` and :math:`g` functions. For this reason, we currently only provide an additional
     solver for the special case where :math:`f` is a :class:`pyproximal.proximal.L2`
     operator with a linear operator  :math:`\mathbf{G}` and data :math:`\mathbf{y}`,
-    :math:`\mathbf{B}=-\mathbf{I}` and :math:`c=0`,
+    :math:`\mathbf{B}=-\mathbf{I}` and :math:`\mathbf{c}=\mathbf{0}`,
     called :func:`pyproximal.optimization.primal.ADMML2`. Note that for the very same choice
-    of :math:`\mathbf{B}` and :math:`c`, the :func:`pyproximal.optimization.primal.LinearizedADMM`
+    of :math:`\mathbf{B}` and :math:`\mathbf{c}`, the :func:`pyproximal.optimization.primal.LinearizedADMM`
     can also be used (and this does not require a specific choice of :math:`f`).
 
     Parameters
@@ -966,7 +965,8 @@ def ADMM(proxf, proxg, x0, tau, niter=10, gfirst=False,
     return x, z
 
 
-def ADMML2(proxg, Op, b, A, x0, tau, niter=10, callback=None, show=False, **kwargs_solver):
+def ADMML2(proxg, Op, b, A, x0, tau, niter=10, gfirst=False,
+           callback=None, show=False, **kwargs_solver):
     r"""Alternating Direction Method of Multipliers for L2 misfit term
 
     Solves the following minimization problem using Alternating Direction
@@ -997,6 +997,9 @@ def ADMML2(proxg, Op, b, A, x0, tau, niter=10, callback=None, show=False, **kwar
         to guarantees convergence: :math:`\tau \in (0, 1/\lambda_{max}(\mathbf{A}^H\mathbf{A})]`.
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
+    gfirst : :obj:`bool`, optional
+        Apply Proximal of operator ``g`` first (``True``) or Proximal of
+        operator ``f`` first (``False``)
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
@@ -1043,12 +1046,21 @@ def ADMML2(proxg, Op, b, A, x0, tau, niter=10, callback=None, show=False, **kwar
     x = x0.copy()
     u = z = np.zeros(A.shape[0], dtype=A.dtype)
     for iiter in range(niter):
-        # create augumented system
-        x = regularized_inversion(Op, b, [A, ], x0=x,
-                                  dataregs=[z - u, ], epsRs=[sqrttau, ],
-                                  **kwargs_solver)[0]
-        Ax = A @ x
-        z = proxg.prox(Ax + u, tau)
+        if gfirst:
+            Ax = A @ x
+            z = proxg.prox(Ax + u, tau)
+
+            # solve augumented system
+            x = regularized_inversion(Op, b, [A, ], x0=x,
+                                      dataregs=[z - u, ], epsRs=[sqrttau, ],
+                                      **kwargs_solver)[0]
+        else:
+            # solve augumented system
+            x = regularized_inversion(Op, b, [A, ], x0=x,
+                                      dataregs=[z - u, ], epsRs=[sqrttau, ],
+                                      **kwargs_solver)[0]
+            Ax = A @ x
+            z = proxg.prox(Ax + u, tau)
         u = u + Ax - z
 
         # run callback

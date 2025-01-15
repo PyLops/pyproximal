@@ -1,9 +1,29 @@
 """
-PyProx
-======
+PyProximal
+==========
 
-....
+This Python library provides all the needed building blocks for solving
+non-smooth convex optimization problems using the so-called proximal algorithms.
+
+PyProximal provides
+  1. A general construct for creating proximal operators
+  2. An extensive set of commonly used proximal operators
+  3. A set of solvers for composite objective functions with 
+     differentiable and proximable functions.
+
+Available subpackages
+---------------------
+projection
+    Project Operators
+proximal
+    Proximal Operators
+optimization
+    Solvers
+utils
+    Utility routines
+
 """
+
 from .ProxOperator import ProxOperator
 from .proximal import *
 

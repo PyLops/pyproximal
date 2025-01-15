@@ -1,6 +1,6 @@
 .. _general_examples:
 
-PyLops gallery
---------------
+PyProximal gallery
+------------------
 
 Below is a gallery of examples
