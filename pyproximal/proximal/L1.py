@@ -86,7 +86,7 @@ class L1(ProxOperator):
         \sigma,  & x_i > \sigma\\
         \end{cases}
 
-    .. [1] Chambolle, and A., Pock, "A first-order primal-dual algorithm for
+    .. [1] Chambolle, and A., Pock, "A first-order primal-dual algorithm for
         convex problems with applications to imaging", Journal of Mathematical
         Imaging and Vision, 40, 8pp. 120–145. 2011.
 

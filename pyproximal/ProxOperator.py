@@ -25,10 +25,17 @@ class ProxOperator(object):
     subclasses the ``ProxOperator`` class needs at least one of these two
     methods to be implemented directly.
 
-    .. note:: End users of PyProx should not use this class directly but simply
+    Moreover, the method ``grad`` is also defined to compute the gradient of
+    the Moreau envelope of the function. This function is only called if the
+    user does not provide a gradient function when creating the proximal operator.
+    The variable ``hasgrad`` is used to indicate if the function has a gradient
+    or not (and thus if the ``grad`` method computes the gradient of the actual
+    function or of its Moreau envelope).
+
+    .. note:: End users of PyProximal should not use this class directly but simply
       use operators that are already implemented. This class is meant for
       developers and it has to be used as the parent class of any new operator
-      developed within PyProx. Find more details regarding implementation of
+      developed within PyProximal. Find more details regarding implementation of
       new operators at :ref:`addingoperator`.
 
     Parameters
@@ -38,6 +45,10 @@ class ProxOperator(object):
     hasgrad : :obj:`bool`, optional
         Flag to indicate if the function is differentiable, i.e., has a
         uniquely defined gradient (``True``) or not (``False``).
+    sigmame : :obj:`float`, optional
+        Relaxation parameter of the Moreau envelope (when ``sigmame`` tends to infinity
+        the gradient of the Moreau envelope tends to the gradient of the function itself).
+        Refer to the docstring of the ``grad`` method for more details.
 
     Notes
     -----
@@ -49,9 +60,10 @@ class ProxOperator(object):
         \frac{1}{2 \tau}||\mathbf{y} - \mathbf{x}||^2_2
 
     """
-    def __init__(self, Op=None, hasgrad=False):
+    def __init__(self, Op=None, hasgrad=False, sigmame=1.):
         self.Op = Op
         self.hasgrad = hasgrad
+        self.sigmame = sigmame
 
     @_check_tau
     def _prox_moreau(self, x, tau, **kwargs):
@@ -120,21 +132,31 @@ class ProxOperator(object):
         return self._proxdual_moreau(x, tau, **kwargs)
 
     def grad(self, x):
-        """Compute gradient
+        """Compute gradient of the Moreau envelope of the function.
+
+        This method is only called if the user does not provide a gradient
+        because the function is not differentiable. In this case, the gradient
+        of the Moreau envelope of the function is computed instead:
+
+        .. math::
+
+            \nabla_\mathbf{x} M_{\sigma f) = 
+            \frac{1}{sigma} (\mathbf{x} - \prox_{\sigma f}(\mathbf{x}))
 
         Parameters
         ----------
         x : :obj:`np.ndarray`
             Vector
-
+        
         Returns
         -------
         g : :obj:`np.ndarray`
             Gradient vector
 
         """
-        pass
-
+        g = (x - self.prox(x, self.sigmame)) / self.sigmame
+        return g
+    
     def affine_addition(self, v):
         """Affine addition
 
