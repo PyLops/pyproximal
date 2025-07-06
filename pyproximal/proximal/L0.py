@@ -1,7 +1,8 @@
+import warnings
 import numpy as np
 
 from pyproximal.ProxOperator import _check_tau
-from pyproximal.projection import L0BallProj, L01BallProj
+from pyproximal.projection import L0BallProj, L10BallProj
 from pyproximal import ProxOperator
 from pyproximal.proximal.L1 import _current_sigma
 
@@ -138,10 +139,10 @@ class L0Ball(ProxOperator):
         return y
 
 
-class L01Ball(ProxOperator):
-    r""":math:`L_{0,1}` ball proximal operator.
+class L10Ball(ProxOperator):
+    r""":math:`L_{1,0}` ball proximal operator.
 
-    Proximal operator of the :math:`L_{0,1}` ball: :math:`L_{0,1}^{r} =
+    Proximal operator of the :math:`L_{1,0}` ball: :math:`L_{1,0}^{r} =
     \{ \mathbf{x}: \text{count}([||\mathbf{x}_1||_1, ||\mathbf{x}_2||_1, ...,
     ||\mathbf{x}_1||_1] \ne 0) \leq r \}`
 
@@ -162,14 +163,14 @@ class L01Ball(ProxOperator):
     -----
     As the L0 ball is an indicator function, the proximal operator
     corresponds to its orthogonal projection
-    (see :class:`pyproximal.projection.L01BallProj` for details.
+    (see :class:`pyproximal.projection.L10BallProj` for details.
 
     """
     def __init__(self, ndim, radius):
         super().__init__(None, False)
         self.ndim = ndim
         self.radius = radius
-        self.ball = L01BallProj(self.radius if not callable(radius) else radius(0))
+        self.ball = L10BallProj(self.radius if not callable(radius) else radius(0))
         self.count = 0
 
     def __call__(self, x, tol=1e-4):
@@ -193,3 +194,14 @@ class L01Ball(ProxOperator):
         self.ball.radius = radius
         y = self.ball(x)
         return y.ravel()
+
+
+class L01Ball(L10Ball):
+    def __init__(self, ndim, radius):
+        warnings.warn(
+            "The L01Ball class has been renamed L10Ball due " \
+            "to a mistake in the original choice of the name. As such " \
+            "L01Ball will be deprecated in v1.0.0.",
+            FutureWarning,
+        )
+        super().__init__(ndim, radius)

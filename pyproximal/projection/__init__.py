@@ -8,7 +8,8 @@ The subpackage projection contains a number of orthogonal projection:
     HyperPlaneBoxProj	        Projection onto an intersection beween a HyperPlane and a Box
     SimplexProj	                Projection onto a Simplex
     L0Proj	                    Projection onto an L0 Ball
-    L01Proj	                    Projection onto an L0,1 Ball
+    L01Proj	                    Projection onto an L1,0 Ball (deprecated)
+    L10Proj	                    Projection onto an L1,0 Ball
     L1Proj	                    Projection onto an L1 Ball
     EuclideanBallProj	        Projection onto an Euclidean Ball
     NuclearBallProj	            Projection onto a Nuclear Ball
@@ -30,5 +31,6 @@ from .Hankel import *
 
 
 __all__ = ['BoxProj', 'HyperPlaneBoxProj', 'SimplexProj', 'L0BallProj',
-           'L01BallProj', 'L1BallProj', 'EuclideanBallProj', 'NuclearBallProj',
-           'IntersectionProj', 'AffineSetProj', 'HankelProj']
+           'L01BallProj', 'L10BallProj', 'L1BallProj', 'EuclideanBallProj',
+           'NuclearBallProj', 'IntersectionProj', 'AffineSetProj',
+           'HankelProj']

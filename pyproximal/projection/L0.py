@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 
 
@@ -34,8 +35,8 @@ class L0BallProj():
         return xf.reshape(xshape)
 
 
-class L01BallProj():
-    r""":math:`L_{0,1}` ball projection.
+class L10BallProj():
+    r""":math:`L_{1,0}` ball projection.
 
     Parameters
     ----------
@@ -44,11 +45,11 @@ class L01BallProj():
 
     Notes
     -----
-    Given an :math:`L_{0,1}` ball defined as:
+    Given an :math:`L_{1,0}` ball defined as:
 
     .. math::
 
-        L_{0,1}^{r} =
+        L_{1,0}^{r} =
         \{ \mathbf{x}: \text{count}([||\mathbf{x}_1||_1,
         ||\mathbf{x}_2||_1, ..., ||\mathbf{x}_1||_1] \ne 0) \leq r \}
 
@@ -57,7 +58,7 @@ class L01BallProj():
     column of a matrix :math:`\mathbf{x}` (in absolute value), keeping those
     and zero-ing all the other entries.
     Note that this is the proximal operator of the corresponding
-    indicator function :math:`\mathcal{I}_{L_{0,1}^{r}}`.
+    indicator function :math:`\mathcal{I}_{L_{1,0}^{r}}`.
 
     """
     def __init__(self, radius):
@@ -68,3 +69,14 @@ class L01BallProj():
         xf = np.linalg.norm(x, axis=0, ord=1)
         xc[:, np.argsort(np.abs(xf))[:-self.radius]] = 0
         return xc
+
+
+class L01BallProj(L10BallProj):
+    def __init__(self, radius):
+        warnings.warn(
+            "The L01BallProj class has been renamed L10BallProj due " \
+            "to a mistake in the original choice of the name. As such " \
+            "L01BallProj will be deprecated in v1.0.0.",
+            FutureWarning,
+        )
+        self.super().__init__(radius)
