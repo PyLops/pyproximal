@@ -23,7 +23,7 @@ For both examples we investigate with different choices of regularization:
 import numpy as np
 import matplotlib.pyplot as plt
 import pylops
-from scipy import misc
+from scipy import datasets
 
 import pyproximal
 
@@ -33,7 +33,7 @@ plt.close('all')
 # Let's start by loading a sample image and adding some noise
 
 # Load image
-img = misc.ascent()
+img = datasets.ascent()
 img = img / np.max(img)
 ny, nx = img.shape
 
