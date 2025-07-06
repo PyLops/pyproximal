@@ -3,6 +3,7 @@ scipy>=1.11.0
 pylops>=2.0.0
 numba
 scikit-image
+pooch
 matplotlib
 ipython
 bm4d<4.2.4 # temporary as gclib problem arises in readthedocs

@@ -18,7 +18,6 @@ on the data term which must be satisfied exactly. Similarly, we can also conside
 import numpy as np
 import matplotlib.pyplot as plt
 import pylops
-from scipy import misc
 
 import pyproximal
 

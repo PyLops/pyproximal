@@ -4,7 +4,7 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 from pylops.basicoperators import Identity
 from pyproximal.utils import moreau
-from pyproximal.proximal import Box, EuclideanBall, L0Ball, L01Ball, L1Ball, \
+from pyproximal.proximal import Box, EuclideanBall, L0Ball, L10Ball, L1Ball, \
     NuclearBall, Simplex, AffineSet, Hankel
 
 par1 = {'nx': 10, 'ny': 8, 'axis': 0, 'dtype': 'float32'}  # even float32 dir0
@@ -66,12 +66,12 @@ def test_L0Ball(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
-def test_L01Ball(par):
-    """L01 Ball projection and proximal/dual proximal of related indicator
+def test_L10Ball(par):
+    """L10 Ball projection and proximal/dual proximal of related indicator
     """
     np.random.seed(10)
 
-    l0 = L01Ball(3, 1)
+    l0 = L10Ball(3, 1)
     x = np.random.normal(0., 1., (3, par['nx'])).astype(par['dtype']).ravel() + 1.
 
     # evaluation

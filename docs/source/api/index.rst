@@ -24,7 +24,7 @@ Orthogonal projections
     HyperPlaneBoxProj
     IntersectionProj
     L0BallProj
-    L01BallProj
+    L10BallProj
     L1BallProj
     NuclearBallProj
     SimplexProj
@@ -70,7 +70,7 @@ Convex
     Intersection
     L0
     L0Ball
-    L01Ball
+    L10Ball
     L1
     L1Ball
     L2
