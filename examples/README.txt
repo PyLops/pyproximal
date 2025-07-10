@@ -1,6 +1,6 @@
 .. _general_examples:
 
-PyProximal gallery
-------------------
+Gallery
+-------
 
-Below is a gallery of examples
+Below is a gallery of examples which use PyProximal operators and utilities.

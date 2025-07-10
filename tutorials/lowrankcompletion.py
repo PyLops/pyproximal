@@ -40,7 +40,7 @@ import matplotlib.pyplot as plt
 import pylops
 import pyproximal
 
-from scipy import misc
+from scipy import datasets
 
 np.random.seed(0)
 plt.close('all')
@@ -49,7 +49,7 @@ plt.close('all')
 # Let's start by loading a sample image
 
 # Load image
-X = misc.ascent()
+X = datasets.ascent()
 X = X/np.max(X)
 ny, nx = X.shape
 
