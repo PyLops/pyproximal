@@ -30,7 +30,7 @@ class TV(ProxOperator):
 
     Notes
     -----
-    The proximal algorithm is implemented following [1].
+    The proximal algorithm is implemented following [1]_.
 
     .. [1] Beck, A. and Teboulle, M., "Fast gradient-based algorithms for constrained total
            variation image denoising and deblurring problems", 2009.
