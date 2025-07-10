@@ -73,8 +73,7 @@ class L0(ProxOperator):
         self.count = 0
 
     def __call__(self, x):
-        sigma = _current_sigma(self.sigma, self.count)
-        return np.sum(np.abs(x) > sigma)
+        return np.sum(np.abs(x) > 0.)
 
     def _increment_count(func):
         """Increment counter
