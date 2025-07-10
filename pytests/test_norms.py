@@ -5,7 +5,7 @@ from numpy.testing import assert_array_almost_equal
 
 from pylops.basicoperators import Identity, Diagonal, MatrixMult, FirstDerivative
 from pyproximal.utils import moreau
-from pyproximal.proximal import Euclidean, L2, L1, L21, L21_plus_L1, \
+from pyproximal.proximal import Euclidean, L2, L1, L0, L21, L21_plus_L1, \
     Huber, HuberCircular, Nuclear, RelaxedMumfordShah, TV
 
 par1 = {'nx': 10, 'sigma': 1., 'dtype': 'float32'}  # even float32
@@ -136,6 +136,21 @@ def test_L1_diff(par):
     # prox / dualprox
     tau = 2.
     assert moreau(l1, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_L0(par):
+    """L0 norm and proximal/dual proximal
+    """
+    l0 = L0(sigma=par['sigma'])
+
+    # norm
+    x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+    assert l0(x) == np.sum(np.abs(x) >  0.)
+
+    # prox / dualprox
+    tau = 2.
+    assert moreau(l0, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
