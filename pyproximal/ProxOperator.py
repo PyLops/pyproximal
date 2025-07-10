@@ -371,7 +371,7 @@ class _PrecompositionOperator(ProxOperator):
         if not isinstance(a, float):
             raise ValueError('Second input must be a float')
         if not isinstance(b, (float, np.ndarray)):
-            raise ValueError('Second input must be a float')
+            raise ValueError('Third input must be a float or numpy.ndarray')
         self.f, self.a, self.b = f, a, b
         super().__init__(None, True if f.grad else False)
 
