@@ -1,10 +1,10 @@
-# scooby is a soft dependency for pyprox
+# scooby is a soft dependency for pyproximal
 try:
     from scooby import Report as ScoobyReport
 except ImportError:
     class ScoobyReport:
         def __init__(self, additional, core, optional, ncol, text_width, sort):
-            print("\nNOTE: `pyprox.Report` requires `scooby`. Install it via"
+            print("\nNOTE: `pyproximal.Report` requires `scooby`. Install it via"
                   "\n      `pip install scooby` or "
                   "`conda install -c conda-forge scooby`.\n")
 
@@ -17,7 +17,7 @@ class Report(ScoobyReport):
     console), either as html-table (notebook) or as plain text (anywhere).
 
     Always shown are the OS, number of CPU(s), ``numpy``, ``scipy``,
-    ``pylops``, ``pyprox``, ``sys.version``, and time/date.
+    ``pylops``, ``pyproximal``, ``sys.version``, and time/date.
 
     Additionally shown are, if they can be imported, ``IPython``, ``numba``,
     and ``matplotlib``. It also shows MKL information, if available.
@@ -62,7 +62,7 @@ class Report(ScoobyReport):
         """Initiate a scooby.Report instance."""
 
         # Mandatory packages.
-        core = ['numpy', 'scipy', 'pylops', 'pyprox']
+        core = ['numpy', 'scipy', 'pylops', 'pyproximal']
 
         # Optional packages.
         optional = ['IPython', 'matplotlib', 'numba']

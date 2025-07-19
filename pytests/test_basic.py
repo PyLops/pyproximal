@@ -4,7 +4,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 from pylops import MatrixMult
 
-from pyproximal.proximal import Euclidean, Quadratic, L2
+from pyproximal.proximal import Euclidean, Quadratic, L2, L1
 
 
 par1 = {'ny': 21, 'nx': 11, 'nt': 20, 'imag': 0,
@@ -58,3 +58,49 @@ def test_mul(par):
     tau = 2.
     assert_array_equal(l2.prox(x, tau), l21.prox(x, tau))
     assert_array_equal(l2.proxdual(x, tau), l21.proxdual(x, tau))
+
+
+@pytest.mark.parametrize("par", [(par1)])
+def test_precomposition_type(par):
+    """Check precomposition method raises an error
+    when type of a and b is incorrect
+    """
+    l1 = L1()
+
+    with pytest.raises(NotImplementedError):
+        _ = l1.precomposition(
+            a=1,  # should be float
+            b=np.ones(5))
+        
+        _ = l1.precomposition(
+            a=1.,  # should be float
+            b=[1, 2, 3])  # should be float, np.ndarray or cp.ndarray
+        
+
+@pytest.mark.parametrize("par", [(par1)])
+def test_postcomposition_type(par):
+    """Check postcomposition method raises an error
+    when type of sigma is incorrect
+    """
+    l1 = L1()
+
+    with pytest.raises(NotImplementedError):
+        _ = l1.postcomposition(
+            sigma=1,  # should be float
+            )
+        _ = l1.postcomposition(
+            sigma=np.ones(5),  # should be float
+            )
+
+
+@pytest.mark.parametrize("par", [(par1)])
+def test_affine_addition_type(par):
+    """Check affine_addition method raises an error
+    when type of v is incorrect
+    """
+    l1 = L1()
+
+    with pytest.raises(NotImplementedError):
+        _ = l1.affine_addition(
+            v=1,  # should be np.ndarray or cp.ndarray
+            )

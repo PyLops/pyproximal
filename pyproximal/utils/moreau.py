@@ -1,5 +1,4 @@
 import numpy as np
-from pyproximal.ProxOperator import _check_tau
 
 
 def moreau(prox, x, tau, tol=1e-5, raiseerror=True, verb=False):
