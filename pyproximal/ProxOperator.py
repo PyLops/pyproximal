@@ -1,5 +1,7 @@
 import numpy as np
 
+from pyproximal.utils.backend import cp_dtype
+
 
 def _check_tau(func):
     """Check that tau>0
@@ -97,7 +99,7 @@ class ProxOperator(object):
 
         Parameters
         ----------
-        x : :obj:`np.ndarray`
+        x : :obj:`numpy.ndarray`
             Vector
         tau : :obj:`float`
             Positive scalar weight
@@ -123,7 +125,7 @@ class ProxOperator(object):
 
         Parameters
         ----------
-        x : :obj:`np.ndarray`
+        x : :obj:`numpy.ndarray`
             Vector
         tau : :obj:`float`
             Positive scalar weight
@@ -145,12 +147,12 @@ class ProxOperator(object):
 
         Parameters
         ----------
-        x : :obj:`np.ndarray`
+        x : :obj:`numpy.ndarray`
             Vector
         
         Returns
         -------
-        g : :obj:`np.ndarray`
+        g : :obj:`numpy.ndarray`
             Gradient vector
 
         """
@@ -167,7 +169,7 @@ class ProxOperator(object):
 
         Parameters
         ----------
-        v : :obj:`np.ndarray`
+        v : :obj:`numpy.ndarray`
             Vector
 
         Notes
@@ -181,10 +183,10 @@ class ProxOperator(object):
             prox_{\tau f} (\mathbf{x} - \tau \mathbf{v})
 
         """
-        if isinstance(v, np.ndarray):
+        if isinstance(v, (np.ndarray, cp_dtype)):
             return _SumOperator(self, v)
         else:
-            raise NotImplementedError('v must be of type numpy.ndarray')
+            raise NotImplementedError('v must be a numpy.ndarray or cupy.ndarray')
 
     def postcomposition(self, sigma):
         r"""Postcomposition
@@ -224,7 +226,7 @@ class ProxOperator(object):
         ----------
         a : :obj:`float`
             Multiplicative scalar
-        b : :obj:`float` or obj:`np.ndarray`
+        b : :obj:`float` or obj:`numpy.ndarray` or obj:`cupy.ndarray`
             Additive scalar (or vector)
 
         Notes
@@ -238,7 +240,7 @@ class ProxOperator(object):
             prox_{a^2 \tau f} (a \mathbf{x} + b) - b)
 
         """
-        if isinstance(a, float) and isinstance(b, (float, np.ndarray)):
+        if isinstance(a, float) and isinstance(b, (float, np.ndarray, cp_dtype)):
             return _PrecompositionOperator(self, a, b)
         else:
             raise NotImplementedError('a must be of type float and b '
@@ -310,8 +312,8 @@ class _SumOperator(ProxOperator):
     def __init__(self, f, v):
         #if not isinstance(f, ProxOperator):
         #    raise ValueError('First input must be a ProxOperator')
-        if not isinstance(v, np.ndarray):
-            raise ValueError('Second input must be a numpy array')
+        if not isinstance(v, (np.ndarray, cp_dtype)):
+            raise ValueError('Second input must be a numpy.ndarray or cupy.ndarray')
         self.f, self.v = f, v
         super().__init__(None, True if f.grad else False)
 
@@ -370,8 +372,8 @@ class _PrecompositionOperator(ProxOperator):
         #    raise ValueError('First input must be a ProxOperator')
         if not isinstance(a, float):
             raise ValueError('Second input must be a float')
-        if not isinstance(b, (float, np.ndarray)):
-            raise ValueError('Third input must be a float or numpy.ndarray')
+        if not isinstance(b, (float, np.ndarray, cp_dtype)):
+            raise ValueError('Third input must be a float, numpy.ndarray, or cupy.ndarray')
         self.f, self.a, self.b = f, a, b
         super().__init__(None, True if f.grad else False)
 
