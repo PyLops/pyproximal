@@ -17,7 +17,7 @@ except Exception as e:
     jit = None
     jit_message = 'Failed to import numba (error:%s), use numpy.' % e
 
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 class _Simplex(ProxOperator):
@@ -222,7 +222,7 @@ def Simplex(n, radius, dims=None, axis=-1, maxiter=100,
                           maxiter=maxiter, ftol=ftol, xtol=xtol, call=call)
     else:
         if engine == 'numba' and jit is None:
-            logging.warning(jit_message)
+            logger.warning(jit_message)
         s = _Simplex(n, radius, dims=dims, axis=axis,
                      maxiter=maxiter, xtol=xtol, call=call)
     return s
