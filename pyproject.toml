@@ -47,23 +47,3 @@ exclude = ["pytests"]
 
 [tool.setuptools_scm]
 version_file = "pyproximal/version.py"
-
-[tool.mypy]
-files = ["pyproximal", "tests"]
-python_version = "3.10"
-warn_unused_configs = true
-strict = true
-enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
-warn_unreachable = true
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
-plugins = ["numpy.typing.mypy_plugin"]
-
-[[tool.mypy.overrides]]
-module = "pyproximal.*"
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-
-[[tool.mypy.overrides]]
-module = ["numpy.*", "pylops.*", "scipy.*"]
-ignore_missing_imports = true
