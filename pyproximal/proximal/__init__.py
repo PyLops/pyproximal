@@ -40,6 +40,7 @@ The subpackage proximal contains a number of proximal operators:
     QuadraticEnvelopeCardIndicator  The quadratic envelope of the indicator function of the cardinality function
     Hankel                          Hankel indicator
     QuadraticEnvelopeRankL2         The quadratic envelope of the rank function with an L2 misfit term
+    HalfSpace                       Half space indicator
 
 """
 
@@ -68,6 +69,7 @@ from .Geman import *
 from .QuadraticEnvelope import *
 from .SingularValuePenalty import *
 from .Hankel import *
+from .HalfSpace import *
 
 __all__ = ['Box', 'Simplex', 'Intersection', 'AffineSet', 'Quadratic',
            'Euclidean', 'EuclideanBall', 'L0', 'L0Ball', 'L01Ball', 'L10Ball',
@@ -76,4 +78,4 @@ __all__ = ['Box', 'Simplex', 'Intersection', 'AffineSet', 'Quadratic',
            'Orthogonal', 'VStack', 'Nonlinear', 'SCAD', 'Log', 'Log1', 'ETP',
            'Geman', 'QuadraticEnvelopeCard', 'SingularValuePenalty',
            'QuadraticEnvelopeCardIndicator', 'QuadraticEnvelopeRankL2',
-           'Hankel']
+           'Hankel', 'HalfSpace']

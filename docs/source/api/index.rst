@@ -21,6 +21,7 @@ Orthogonal projections
     BoxProj
     EuclideanBallProj
     HankelProj
+    HalfSpaceProj
     HyperPlaneBoxProj
     IntersectionProj
     L0BallProj
@@ -64,6 +65,7 @@ Convex
     Box
     Euclidean
     EuclideanBall
+    HalfSpace
     Hankel
     Huber
     HuberCircular
