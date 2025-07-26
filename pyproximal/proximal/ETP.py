@@ -1,4 +1,5 @@
 import numpy as np
+from pylops.utils.typing import NDArray
 from scipy.special import lambertw
 
 from pyproximal.ProxOperator import _check_tau
@@ -48,7 +49,7 @@ class ETP(ProxOperator):
 
     """
 
-    def __init__(self, sigma, gamma=1.0):
+    def __init__(self, sigma: float, gamma: float = 1.0) -> None:
         super().__init__(None, False)
         if sigma < 0:
             raise ValueError('Variable "sigma" must be positive.')
@@ -57,14 +58,14 @@ class ETP(ProxOperator):
         self.sigma = sigma
         self.gamma = gamma
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> bool:
         return np.sum(self.elementwise(x))
 
-    def elementwise(self, x):
+    def elementwise(self, x: NDArray) -> NDArray:
         return self.sigma / (1 - np.exp(-self.gamma)) * (1 - np.exp(-self.gamma * np.abs(x)))
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         k = tau * self.sigma / (1 - np.exp(-self.gamma))
         out = np.zeros_like(x)
 

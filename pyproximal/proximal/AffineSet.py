@@ -1,7 +1,14 @@
+from typing import TYPE_CHECKING
+
 import numpy as np
+from pylops.utils.typing import NDArray
+
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
 from pyproximal.projection import AffineSetProj
+
+if TYPE_CHECKING:
+    from pylops.linearoperator import LinearOperator
 
 
 class AffineSet(ProxOperator):
@@ -25,18 +32,18 @@ class AffineSet(ProxOperator):
     details.
 
     """
-    def __init__(self, Op, b, niter):
+    def __init__(self, Op: "LinearOperator", b: NDArray, niter: int) -> None:
         super().__init__(Op, False)
         self.b = b
         self.niter = niter
         self.affine = AffineSetProj(self.Op, self.b, self.niter)
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> bool:
         if np.allclose(self.Op.matvec(x), self.b):
             return True
         else:
             return False
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         return self.affine(x)
