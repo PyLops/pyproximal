@@ -166,6 +166,24 @@ xinv_admm = pyproximal.optimization.primal.ADMM(fnl, ind,
 xhist_admm = np.array(xhist)
 
 ###############################################################################
+# And using the Douglas-Rachford Splitting solver
+
+fnl = Rosebrock(niter=20, x0=np.zeros(2), warm=True)
+fnl.setup(1, 10, alpha=0.02)
+ind = pyproximal.proximal.Box(lower, upper)
+
+x0 = np.array([0, 0])
+
+xhist = [x0,]
+xinv_dr = pyproximal.optimization.primal.DouglasRachfordSplitting(
+    fnl, ind,
+    tau=1.,
+    x0=x0,
+    niter=30, show=True,
+    callback=callback)
+xhist_dr = np.array(xhist)
+
+###############################################################################
 # To conclude it is important to notice that whilst we implemented a vanilla
 # gradient descent inside the optimize method, any more advanced solver can
 # be used (here for example we will repeat the same exercise using L-BFGS from
@@ -202,6 +220,24 @@ xinv_admm_lbfgs = pyproximal.optimization.primal.ADMM(fnl, ind,
 xhist_admm_lbfgs = np.array(xhist)
 
 ###############################################################################
+# And using the Douglas-Rachford Splitting solver
+
+fnl = Rosebrock_lbfgs(niter=20, x0=np.zeros(2), warm=True)
+fnl.setup(1, 10, alpha=0.02)
+ind = pyproximal.proximal.Box(lower, upper)
+
+x0 = np.array([0, 0])
+
+xhist = [x0,]
+xinv_dr_lbfgs = pyproximal.optimization.primal.DouglasRachfordSplitting(
+    fnl, ind,
+    tau=1.,
+    x0=x0,
+    niter=30, show=True,
+    callback=callback)
+xhist_dr_lbfgs = np.array(xhist)
+
+###############################################################################
 # Finally let's compare the results.
 
 fig, ax = contour_rosenbrock(x, y)
@@ -213,8 +249,25 @@ ax.plot(xhist_pg[:, 0], xhist_pg[:, 1], '.-b', ms=20, lw=2, label='PG')
 ax.plot(xhist_admm[:, 0], xhist_admm[:, 1], '.-g', ms=20, lw=2, label='ADMM')
 ax.plot(xhist_admm_lbfgs[:, 0], xhist_admm_lbfgs[:, 1], '.-m', ms=20, lw=2,
         label='ADMM with LBFGS')
+ax.plot(xhist_dr[:, 0], xhist_dr[:, 1], ".--y", ms=20, lw=2, label="DR")
+ax.plot(xhist_dr_lbfgs[:, 0], xhist_dr_lbfgs[:, 1], ".--r", ms=20, lw=2,
+        label="DR with LBFGS")
 ax.set_title('Rosenbrock optimization')
 ax.legend()
 ax.set_xlim(x[0], x[-1])
 ax.set_ylim(y[0], y[-1])
 fig.tight_layout()
+
+###############################################################################
+# Let's see the minimizer and minimum.
+
+print("name                 xopt                    f(xopt)")
+for hist, name in [
+    (xhist_pg, "PG"),
+    (xhist_admm, "ADMM"),
+    (xhist_admm_lbfgs, "ADMM with LBFGS"),
+    (xhist_dr, "DR"),
+    (xhist_dr_lbfgs, "DR with LBFGS"),
+]:
+    xopt = hist[-1]
+    print(f"{name:20s} {xopt} {fnl(xopt)}")

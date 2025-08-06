@@ -19,6 +19,7 @@ operators:
     LinearizedADMM                  Linearized ADMM
     TwIST                           Two-step Iterative Shrinkage/Threshold
     PlugAndPlay                     Plug-and-Play Prior with ADMM
+    DouglasRachfordSplitting        Douglas-Rachford algorithm
 
 A list of solvers in ``pyproximal.optimization.proximaldual`` using both proximal
 and dual proximal operators:

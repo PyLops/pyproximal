@@ -1336,3 +1336,123 @@ def TwIST(proxg, A, b, x0, alpha=None, beta=None, eigs=None, niter=10,
         return x, j
     else:
         return x
+
+
+def DouglasRachfordSplitting(
+    proxf,
+    proxg,
+    x0,
+    tau,
+    eta=1.0,
+    niter=10,
+    gfirst=True,
+    callback=None,
+    callbacky=False,
+    show=False,
+):
+    r"""Douglas-Rachford Splitting
+
+    Solves the following minimization problem using Douglas-Rachford Splitting
+    algorithm:
+
+    .. math::
+
+        \mathbf{x} = \argmin_\mathbf{x} f(\mathbf{x}) + g(\mathbf{x})
+
+    where :math:`f(\mathbf{x})` and :math:`g(\mathbf{x})` are any convex
+    functions that has known proximal operators.
+
+    Parameters
+    ----------
+    proxf : :obj:`pyproximal.ProxOperator`
+        Proximal operator of f function
+    proxg : :obj:`pyproximal.ProxOperator`
+        Proximal operator of g function
+    x0 : :obj:`numpy.ndarray`
+        Initial vector
+    tau : :obj:`float`
+        Positive scalar weight
+    eta : :obj:`float`, optional
+        Relaxation parameter (must be between 0 and 2, 0 excluded).
+    niter : :obj:`int`, optional
+        Number of iterations of iterative scheme
+    gfirst : :obj:`bool`, optional
+        Apply Proximal of operator ``g`` first (``True``) or Proximal of
+        operator ``f`` first (``False``)
+    callback : :obj:`callable`, optional
+        Function with signature (``callback(x)``) to call after each iteration
+        where ``x`` is the current model vector
+    callbacky : :obj:`bool`, optional
+        Modify callback signature to (``callback(x, y)``)
+        when ``callbacky=True``
+    show : :obj:`bool`, optional
+        Display iterations log
+
+    Returns
+    -------
+    x : :obj:`numpy.ndarray`
+        Inverted model
+
+
+    Notes
+    -----
+    The Douglas-Rachford Splitting algorithm can be expressed by the following
+    recursion:
+
+    .. math::
+
+        \mathbf{y}^{k} &= \prox_{\tau g}(\mathbf{x}^k) \\
+        \mathbf{x}^{k+1} &= \mathbf{x}^{k} +
+        \eta (\prox_{\tau f}(2 \mathbf{y}^{k} - \mathbf{x}^{k})
+        - \mathbf{y}^{k})
+
+    .. [1] Patrick L. Combettes and Jean-Christophe Pesquet. 2011. Proximal
+        Splitting Methods in Signal Processing. In Fixed-Point Algorithms for
+        Inverse Problems in Science and Engineering, Springer, 185-212.
+        https://doi.org/10.1007/978-1-4419-9569-8_10
+    .. [2] Scott B. Lindstrom and Brailey Sims. 2021. Survey: Sixty Years of
+        Douglas-Rachford. Journal of the Australian Mathematical Society, 110,
+        3, 333-370. https://doi.org/10.1017/S1446788719000570
+        https://arxiv.org/abs/1809.07181
+
+    """
+    if show:
+        tstart = time.time()
+        print(
+            "Douglas-Rachford Splitting\n"
+            "---------------------------------------------------------\n"
+            f"Proximal operator (f): {type(proxf)}\n"
+            f"Proximal operator (g): {type(proxg)}\n"
+            f"tau = {tau:10e}\tniter = {niter:d}\n"
+        )
+        head = "   Itn       x[0]          f           g       J = f + g"
+        print(head)
+
+    x = x0.copy()
+    for iiter in range(niter):
+
+        if gfirst:
+            y = proxg.prox(x, tau)
+            x = x + eta * (proxf.prox(2 * y - x, tau) - y)
+        else:
+            y = proxf.prox(x, tau)
+            x = x + eta * (proxg.prox(2 * y - x, tau) - y)
+
+        # run callback
+        if callback is not None:
+            if callbacky:
+                callback(x, y)
+            else:
+                callback(x)
+        if show:
+            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
+                pf, pg = proxf(x), proxg(x)
+                print(
+                    f"{iiter + 1:6d}  {np.real(to_numpy(x[0])):12.5e}  "
+                    f"{pf:10.3e}  {pg:10.3e}  {pf + pg:10.3e}"
+                )
+
+    if show:
+        print(f"\nTotal time (s) = {time.time() - tstart:.2f}")
+        print("---------------------------------------------------------\n")
+    return x, y
