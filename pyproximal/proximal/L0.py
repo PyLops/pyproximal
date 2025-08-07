@@ -1,5 +1,8 @@
+from typing import Any, Callable, List, Union
+
 import warnings
 import numpy as np
+from pylops.utils.typing import NDArray
 
 from pyproximal.ProxOperator import _check_tau
 from pyproximal.projection import L0BallProj, L10BallProj
@@ -7,7 +10,7 @@ from pyproximal import ProxOperator
 from pyproximal.proximal.L1 import _current_sigma
 
 
-def _hardthreshold(x, thresh):
+def _hardthreshold(x: NDArray, thresh: float) -> NDArray:
     r"""Hard thresholding.
 
     Applies hard thresholding to vector ``x`` (equal to the proximity
@@ -43,7 +46,7 @@ class L0(ProxOperator):
 
     Parameters
     ----------
-    sigma : :obj:`float` or :obj:`list` or :obj:`np.ndarray` or :obj:`func`, optional
+    sigma : :obj:`float` or :obj:`np.ndarray` or :obj:`func`, optional
         Multiplicative coefficient of L0 norm. This can be a constant number, a list
         of values (for multidimensional inputs, acting on the second dimension) or
         a function that is called passing a counter which keeps track of how many
@@ -67,25 +70,29 @@ class L0(ProxOperator):
     where :math:`\operatorname{hard}` is the so-called called *hard thresholding*.
 
     """
-    def __init__(self, sigma=1.):
+    def __init__(
+            self, 
+            sigma: Union[float, NDArray, 
+                         Callable[[int], Union[float, NDArray]]] = 1.,
+        ) -> None:
         super().__init__(None, False)
         self.sigma = sigma
         self.count = 0
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         return np.sum(np.abs(x) > 0.)
 
-    def _increment_count(func):
+    def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
         """Increment counter
         """
-        def wrapped(self, *args, **kwargs):
+        def wrapped(self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
         return wrapped
 
     @_increment_count
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         sigma = _current_sigma(self.sigma, self.count)
         x = _hardthreshold(x, tau * sigma)
         return x
@@ -111,27 +118,27 @@ class L0Ball(ProxOperator):
     (see :class:`pyproximal.projection.L0BallProj` for details.
 
     """
-    def __init__(self, radius):
+    def __init__(self, radius: Union[int, Callable[..., Any]]) -> None:
         super().__init__(None, False)
         self.radius = radius
-        self.ball = L0BallProj(self.radius if not callable(radius) else radius(0))
+        self.ball = L0BallProj(self.radius if not callable(radius) else radius(0))        
         self.count = 0
 
-    def __call__(self, x, tol=1e-4):
+    def __call__(self, x: NDArray, tol: float = 1e-4) -> bool:
         radius = _current_sigma(self.radius, self.count)
-        return np.linalg.norm(np.abs(x), ord=0) <= radius
+        return bool(np.linalg.norm(np.abs(x), ord=0) <= radius)
 
-    def _increment_count(func):
+    def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
         """Increment counter
         """
-        def wrapped(self, *args, **kwargs):
+        def wrapped(self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
         return wrapped
 
     @_increment_count
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         radius = _current_sigma(self.radius, self.count)
         self.ball.radius = radius
         y = self.ball(x)
@@ -160,34 +167,34 @@ class L10Ball(ProxOperator):
 
     Notes
     -----
-    As the L0 ball is an indicator function, the proximal operator
+    As the :math:`L_{1,0}` ball is an indicator function, the proximal operator
     corresponds to its orthogonal projection
     (see :class:`pyproximal.projection.L10BallProj` for details.
 
     """
-    def __init__(self, ndim, radius):
+    def __init__(self, ndim: int, radius: Union[int, Callable[..., Any]]) -> None:
         super().__init__(None, False)
         self.ndim = ndim
         self.radius = radius
-        self.ball = L10BallProj(self.radius if not callable(radius) else radius(0))
+        self.ball = L10BallProj(self.radius if not callable(radius) else radius(0))        
         self.count = 0
 
-    def __call__(self, x, tol=1e-4):
+    def __call__(self, x: NDArray, tol: float = 1e-4) -> bool:
         x = x.reshape(self.ndim, len(x) // self.ndim)
         radius = _current_sigma(self.radius, self.count)
-        return np.linalg.norm(np.linalg.norm(x, ord=1, axis=0), ord=0) <= radius
+        return bool(np.linalg.norm(np.linalg.norm(x, ord=1, axis=0), ord=0) <= radius)
 
-    def _increment_count(func):
+    def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
         """Increment counter
         """
-        def wrapped(self, *args, **kwargs):
+        def wrapped(self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
         return wrapped
 
     @_increment_count
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         x = x.reshape(self.ndim, len(x) // self.ndim)
         radius = _current_sigma(self.radius, self.count)
         self.ball.radius = radius
@@ -196,7 +203,7 @@ class L10Ball(ProxOperator):
 
 
 class L01Ball(L10Ball):
-    def __init__(self, ndim, radius):
+    def __init__(self, ndim: int, radius: Union[int, Callable[..., Any]]) -> None:
         warnings.warn(
             "The L01Ball class has been renamed L10Ball due " \
             "to a mistake in the original choice of the name. As such " \
