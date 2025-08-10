@@ -167,6 +167,7 @@ Primal
     ProximalGradient
     ProximalPoint
     TwIST
+    DouglasRachfordSplitting
 
 .. currentmodule:: pyproximal.optimization.palm
 
