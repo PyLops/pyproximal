@@ -844,7 +844,7 @@ def ADMM(proxf, proxg, x0, tau, niter=10, gfirst=False,
     r"""Alternating Direction Method of Multipliers
 
     Solves the following minimization problem using Alternating Direction
-    Method of Multipliers (also known as Douglas-Rachford splitting):
+    Method of Multipliers:
 
     .. math::
 
@@ -910,7 +910,7 @@ def ADMM(proxf, proxg, x0, tau, niter=10, gfirst=False,
 
     Notes
     -----
-    The ADMM algorithm can be expressed by the following recursion:
+    The ADMM algorithm can be expressed by the following recursion [1]_:
 
     .. math::
 
@@ -922,6 +922,11 @@ def ADMM(proxf, proxg, x0, tau, niter=10, gfirst=False,
     stopped too early ``x`` is guaranteed to belong to the domain of ``f``
     while ``z`` is guaranteed to belong to the domain of ``g``. Depending on
     the problem either of the two may be the best solution.
+
+    .. [1] S. Boyd, N. Parikh, E. Chu, B. Peleato, and J. Eckstein. 2011.
+        Distributed optimization and statistical learning via the alternating
+        direction method of multipliers. Foundations and Trends in Machine
+        Learning, 3 (1), 1-122. https://doi.org/10.1561/2200000016.
 
     """
     if show:
@@ -1085,7 +1090,7 @@ def LinearizedADMM(proxf, proxg, A, x0, tau, mu, niter=10,
     r"""Linearized Alternating Direction Method of Multipliers
 
     Solves the following minimization problem using Linearized Alternating
-    Direction Method of Multipliers (also known as Douglas-Rachford splitting):
+    Direction Method of Multipliers:
 
     .. math::
 
@@ -1135,7 +1140,7 @@ def LinearizedADMM(proxf, proxg, A, x0, tau, mu, niter=10,
 
     Notes
     -----
-    The Linearized-ADMM algorithm can be expressed by the following recursion:
+    The Linearized-ADMM algorithm can be expressed by the following recursion [1]_:
 
     .. math::
 
@@ -1145,6 +1150,9 @@ def LinearizedADMM(proxf, proxg, A, x0, tau, mu, niter=10,
         \mathbf{u}^k)\\
         \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{A}\mathbf{x}^{k+1} -
         \mathbf{z}^{k+1}
+
+    .. [1] N., Parikh, "Proximal Algorithms", Foundations and Trends
+        in Optimization. 2013.
 
     """
     if show:
@@ -1397,7 +1405,7 @@ def DouglasRachfordSplitting(
     Notes
     -----
     The Douglas-Rachford Splitting algorithm can be expressed by the following
-    recursion:
+    recursion [1]_, [2]_:
 
     .. math::
 

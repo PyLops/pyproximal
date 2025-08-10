@@ -101,7 +101,7 @@ def test_ADMM_DRS(par):
     L = (Rop.H * Rop).eigs(1).real.item()
     tau = 0.5 / L
 
-    # PG
+    # ADMM
     l2 = L2(Op=Rop, b=y, niter=10, warm=True)
     l1 = L1(sigma=5e-1)
     xadmm = ADMM(
@@ -109,7 +109,7 @@ def test_ADMM_DRS(par):
         tau=tau, niter=100, show=True
     )
 
-    # DRS
+    # DRS with g first
     l2 = L2(Op=Rop, b=y, niter=10, warm=True)
     l1 = L1(sigma=5e-1)
     xdrs_g = DouglasRachfordSplitting(
@@ -118,7 +118,7 @@ def test_ADMM_DRS(par):
         gfirst=True
     )
 
-    # DRS
+    # DRS with f first
     l2 = L2(Op=Rop, b=y, niter=10, warm=True)
     l1 = L1(sigma=5e-1)
     xdrs_f = DouglasRachfordSplitting(
