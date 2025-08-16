@@ -169,8 +169,13 @@ class L1Ball(ProxOperator):
     (see :class:`pyproximal.projection.L1BallProj` for details.
 
     """
-    def __init__(self, n: int, radius: float, 
-                 maxiter: int = 100, xtol: float = 1e-5) -> None:
+    def __init__(
+            self, 
+            n: int, 
+            radius: float, 
+            maxiter: int = 100, 
+            xtol: float = 1e-5,
+        ) -> None:
         super().__init__(None, False)
         self.n = n
         self.radius = radius
