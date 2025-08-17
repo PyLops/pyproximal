@@ -198,7 +198,7 @@ def Simplex(
     dims : :obj:`tuple`, optional
         Dimensions of the matrix onto which the input vector is reshaped
     axis : :obj:`int`, optional
-        Axis along which simplex is repeatedly applied when ``dims`` is not
+        Axis along which simplex is repeatedly applied when ``dims`` is
         provided
     maxiter : :obj:`int`, optional
         Maximum number of iterations used by bisection
