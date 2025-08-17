@@ -64,5 +64,5 @@ module = "pyproximal.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["numpy.*", "pylops.*", "scipy.*"]
+module = ["numpy.*", "numba.*", "pylops.*", "scipy.*"]
 ignore_missing_imports = true

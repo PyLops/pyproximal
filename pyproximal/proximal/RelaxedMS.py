@@ -1,11 +1,14 @@
+from typing import Any, Callable, List, Optional, Union
+
 import numpy as np
+from pylops.utils.typing import NDArray
 
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
 from pyproximal.proximal.L1 import _current_sigma
 
 
-def _l2(x, alpha):
+def _l2(x: NDArray, alpha: float) -> NDArray:
     r"""Scaling operation.
 
     Applies the proximal of ``alpha||y - x||_2^2`` which is essentially a scaling operation.
@@ -27,7 +30,10 @@ def _l2(x, alpha):
     return y
 
 
-def _current_kappa(kappa, count):
+def _current_kappa(
+        kappa: Union[float, Callable[[int], Union[float, NDArray]]], 
+        count: int,
+    ) -> float:
     if not callable(kappa):
         return kappa
     else:
@@ -42,13 +48,13 @@ class RelaxedMumfordShah(ProxOperator):
 
     Parameters
     ----------
-    sigma : :obj:`float` or :obj:`list` or :obj:`np.ndarray` or :obj:`func`, optional
+    sigma : :obj:`float` or :obj:`np.ndarray` or :obj:`func`, optional
         Multiplicative coefficient of L2 norm that controls the smoothness of the solutuon.
         This can be a constant number, a list of values (for multidimensional inputs, acting
         on the second dimension) or a function that is called passing a counter which keeps
         track of how many times the ``prox`` method has been invoked before and returns a
         scalar (or a list of) ``sigma`` to be used.
-    kappa : :obj:`float` or :obj:`list` or :obj:`np.ndarray` or :obj:`func`, optional
+    kappa : :obj:`float` or :obj:`np.ndarray` or :obj:`func`, optional
         Constant value in the rMS norm which essentially controls when the norm allows a jump. This can be a
         constant number, a list of values (for multidimensional inputs, acting on the second dimension) or
         a function that is called passing a counter which keeps track of how many
@@ -70,18 +76,24 @@ class RelaxedMumfordShah(ProxOperator):
             Mumford-Shah functional: European Conference on Computer Vision, 127–141.
 
     """
-    def __init__(self, sigma=1., kappa=1.):
+    def __init__(
+            self, 
+            sigma: Union[float, NDArray,
+                         Callable[[int], Union[float, NDArray]]] = 1.,
+            kappa: Union[float, NDArray,
+                         Callable[[int], Union[float, NDArray]]] = 1.,
+            ) -> None:
         super().__init__(None, False)
         self.sigma = sigma
         self.kappa = kappa
         self.count = 0
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         sigma = _current_sigma(self.sigma, self.count)
         kappa = _current_sigma(self.kappa, self.count)
-        return np.minimum(sigma * np.linalg.norm(x) ** 2, kappa)
+        return float(np.minimum(sigma * np.linalg.norm(x) ** 2, kappa))
 
-    def _increment_count(func):
+    def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
         """Increment counter
         """
         def wrapped(self, *args, **kwargs):
@@ -91,7 +103,7 @@ class RelaxedMumfordShah(ProxOperator):
 
     @_increment_count
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         sigma = _current_sigma(self.sigma, self.count)
         kappa = _current_sigma(self.kappa, self.count)
 

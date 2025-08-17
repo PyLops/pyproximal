@@ -1,4 +1,4 @@
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 import numpy as np
 from pylops.utils.typing import NDArray
@@ -37,9 +37,9 @@ def _softthreshold(x: NDArray, thresh: float) -> NDArray:
 
 
 def _current_sigma(
-        sigma: Union[float, Callable[[int], Union[float, List[float], NDArray]]], 
+        sigma: Union[float, Callable[[int], Union[float, NDArray]]], 
         count: int,
-    ) -> float:
+    ) -> Union[float, NDArray]:
     if not callable(sigma):
         return sigma
     else:

@@ -1,6 +1,10 @@
+from typing import Union
+
 import numpy as np
 
 from pylops.optimization.cls_sparsity import _softthreshold
+from pylops.utils.typing import NDArray, ShapeLike
+
 from pyproximal.ProxOperator import _check_tau
 from pyproximal.projection import NuclearBallProj
 from pyproximal import ProxOperator
@@ -55,22 +59,22 @@ class Nuclear(ProxOperator):
 
     """
 
-    def __init__(self, dim, sigma=1.):
+    def __init__(self, dim: ShapeLike, sigma: Union[float, NDArray] = 1.) -> None:
         super().__init__(None, False)
         self.dim = dim
         self.sigma = sigma
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         X = x.reshape(self.dim)
         eigs = np.linalg.eigvalsh(X.T @ X)
         eigs[eigs < 0] = 0  # ensure all eigenvalues at positive
-        return np.sum(np.flip(self.sigma) * np.sqrt(eigs))
+        return float(np.sum(np.flip(self.sigma) * np.sqrt(eigs)))
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         X = x.reshape(self.dim)
         U, S, Vh = np.linalg.svd(X, full_matrices=False)
-        sigma = self.sigma if np.isscalar(self.sigma) else self.sigma[:S.size]
+        sigma = self.sigma[:S.size] if isinstance(self.sigma, np.ndarray) and self.sigma.size > 1 else self.sigma
         Sth = _softthreshold(S, tau * sigma)
         X = np.dot(U * Sth, Vh)
         return X.ravel()
@@ -109,10 +113,10 @@ class NuclearBall(ProxOperator):
         self.ball = NuclearBallProj(min(self.dims), self.radius,
                                     self.maxiter, self.xtol)
 
-    def __call__(self, x, tol=1e-5):
-        return np.linalg.norm(x.reshape(self.dims), ord='nuc') - self.radius < tol
+    def __call__(self, x: NDArray, tol: float = 1e-5) -> bool:
+        return bool(np.linalg.norm(x.reshape(self.dims), ord='nuc') - self.radius < tol)
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         y = self.ball(x.reshape(self.dims))
         return y.ravel()

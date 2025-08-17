@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 import numpy as np
-
 from pylops.utils.typing import NDArray
 
 from pyproximal.utils.backend import cp_dtype

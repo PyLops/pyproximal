@@ -1,6 +1,10 @@
+from typing import TYPE_CHECKING, Union
+
 import numpy as np
 
 from pylops.optimization.cls_sparsity import _hardthreshold
+from pylops.utils.typing import IntNDArray, NDArray, ShapeLike
+
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
 
@@ -74,18 +78,18 @@ class QuadraticEnvelopeCard(ProxOperator):
 
     """
 
-    def __init__(self, mu):
+    def __init__(self, mu: float) -> None:
         super().__init__(None, False)
         self.mu = mu
 
-    def __call__(self, x):
-        return np.sum(self.elementwise(x))
+    def __call__(self, x: NDArray) -> float:
+        return float(np.sum(self.elementwise(x)))
 
-    def elementwise(self, x):
+    def elementwise(self, x: NDArray) -> NDArray:
         return self.mu - 0.5 * np.maximum(0, np.sqrt(2 * self.mu) - np.abs(x)) ** 2
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         r = np.abs(x)
         idx = r < np.sqrt(2 * self.mu)
         if tau >= 1:
@@ -155,32 +159,32 @@ class QuadraticEnvelopeCardIndicator(ProxOperator):
     ----------
     .. [1] Carlsson, M. "On Convex Envelopes and Regularization of Non-convex
         Functionals Without Moving Global Minima", In Journal of Optimization Theory
-        and Applications, 183:66–84, 2019.
+        and Applications, 183:66-84, 2019.
     .. [2] Larsson, V. and Olsson, C. "Convex Low Rank Approximation", In International
-        Journal of Computer Vision (IJCV), 120:194–214, 2016.
+        Journal of Computer Vision (IJCV), 120:194-214, 2016.
     .. [3] Andersson et al. "Convex envelopes for fixed rank approximation", In
-        Optimization Letters, 11:1783–1795, 2017.
+        Optimization Letters, 11:1783-1795, 2017.
 
     """
 
-    def __init__(self, r0):
+    def __init__(self, r0: Union[int, IntNDArray]) -> None:
         super().__init__(None, False)
         self.r0 = r0
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         if x.size <= self.r0 or np.count_nonzero(x) <= self.r0:
             return 0
         xs = np.sort(np.abs(x))[::-1]
         sums = np.cumsum(xs[::-1])
         sums = sums[-self.r0:] / np.arange(1, self.r0 + 1)
         tmp = np.diff(sums) > 0
-        k_star = np.argmax(tmp)
+        k_star = int(np.argmax(tmp))
         if k_star == 0 and not tmp[k_star]:
             k_star = self.r0 - 1
-        return 0.5 * ((k_star + 1) * sums[k_star] ** 2 - np.sum(xs[self.r0-k_star-1:] ** 2))
+        return float(0.5 * ((k_star + 1) * sums[k_star] ** 2 - np.sum(xs[self.r0-k_star-1:] ** 2)))
 
     @_check_tau
-    def prox(self, y, tau):
+    def prox(self, y: NDArray, tau: float) -> NDArray:
         rho = 1 / tau
         if rho <= 1:
             return _hardthreshold(y, tau)
@@ -200,16 +204,16 @@ class QuadraticEnvelopeCardIndicator(ProxOperator):
             x = x[idinv]
             x = x * theta
         else:
-            j = np.min(np.where(rnew <= rnew[self.r0])[0])
-            l = np.max(np.where(rnew >= rnew[self.r0 - 1])[0])
+            j: int = np.min(np.where(rnew <= rnew[self.r0])[0])
+            l: int = np.max(np.where(rnew >= rnew[self.r0 - 1])[0])
             z = np.sort(rnew[j:l + 1])[::-1]
             z1 = z[0]
             for z2 in z[1:]:
                 s = (z1 + z2) / 2
                 temp = np.where(rnew <= s)[0]
-                j1 = np.min(temp)
+                j1: int = np.min(temp)
                 temp = np.where(rnew >= s)[0]
-                l1 = np.max(temp)
+                l1: int = np.max(temp)
                 sI = (rho * sum(rsort[j1:l1 + 1])) / ((self.r0 - j1) * rho + (l1 + 1 - self.r0) * 1)
                 if z2 <= sI <= z1:
                     x = np.concatenate((np.maximum(rnew[:self.r0], sI), np.minimum(rnew[self.r0:], sI)))
@@ -262,21 +266,26 @@ class QuadraticEnvelopeRankL2(ProxOperator):
 
     """
 
-    def __init__(self, dim, r0, M):
+    def __init__(
+            self,
+            dim: ShapeLike, 
+            r0: int, 
+            M: NDArray
+    ) -> None:
         super().__init__(None, False)
         self.dim = dim
         self.r0 = r0
         self.M = M.copy()
         self.penalty = QuadraticEnvelopeCardIndicator(r0)
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         X = x.reshape(self.dim)
         eigs = np.linalg.eigvalsh(X.T @ X)
         eigs[eigs < 0] = 0  # ensure all eigenvalues at positive
-        return np.sum(self.penalty(np.sqrt(eigs))) + 0.5 * np.linalg.norm(X - self.M, 'fro')
+        return float(np.sum(self.penalty(np.sqrt(eigs))) + 0.5 * np.linalg.norm(X - self.M, 'fro'))
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         rho = 1 / tau
         P = x.reshape(self.dim)
 
