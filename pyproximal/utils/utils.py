@@ -1,4 +1,8 @@
+__all__ = ["Report"]
+
 # scooby is a soft dependency for pyproximal
+from typing import Optional
+
 try:
     from scooby import Report as ScoobyReport
 except ImportError:
@@ -58,7 +62,13 @@ class Report(ScoobyReport):
 
     """
 
-    def __init__(self, add_pckg=None, ncol=3, text_width=80, sort=False):
+    def __init__(
+        self,
+        add_pckg: Optional[list[str]] = None,
+        ncol: int = 3,
+        text_width: int = 80,
+        sort: bool = False,
+    ) -> None:
         """Initiate a scooby.Report instance."""
 
         # Mandatory packages.
