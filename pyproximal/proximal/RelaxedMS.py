@@ -6,7 +6,7 @@ from pylops.utils.typing import NDArray
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
 from pyproximal.proximal.L1 import _current_sigma
-from pyproximal.utils.typing import FloatCallableLike, IntCallableLike, SigmaLike
+from pyproximal.utils.typing import FloatCallableLike
 
 
 def _l2(x: NDArray, alpha: float) -> NDArray:
@@ -79,10 +79,8 @@ class RelaxedMumfordShah(ProxOperator):
     """
     def __init__(
             self, 
-            sigma: Union[float, NDArray,
-                         Callable[[int], Union[float, NDArray]]] = 1.,
-            kappa: Union[float, NDArray,
-                         Callable[[int], Union[float, NDArray]]] = 1.,
+            sigma: FloatCallableLike = 1.,
+            kappa: FloatCallableLike = 1.,
             ) -> None:
         super().__init__(None, False)
         self.sigma = sigma

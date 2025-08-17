@@ -8,7 +8,7 @@ from pyproximal.ProxOperator import _check_tau
 from pyproximal.projection import L0BallProj, L10BallProj
 from pyproximal import ProxOperator
 from pyproximal.proximal.L1 import _current_sigma
-from pyproximal.utils.typing import IntCallableLike, SigmaLike
+from pyproximal.utils.typing import FloatCallableLike, IntCallableLike
 
 
 def _hardthreshold(x: NDArray, thresh: float) -> NDArray:
@@ -73,7 +73,7 @@ class L0(ProxOperator):
     """
     def __init__(
             self, 
-            sigma: SigmaLike = 1.,
+            sigma: FloatCallableLike = 1.,
         ) -> None:
         super().__init__(None, False)
         self.sigma = sigma

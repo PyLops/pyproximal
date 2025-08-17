@@ -6,7 +6,7 @@ from pylops.utils.typing import NDArray
 from pyproximal.ProxOperator import _check_tau
 from pyproximal.projection import BoxProj, L1BallProj
 from pyproximal import ProxOperator
-from pyproximal.utils.typing import FloatCallableLike, SigmaLike
+from pyproximal.utils.typing import FloatCallableLike
 
 
 def _softthreshold(x: NDArray, thresh: float) -> NDArray:
@@ -100,7 +100,7 @@ class L1(ProxOperator):
     """
     def __init__(
             self, 
-            sigma: SigmaLike = 1.,
+            sigma: FloatCallableLike = 1.,
             g: Optional[NDArray] = None,
         ) -> None:
         super().__init__(None, False)
