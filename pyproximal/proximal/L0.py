@@ -121,7 +121,7 @@ class L0Ball(ProxOperator):
     def __init__(self, radius: IntCallableLike) -> None:
         super().__init__(None, False)
         self.radius = radius
-        self.ball = L0BallProj(self.radius if not callable(radius) else radius(0))        
+        self.ball = L0BallProj(self.radius if not callable(radius) else radius(0))
         self.count = 0
 
     def __call__(self, x: NDArray, tol: float = 1e-4) -> bool:
