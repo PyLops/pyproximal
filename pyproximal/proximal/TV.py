@@ -1,8 +1,11 @@
+from typing import Any, Callable, Union
+
 import numpy as np
 
 from copy import deepcopy
-from scipy.sparse.linalg import lsqr
 from pylops import FirstDerivative, Gradient
+from pylops.utils.typing import NDArray, ShapeLike
+
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
 
@@ -18,7 +21,7 @@ class TV(ProxOperator):
     dims : :obj:`tuple`
         Number of samples for each dimension
         (``None`` if only one dimension is available)
-    sigma : :obj:`int`, optional
+    sigma : :obj:`float`, optional
         Multiplicative coefficient of TV norm
     niter : :obj:`int` or :obj:`func`, optional
         Number of iterations of iterative scheme used to compute the proximal.
@@ -35,7 +38,14 @@ class TV(ProxOperator):
     .. [1] Beck, A. and Teboulle, M., "Fast gradient-based algorithms for constrained total
            variation image denoising and deblurring problems", 2009.
     """
-    def __init__(self, dims, sigma=1., niter=10, rtol=1e-4, **kwargs):
+    def __init__(
+            self, 
+            dims: ShapeLike, 
+            sigma: float=1., 
+            niter: Union[int, Callable[[int], int]] = 10, 
+            rtol: float = 1e-4, 
+            **kwargs,
+            ) -> None:
         super().__init__(None, True)
         self.dims = dims
         self.ndim = len(dims)
@@ -45,7 +55,7 @@ class TV(ProxOperator):
         self.rtol = rtol
         self.kwargs = kwargs
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         x = x.reshape(self.dims)
         if self.ndim == 1:
             derivOp = FirstDerivative(dims=self.dims[0], axis=0, edge=False,
@@ -60,9 +70,9 @@ class TV(ProxOperator):
             for g in grads:
                 y += np.power(abs(g), 2)
             y = np.sqrt(y)
-        return self.sigma * np.sum(y)
+        return float(self.sigma * np.sum(y))
 
-    def _increment_count(func):
+    def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
         """Increment counter
         """
         def wrapped(self, *args, **kwargs):
@@ -72,7 +82,7 @@ class TV(ProxOperator):
 
     @_increment_count
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         # define current number of iterations
         if isinstance(self.niter, int):
             niter = self.niter

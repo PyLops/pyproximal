@@ -1,4 +1,5 @@
 import numpy as np
+from pylops.utils.typing import NDArray
 
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
@@ -11,7 +12,8 @@ class Log(ProxOperator):
 
     .. math::
 
-        \mathrm{Log}_{\sigma,\gamma}(\mathbf{x}) = \sum_i \frac{\sigma}{\log(\gamma + 1)}\log(\gamma|x_i| + 1)
+        \mathrm{Log}_{\sigma,\gamma}(\mathbf{x}) = 
+        \sum_i \frac{\sigma}{\log(\gamma + 1)}\log(\gamma|x_i| + 1)
 
     where :math:`{\sigma>0}`, :math:`{\gamma>0}`.
 
@@ -69,7 +71,7 @@ class Log(ProxOperator):
 
     """
 
-    def __init__(self, sigma, gamma=1.3):
+    def __init__(self, sigma: float, gamma: float = 1.3) -> None:
         super().__init__(None, False)
         if sigma < 0:
             raise ValueError('Variable "sigma" must be positive.')
@@ -78,14 +80,14 @@ class Log(ProxOperator):
         self.sigma = sigma
         self.gamma = gamma
 
-    def __call__(self, x):
-        return np.sum(self.elementwise(x))
+    def __call__(self, x: NDArray) -> float:
+        return float(np.sum(self.elementwise(x)))
 
-    def elementwise(self, x):
+    def elementwise(self, x: NDArray) -> NDArray:
         return self.sigma / np.log(self.gamma + 1) * np.log(self.gamma * np.abs(x) + 1)
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         k = tau * self.sigma / np.log(self.gamma + 1)
         out = np.zeros_like(x)
         b = self.gamma * np.abs(x) - 1
@@ -149,14 +151,14 @@ class Log1(ProxOperator):
         self.sigma = sigma
         self.delta = delta
 
-    def __call__(self, x):
-        return np.sum(self.elementwise(x))
+    def __call__(self, x: NDArray) -> float:
+        return float(np.sum(self.elementwise(x)))
 
-    def elementwise(self, x):
+    def elementwise(self, x: NDArray) -> NDArray:
         return np.log(np.abs(x) + self.delta)
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         tau1 = self.sigma * tau
         thresh = np.sqrt(2*tau1) - self.delta
         x1 = np.zeros_like(x, dtype=x.dtype)

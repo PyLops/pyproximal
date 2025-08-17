@@ -155,14 +155,9 @@ def test_Nonlinear():
     that errors are raised when not used properly
     """
     np.random.seed(10)
-    Nop = Nonlinear(np.ones(10))
-    with pytest.raises(NotImplementedError):
-        Nop.fun(np.ones(10))
-    with pytest.raises(NotImplementedError):
-        Nop.grad(np.ones(10))
-    with pytest.raises(NotImplementedError):
-        Nop.optimize()
-
+    with pytest.raises(TypeError):
+        _ = Nonlinear(np.ones(10))
+    
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_SingularValuePenalty(par):

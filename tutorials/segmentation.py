@@ -71,6 +71,8 @@ axs[2].imshow(iseg, cmap='gray')
 axs[2].set_title('Primal-dual segmentation')
 plt.tight_layout()
 
+###############################################################################
+# And to conclude, we can visualize the segmented classes
 fig, axs = plt.subplots(1, ncl, figsize=(4*ncl, 4))
 for icl in range(ncl):
     axs[icl].imshow(isegcl[:, icl].reshape(ny,nx), cmap='gray_r')

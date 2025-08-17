@@ -1,16 +1,22 @@
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
+
 import numpy as np
+from pylops.utils.typing import NDArray
 
 from pyproximal.utils.backend import cp_dtype
 
+if TYPE_CHECKING:
+    from pylops.linearoperator import LinearOperator
 
-def _check_tau(func):
+
+def _check_tau(func: Callable[..., NDArray]) -> Callable[..., NDArray]:
     """Check that tau>0
 
     This utility function is used to decorate every prox and dualprox method
     to check that tau is positive before performing any computation
 
     """
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         if np.any(args[2] <= 0):
             raise ValueError('tau must be positive')
         return func(*args, **kwargs)
@@ -62,13 +68,27 @@ class ProxOperator(object):
         \frac{1}{2 \tau}||\mathbf{y} - \mathbf{x}||^2_2
 
     """
-    def __init__(self, Op=None, hasgrad=False, sigmame=1.):
+    def __init__(
+            self, 
+            Op: Optional["LinearOperator"] = None,
+            hasgrad: bool = False, 
+            sigmame: float = 1.,
+        ) -> None:
         self.Op = Op
         self.hasgrad = hasgrad
         self.sigmame = sigmame
 
+    def __call__(self, x: NDArray) -> bool | float:
+        """Functional evaluation of the operator.
+
+        Subclasses should implement this. Returns the 
+        value of the function.
+        """
+        raise NotImplementedError("This ProxOperator's __call__ method "
+                                  "must be implemented by subclasses to return a float.")
+    
     @_check_tau
-    def _prox_moreau(self, x, tau, **kwargs):
+    def _prox_moreau(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
         """Proximal operator applied to a vector via Moreau decomposition
 
         """
@@ -76,7 +96,7 @@ class ProxOperator(object):
         return p
 
     @_check_tau
-    def _proxdual_moreau(self, x, tau, **kwargs):
+    def _proxdual_moreau(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
         """Dual proximal operator applied to a vector via Moreau decomposition
 
         """
@@ -84,7 +104,7 @@ class ProxOperator(object):
         return pdual
 
     @_check_tau
-    def prox(self, x, tau, **kwargs):
+    def prox(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
         """Proximal operator applied to a vector
 
         The proximal operator can always be computed given its dual
@@ -108,7 +128,7 @@ class ProxOperator(object):
         return self._prox_moreau(x, tau, **kwargs)
 
     @_check_tau
-    def proxdual(self, x, tau, **kwargs):
+    def proxdual(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
         """Dual proximal operator applied to a vector
 
         The dual of a proximal operator can always be computed given its
@@ -133,8 +153,8 @@ class ProxOperator(object):
         """
         return self._proxdual_moreau(x, tau, **kwargs)
 
-    def grad(self, x):
-        """Compute gradient of the Moreau envelope of the function.
+    def grad(self, x: NDArray) -> NDArray:
+        """Gradient of the Moreau envelope of the function.
 
         This method is only called if the user does not provide a gradient
         because the function is not differentiable. In this case, the gradient
@@ -159,7 +179,7 @@ class ProxOperator(object):
         g = (x - self.prox(x, self.sigmame)) / self.sigmame
         return g
     
-    def affine_addition(self, v):
+    def affine_addition(self, v: NDArray) -> "ProxOperator":
         """Affine addition
 
         Adds the dot-product of vector ``v`` and vector ``x`` (which is passed
@@ -188,7 +208,7 @@ class ProxOperator(object):
         else:
             raise NotImplementedError('v must be a numpy.ndarray or cupy.ndarray')
 
-    def postcomposition(self, sigma):
+    def postcomposition(self, sigma: float) -> "ProxOperator":
         r"""Postcomposition
 
         Multiplies a scalar ``sigma`` to the current function.
@@ -216,7 +236,7 @@ class ProxOperator(object):
         else:
             raise NotImplementedError('sigma must be of type float')
 
-    def precomposition(self, a, b):
+    def precomposition(self, a: float, b: float | NDArray) -> "ProxOperator":
         r"""Precomposition
 
         Multiplies and add scalars ``a`` and ``b`` to ``x`` when evaluating
@@ -240,14 +260,14 @@ class ProxOperator(object):
             prox_{a^2 \tau f} (a \mathbf{x} + b) - b)
 
         """
-        if isinstance(a, float) and isinstance(b, (float, np.ndarray, cp_dtype)):
+        if isinstance(a, float) and isinstance(b, (float, np.ndarray, cp_dtype)):  # type: ignore[redundant-expr]
             return _PrecompositionOperator(self, a, b)
         else:
             raise NotImplementedError('a must be of type float and b '
                                       'must be of type float or '
                                       'numpy.ndarray')
 
-    def chain(self, g):
+    def chain(self, g: "ProxOperator") -> "ProxOperator":
         r"""Chain
 
         Chains two proximal operators. This must be used with care only when
@@ -270,13 +290,13 @@ class ProxOperator(object):
         """
         return _ChainOperator(self, g)
 
-    def __add__(self, v):
+    def __add__(self, v: NDArray) -> "ProxOperator":
         return self.affine_addition(v)
 
-    def __sub__(self, v):
+    def __sub__(self, v: NDArray) -> "ProxOperator":
         return self.__add__(-v)
 
-    def __rmul__(self, sigma):
+    def __rmul__(self, sigma: Union[float, int, "ProxOperator"]) -> "ProxOperator":
         if isinstance(sigma, (int, float)):
             return self.postcomposition(sigma)
         else:
@@ -284,7 +304,7 @@ class ProxOperator(object):
 
     #__rmul__ = __mul__
 
-    def _adjoint(self):
+    def _adjoint(self) -> "_AdjointOperator":
         """Adjoint operator - swaps prox and proxdual"""
         return _AdjointOperator(self)
 
@@ -292,82 +312,83 @@ class ProxOperator(object):
 
 
 class _AdjointOperator(ProxOperator):
-    def __init__(self, f):
+    def __init__(self, f: "ProxOperator") -> None:
         self.f = f
-        super().__init__(None, True if f.grad else False)
+        super().__init__(None, f.hasgrad)
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> bool | float:
         return self.f(x)
 
     @_check_tau
-    def prox(self, x, tau, **kwargs):
+    def prox(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
         return self.f.proxdual(x, tau, **kwargs)
 
     @_check_tau
-    def proxdual(self, x, tau, **kwargs):
+    def proxdual(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
         return self.f.prox(x, tau, **kwargs)
 
 
 class _SumOperator(ProxOperator):
-    def __init__(self, f, v):
+    def __init__(self, f: ProxOperator, v: NDArray) -> None:
         #if not isinstance(f, ProxOperator):
         #    raise ValueError('First input must be a ProxOperator')
         if not isinstance(v, (np.ndarray, cp_dtype)):
             raise ValueError('Second input must be a numpy.ndarray or cupy.ndarray')
         self.f, self.v = f, v
-        super().__init__(None, True if f.grad else False)
+        super().__init__(None, f.hasgrad)
 
-    def __call__(self, x):
-        return self.f(x) + np.dot(self.v, x)
+    def __call__(self, x: NDArray) -> float:
+        f : float = self.f(x) + np.dot(self.v, x) 
+        return f
 
     @_check_tau
-    def prox(self, x, tau, **kwargs):
+    def prox(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
         return self.f.prox(x - tau * self.v, tau)
 
-    def grad(self, x):
+    def grad(self, x:NDArray) -> NDArray:
         return self.f.grad(x) + self.v
 
 
 class _ChainOperator(ProxOperator):
-    def __init__(self, f, g):
+    def __init__(self, f: ProxOperator, g: ProxOperator) -> None:
         #if not isinstance(f, ProxOperator) or not isinstance(g, ProxOperator):
         #    raise ValueError('Inputs must be a ProxOperator')
         self.f, self.g = f, g
-        super().__init__(None, True if f.grad else False)
+        super().__init__(None, f.hasgrad and g.hasgrad)
 
-    def __call__(self, x):
-        pass
+    def __call__(self, x: NDArray) -> bool | float:
+        return self.g(self.f(x))
 
     @_check_tau
-    def prox(self, x, tau, **kwargs):
+    def prox(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
         return self.g.prox(self.f.prox(x, tau), tau)
 
-    def grad(self, x):
+    def grad(self, x: NDArray) -> NDArray:
         pass
 
 
 class _PostcompositionOperator(ProxOperator):
-    def __init__(self, f, sigma):
+    def __init__(self, f: ProxOperator, sigma: float) -> None:
         #if not isinstance(f, ProxOperator):
         #    raise ValueError('First input must be a ProxOperator')
         if not isinstance(sigma, float):
             raise ValueError('Second input must be a float')
         self.f, self.sigma = f, sigma
-        super().__init__(None, True if f.grad else False)
+        super().__init__(None, f.hasgrad)
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> bool | float:
         return self.sigma * self.f(x)
 
     @_check_tau
-    def prox(self, x, tau, **kwargs):
+    def prox(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
         return self.f.prox(x, self.sigma * tau)
 
-    def grad(self, x):
+    def grad(self, x: NDArray) -> NDArray:
         return self.sigma * self.f.grad(x)
 
 
 class _PrecompositionOperator(ProxOperator):
-    def __init__(self, f, a, b):
+    def __init__(self, f: ProxOperator, a: float, b: float | NDArray) -> None:
         #if not isinstance(f, ProxOperator):
         #    raise ValueError('First input must be a ProxOperator')
         if not isinstance(a, float):
@@ -375,15 +396,15 @@ class _PrecompositionOperator(ProxOperator):
         if not isinstance(b, (float, np.ndarray, cp_dtype)):
             raise ValueError('Third input must be a float, numpy.ndarray, or cupy.ndarray')
         self.f, self.a, self.b = f, a, b
-        super().__init__(None, True if f.grad else False)
+        super().__init__(None, f.hasgrad)
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> NDArray:
         return self.f(self.a * x + self.b)
 
     @_check_tau
-    def prox(self, x, tau, **kwargs):
+    def prox(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
         return (self.f.prox(self.a * x + self.b, (self.a ** 2) * tau) -
                 self.b) / self.a
 
-    def grad(self, x):
+    def grad(self, x: NDArray) -> NDArray:
         return self.a * self.f.grad(self.a * x + self.b)

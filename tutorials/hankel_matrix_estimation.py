@@ -13,8 +13,8 @@ of rank :math:`r_0`.
 
 Given a noisy measurement matrix :math:`X_0` we therefore seek to minimize:
 
-    .. math::
-        \min_{X\in\mathcal{H},\,\rank(X)\leq r_0} \| X - X_0 \|_F
+.. math::
+    \min_{X\in\mathcal{H},\,\rank(X)\leq r_0} \| X - X_0 \|_F
 
 where :math:`\mathcal{H}` is the set of Hankel matrices.
 
@@ -39,8 +39,8 @@ np.random.seed(0)
 ###############################################################################
 # We generate a Hankel matrix by randomly sampling a sinusoidal signal
 #
-#     .. math::
-#         f(t) = \sum_{i=1}^N e^{d_i(t-t_i)}\cos(\phi_i(t-t_i)),
+# .. math::
+#     f(t) = \sum_{i=1}^N e^{d_i(t-t_i)}\cos(\phi_i(t-t_i)),
 #
 # where :math:`d_i`, :math:`\phi_i` and :math:`t_i` are sampled from a uniform
 # distribution.
@@ -87,8 +87,8 @@ plt.tight_layout()
 # introduces discontinuities. Thus, one is forced to consider relaxations of the
 # original problem formulation, e.g. one could ignore the rank constraint, i.e.
 #
-#    .. math::
-#        \min_{X\in\mathcal{H}} \| X - X_0 \|_F \; .
+# .. math::
+#     \min_{X\in\mathcal{H}} \| X - X_0 \|_F \; .
 #
 # This is simply the projection onto the set of Hankel matrices.
 hankel_proj = HankelProj()
@@ -100,8 +100,8 @@ X_rec_hankel = hankel_proj(X0)
 # Instead, we can discard the Hankel matrix constraint and consider the low
 # rank approximation problem
 #
-#    .. math::
-#        \min_{\rank(X)\leq r_0} \| X - X_0 \|_F
+# .. math::
+#     \min_{\rank(X)\leq r_0} \| X - X_0 \|_F
 #
 # which has a closed form solution (by the Eckart–Young theorem).
 U, S, Vh = np.linalg.svd(X0, full_matrices=False)
@@ -115,16 +115,16 @@ X_rec_lowrank = (U[:, :r0] * S[:r0]) @ Vh[:r0, :]
 # quadratic envelope of the rank function :math:`\mathcal{R}_{r_0}`. We
 # therefore consider minimizing the cost function
 #
-#     .. math::
-#         \min_{X\in\mathcal{H}} \mathcal{R}_{r_0}(X) + \frac{1}{2}\| X - X_0 \|_F^2
+# .. math::
+#     \min_{X\in\mathcal{H}} \mathcal{R}_{r_0}(X) + \frac{1}{2}\| X - X_0 \|_F^2
 #
 # One way to solve such problems is to utilize splitting schemes. For this tutorial,
 # we chose to work with :class:`pyproximal.ADMM`. In order to do so,
 # we introduce a new variable :math:`Z` and consider the equivalent formulation
 #
-#     .. math::
-#         \min_{X,\,Z} \mathcal{R}_{r_0}(X)
-#             + \frac{1}{2}\| X - X_0 \|_F^2 + \mathcal{I}_{\mathcal{H}}(Z)
+# .. math::
+#     \min_{X,\,Z} \mathcal{R}_{r_0}(X)
+#      + \frac{1}{2}\| X - X_0 \|_F^2 + \mathcal{I}_{\mathcal{H}}(Z)
 #
 # where :math:`\mathcal{I}_{\mathcal{H}}` is the indicator function for the set
 # of Hankel matrices. Furthermore, we must add the constraint :math:`X = Z`.
@@ -132,9 +132,10 @@ X_rec_lowrank = (U[:, :r0] * S[:r0]) @ Vh[:r0, :]
 # The :math:`Z` update is simply a projection onto the set of Hankel matrices,
 # but the :math:`X` update requires solving
 #
-#     .. math::
-#         \argmin_{X} \mathcal{R}_{r_0}(X)
-#             + \frac{1}{2}\| X - X_0 \|_F^2 + \frac{1}{2\tau}\| X - U \|_F^2
+# .. math::
+#     \argmin_{X} \mathcal{R}_{r_0}(X)
+#      + \frac{1}{2}\| X - X_0 \|_F^2 + \frac{1}{2\tau}\| X - U \|_F^2
+#      + \frac{1}{2}\| X - X_0 \|_F^2 + \frac{1}{2\tau}\| X - U \|_F^2
 #
 # which is implemented in :class:`pyproximal.QuadraticEnvelopeRankL2`.
 proxf = QuadraticEnvelopeRankL2(X0.shape, r0, X0)

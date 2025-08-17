@@ -1,4 +1,8 @@
+from typing import Union
+
 import numpy as np
+from pylops.utils.typing import NDArray
+
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
 from pyproximal.projection import IntersectionProj
@@ -13,10 +17,10 @@ class Intersection(ProxOperator):
         Size of vector to be projected
     n : :obj:`int`
         Number of vectors to be projected simultaneously
-    sigma : :obj:`np.ndarray` or :obj:`int`
+    sigma : :obj:`np.ndarray` or :obj:`float`
         Matrix of distances of size :math:`k \times k` (or single value in the
         case of constant matrix)
-    k : :obj:`int`, optional
+    niter : :obj:`int`, optional
         Number of iterations
     tol : :obj:`float`, optional
         Toleance of update
@@ -30,7 +34,9 @@ class Intersection(ProxOperator):
     :class:`pyproximal.projection.IntersectionProj` for details.
 
     """
-    def __init__(self, k, n, sigma, niter=100, tol=1e-5, call=True):
+    def __init__(self, k: int, n: int, sigma: Union[float, NDArray], 
+                 niter: int = 100, tol: float = 1e-5, call: bool = True,
+                 ) -> None:
         super().__init__(None, False)
         self.k, self.n = k, n
         self.sigma = sigma if isinstance(sigma, np.ndarray) \
@@ -38,7 +44,7 @@ class Intersection(ProxOperator):
         self.call = call
         self.ic = IntersectionProj(k, n, sigma, niter=niter, tol=tol)
 
-    def __call__(self, x, tol=1e-8):
+    def __call__(self, x: NDArray, tol: float = 1e-8) -> bool:
         if not self.call:
             return False
         x = x.reshape(self.k, self.n)
@@ -50,5 +56,5 @@ class Intersection(ProxOperator):
         return True
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         return self.ic(x)

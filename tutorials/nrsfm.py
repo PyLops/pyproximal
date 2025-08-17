@@ -29,8 +29,8 @@ Mathematically speaking, this translates to any motion being a linear combinatio
 of the basis shapes, i.e. assuming there are :math:`K` basis shapes, any non-rigid
 shape :math:`X_i` can be written as
 
-    .. math::
-        X_i = \sum_{i=1}^K c_{ik}B_k
+.. math::
+    X_i = \sum_{i=1}^K c_{ik}B_k
 
 where :math:`c_{ik}` are the basis coefficients and :math:`B_k` are the basis shapes.
 Here, :math:`X_i` is a :math:`3\times N` matrix where each column is a point in
@@ -113,8 +113,8 @@ ani = animation.FuncAnimation(fig, _update, F, interval=25, blit=True)
 # we assume the cameras are orthographic, meaning that the image points :math:`x_i`
 # are obtained from the relation
 #
-#     .. math::
-#         x_i = R_iX_i
+# .. math::
+#     x_i = R_iX_i
 #
 # where :math:`R_i` is a :math:`2\times 3` matrix fulfilling :math:`R_iR_i^T=I`.
 # Essentially, the :math:`R_i` matrices consists of the top two rows of the
@@ -174,13 +174,13 @@ def unstack(Xs: np.ndarray):
 # In many cases, the necessary amount of basis shapes is not known
 # *a priori*. Therefore, a suitable objective to try to minimize is
 #
-#     .. math::
-#         \argmin_X \mu \rank(X^\sharp) + \frac{1}{2}\sum_{i=1}^F\|R_iX_i - x_i\|_2^2
+# .. math::
+#     \argmin_X \mu \rank(X^\sharp) + \frac{1}{2}\sum_{i=1}^F\|R_iX_i - x_i\|_2^2
 #
 # or, equivalently,
 #
-#     .. math::
-#         \argmin_X \mu \rank(X^\sharp) + \frac{1}{2}\|RX - M\|_F^2
+# .. math::
+#     \argmin_X \mu \rank(X^\sharp) + \frac{1}{2}\|RX - M\|_F^2
 #
 # where :math:`R` is a block-diagonal matrix with :math:`R_i` on the main diagonal,
 # whereas :math:`X` and :math:`M` are the concatenations of :math:`X_i` and
@@ -190,8 +190,8 @@ def unstack(Xs: np.ndarray):
 # by a relaxation. In [2]_ the *nuclear norm* :math:`\|\cdot\|_{*}` was used, i.e.
 # we seek to minimize
 #
-#     .. math::
-#         \argmin_X \mu \|X^\sharp\|_{*} + \frac{1}{2}\|RX - M\|_F^2 \; .
+# .. math::
+#     \argmin_X \mu \|X^\sharp\|_{*} + \frac{1}{2}\|RX - M\|_F^2 \; .
 #
 # There are some theoretical justifications for this specific choice of relaxation,
 # e.g. the nuclear norm is the convex envelope of the rank function under
@@ -202,8 +202,8 @@ def unstack(Xs: np.ndarray):
 # We will now show how to solve this problem using splitting schemes. Specifically,
 # we will use :class:`pyproximal.ADMM` and re-write the objective as
 #
-#     .. math::
-#         \argmin_{X, Z} \mu \|Z^\sharp\|_{*} + \frac{1}{2}\|RX - M\|_F^2,
+# .. math::
+#     \argmin_{X, Z} \mu \|Z^\sharp\|_{*} + \frac{1}{2}\|RX - M\|_F^2,
 #
 # and add the constraint :math:`X=Z`. This way, the proximal operators
 # are simply those of the (stacked) nuclear norm and the Frobenius norm.

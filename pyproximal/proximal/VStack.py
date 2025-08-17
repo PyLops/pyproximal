@@ -1,6 +1,13 @@
+from typing import TYPE_CHECKING, Optional
+
 import numpy as np
+from pylops.utils.typing import NDArray, ShapeLike
+
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
+
+if TYPE_CHECKING:
+    from pylops.linearoperator import LinearOperator
 
 
 class VStack(ProxOperator):
@@ -40,9 +47,12 @@ class VStack(ProxOperator):
         \tau f_N(\mathbf{x}_N) \right)
 
     """
-    def __init__(self, ops, nn=None, restr=None):
-        if nn is None and restr is None:
-            raise ValueError('provide either nn or restr')
+    def __init__(
+            self, 
+            ops: list["LinearOperator"], 
+            nn: Optional[list[ShapeLike]] = None, 
+            restr: Optional[list["LinearOperator"]] = None,
+            ) -> None:
         self.ops = ops
 
         if nn is not None:
@@ -53,12 +63,14 @@ class VStack(ProxOperator):
             self.xend = cum_nn
             # store required size of input
             self.nx = cum_nn[-1]
-        else:
+        elif restr is not None:
             self.restr = restr
             # store required size of input
             self.nx = np.sum([restr.iava.size for restr in self.restr])
+        else:
+            raise ValueError('Provide either nn or restr')
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         if x.size != self.nx:
             raise ValueError(f'x must have size {self.nx}, instead the provided x has size {x.size}')
         f = 0.
@@ -68,10 +80,10 @@ class VStack(ProxOperator):
         else:
             for op, restr in zip(self.ops, self.restr):
                 f += op(restr.matvec(x))
-        return f
+        return float(f)
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         if x.size != self.nx:
             raise ValueError(f'x must have size {self.nx}, instead the provided x has size {x.size}')
         if hasattr(self, 'nn'):
@@ -83,7 +95,7 @@ class VStack(ProxOperator):
                 f[restr.iava] = op.prox(restr.matvec(x), tau)
         return f
 
-    def grad(self, x):
+    def grad(self, x: NDArray) -> NDArray:
         if x.size != self.nx:
             raise ValueError(f'x must have size {self.nx}, instead the provided x has size {x.size}')
         if hasattr(self, 'nn'):

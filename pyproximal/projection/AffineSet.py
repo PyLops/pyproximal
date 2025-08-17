@@ -1,6 +1,5 @@
-from scipy.sparse.linalg import lsqr as sp_lsqr
 from scipy.sparse.linalg import cg as sp_cg
-from pylops.optimization.basic import cg, lsqr
+from pylops.optimization.basic import cg
 from pylops.utils.backend import get_array_module, get_module_name
 
 

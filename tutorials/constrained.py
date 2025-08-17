@@ -4,16 +4,16 @@ Quadratic program with box constraints
 This tutorial shows how we can use some of PyProximal solvers to solve a
 quadratic function with a box constraint:
 
-    .. math::
-        \mathbf{x} = \argmin_\mathbf{x} \frac{1}{2} \mathbf{x}^T \mathbf{A}
-        \mathbf{x} + \mathbf{b}^T \mathbf{x} \quad s.t. \quad \mathbf{x}
-        \in \mathcal{I}_{\operatorname{Box}}
+.. math::
+    \mathbf{x} = \argmin_\mathbf{x} \frac{1}{2} \mathbf{x}^T \mathbf{A}
+    \mathbf{x} + \mathbf{b}^T \mathbf{x} \quad s.t. \quad \mathbf{x}
+    \in \mathcal{I}_{\operatorname{Box}}
 
 More specifically we will consider both the
 :func:`pyproximal.optimization.primal.ProximalGradient` algorithm with and
 without back-tracking.
 
-In the literature you may find that problem of this kind can be solved by the
+In the literature you may find that problems of this kind can be solved by the
 so-called Projected Gradient Descent (PGD) algorithm: this is a edge case of
 a Proximal gradient solver when used with a constraint that admits a proximal
 (instead of a soft regularizer).

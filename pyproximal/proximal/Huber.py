@@ -1,4 +1,5 @@
 import numpy as np
+from pylops.utils.typing import NDArray, ShapeLike
 
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
@@ -40,13 +41,13 @@ class Huber(ProxOperator):
         \end{cases}
         
     """
-    def __init__(self, alpha):
+    def __init__(self, alpha: float) -> None:
         super().__init__(None, False)
         self.alpha = alpha
         self.l2 = L2(sigma=1. / self.alpha)
         self.l1 = L1()
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         h = np.zeros_like(x)
         xabs = np.abs(x)
         mask = xabs > self.alpha
@@ -55,7 +56,7 @@ class Huber(ProxOperator):
         return np.sum(h)
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         y = np.zeros_like(x)
         xabs = np.abs(x)
         mask = xabs > self.alpha
@@ -103,19 +104,19 @@ class HuberCircular(ProxOperator):
         In the IEEE Transactions on Control Systems Technology, 2013.
         
     """
-    def __init__(self, alpha):
+    def __init__(self, alpha: float) -> None:
         super().__init__(None, False)
         self.alpha = alpha
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         l2 = np.linalg.norm(x)
         if l2 <= self.alpha:
             h = l2 ** 2 / (2 * self.alpha)
         else:
             h = l2 - self.alpha / 2.
-        return h
+        return float(h)
 
     @_check_tau
-    def prox(self, x, tau):
-        x = (1. - tau / max(np.linalg.norm(x), tau + self.alpha)) * x
+    def prox(self, x: NDArray, tau: float) -> NDArray:
+        x = (1. - tau / max(float(np.linalg.norm(x)), tau + self.alpha)) * x
         return x

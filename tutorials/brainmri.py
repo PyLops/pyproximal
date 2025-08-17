@@ -135,7 +135,10 @@ axs[1].axis('tight')
 axs[1].set_title("Estimated Classes")
 plt.tight_layout()
 
-fig, axs = plt.subplots(1, 4, figsize=(15, 6))
+###############################################################################
+# And we also visualize the segmented classes.
+
+fig, axs = plt.subplots(1, 4, figsize=(15, 4))
 for i, ax in enumerate(axs):
     ax.imshow(segpd_prob[:, i].reshape(gt.shape), cmap='Reds')
     axs[i].axis('tight')

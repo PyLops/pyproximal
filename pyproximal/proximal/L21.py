@@ -1,4 +1,5 @@
 import numpy as np
+from pylops.utils.typing import NDArray
 
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
@@ -57,18 +58,18 @@ class L21(ProxOperator):
         in Optimization. 2013.
 
     """
-    def __init__(self, ndim, sigma=1.):
+    def __init__(self, ndim: int, sigma: float = 1.) -> None:
         super().__init__(None, False)
         self.ndim = ndim
         self.sigma = sigma
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         x = x.reshape(self.ndim, len(x) // self.ndim)
         f = self.sigma * np.sum(np.sqrt(np.sum(x ** 2, axis=0)))
-        return f
+        return float(f)
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         x = x.reshape(self.ndim, len(x) // self.ndim)
         aux = np.sqrt(np.sum(x ** 2, axis=0))
         aux = np.vstack([aux] * self.ndim).ravel()
@@ -76,7 +77,7 @@ class L21(ProxOperator):
         return x
 
     @_check_tau
-    def proxdual(self, x, tau):
+    def proxdual(self, x: NDArray, tau: float) -> NDArray:
         x = x.reshape(self.ndim, len(x) // self.ndim)
         aux = np.sqrt(np.sum(x ** 2, axis=0))
         aux = np.vstack([aux] * self.ndim).ravel()

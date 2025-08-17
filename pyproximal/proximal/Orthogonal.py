@@ -1,9 +1,13 @@
-import numpy as np
+from typing import TYPE_CHECKING, Optional
 
-from scipy.sparse.linalg import lsqr
-from pylops import MatrixMult, Identity
+import numpy as np
+from pylops.utils.typing import NDArray
+
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
+
+if TYPE_CHECKING:
+    from pylops.linearoperator import LinearOperator
 
 
 class Orthogonal(ProxOperator):
@@ -57,7 +61,14 @@ class Orthogonal(ProxOperator):
         Deblurring", SIAM J. Imaging Sciences, vol. 7, pp. 1724–1754. 2014.
 
     """
-    def __init__(self, f, Q, partial=False, b=None, alpha=1.):
+    def __init__(
+            self, 
+            f: ProxOperator, 
+            Q: "LinearOperator", 
+            partial: bool = False, 
+            b: Optional[NDArray] = None, 
+            alpha: float = 1.,
+            ) -> None:
         super().__init__(None, False)
         self.f = f
         self.Q = Q
@@ -65,14 +76,14 @@ class Orthogonal(ProxOperator):
         self.alpha = alpha
         self.b = b if b is not None else 0
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float | bool:
         y = self.Q.matvec(x)
         y += self.b
         f = self.f(y)
-        return f
+        return f  # type: ignore[no-any-return]
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         y = self.Q.matvec(x)
         if self.partial:
             z = (1. / self.alpha) * \

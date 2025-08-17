@@ -1,4 +1,5 @@
 import numpy as np
+from pylops.utils.typing import NDArray
 
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
@@ -49,7 +50,7 @@ class SCAD(ProxOperator):
 
     """
 
-    def __init__(self, sigma, a=3.7):
+    def __init__(self, sigma: float, a: float = 3.7) -> None:
         super().__init__(None, False)
         self.sigma = sigma
         if sigma <= 0:
@@ -58,10 +59,10 @@ class SCAD(ProxOperator):
             raise ValueError('Variable "a" must be larger than two.')
         self.a = a
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         return np.sum(self.elementwise(x))
 
-    def elementwise(self, x):
+    def elementwise(self, x: NDArray) -> NDArray:
         f = np.zeros_like(x)
         absx = np.abs(x)
         ind = absx <= self.sigma
@@ -73,7 +74,7 @@ class SCAD(ProxOperator):
         return f
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         theta = x.copy()
         absx = np.abs(x)
         first_threshold = self.sigma * (self.a - 1 - tau + tau * self.a) / (self.a - 1)

@@ -1,9 +1,15 @@
-import numpy as np
+from typing import TYPE_CHECKING, Optional
 
+import numpy as np
 from scipy.sparse.linalg import lsqr
 from pylops import MatrixMult, Identity
+from pylops.utils.typing import NDArray
+
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
+
+if TYPE_CHECKING:
+    from pylops.linearoperator import LinearOperator
 
 
 class Quadratic(ProxOperator):
@@ -63,30 +69,39 @@ class Quadratic(ProxOperator):
 
 
     """
-    def __init__(self, Op=None, b=None, c=0., niter=10, x0=None, warm=True):
+    def __init__(
+            self, 
+            Op: Optional["LinearOperator"] = None, 
+            b: Optional[NDArray] = None, 
+            c: float = 0., 
+            niter: int = 10, 
+            x0: Optional[NDArray] = None, 
+            warm: bool = True,
+            ) -> None:
         if Op is not None:
             if Op.shape[0] != Op.shape[1]:
                 raise ValueError('Op must be square')
         super().__init__(Op, True)
         self.b = b
         if self.Op is not None and self.b is None:
-            self.b = np.zeros(Op.shape[1], dtype=Op.dtype)
+            self.b = np.zeros(self.Op.shape[1], 
+                              dtype=self.Op.dtype)
         self.c = c
         self.niter = niter
         self.x0 = x0
         self.warm = warm
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         if self.Op is not None and self.b is not None:
             f = np.dot(x, self.Op * x) / 2. + np.dot(self.b, x) + self.c
         elif self.b is not None:
             f = np.dot(self.b, x) + self.c
         else:
             f = self.c
-        return f
+        return float(f)
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         if self.Op is not None and self.b is not None:
             y = x - tau * self.b
             if self.Op.explicit:
@@ -102,7 +117,7 @@ class Quadratic(ProxOperator):
             x = x - tau * self.b
         return x
 
-    def grad(self, x):
+    def grad(self, x: NDArray) -> NDArray:
         """Compute gradient
 
         Parameters
