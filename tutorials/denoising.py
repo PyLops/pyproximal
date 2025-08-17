@@ -6,9 +6,9 @@ by either random noise or salt-and-pepper noise using proximal algorithms.
 
 The overall cost function to minimize is written in the following form:
 
-    .. math::
-        \argmin_\mathbf{u} \frac{1}{2}\|\mathbf{u}-\mathbf{f}\|_2^2 +
-        \sigma J(\mathbf{u})
+.. math::
+    \argmin_\mathbf{u} \frac{1}{2}\|\mathbf{u}-\mathbf{f}\|_2^2 +
+    \sigma J(\mathbf{u})
 
 where the L2 norm in the data term can be replaced by a L1 norm for
 salt-and-pepper (outlier like noise).

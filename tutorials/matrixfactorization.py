@@ -146,7 +146,7 @@ fig.tight_layout()
 # And finally compare the converge behaviour of the three methods
 fig, ax = plt.subplots(1, 1, figsize=(8, 5))
 ax.plot(snr_palm, 'k', lw=2, label='PALM')
-ax.plot(snr_palmbt, 'r', lw=2, label='PALM')
+ax.plot(snr_palmbt, 'r', lw=2, label='PALM-backtracking')
 ax.plot(snr_ipalm, 'g', lw=2, label='iPALM')
 ax.grid()
 ax.legend()
