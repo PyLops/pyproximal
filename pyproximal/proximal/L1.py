@@ -6,7 +6,7 @@ from pylops.utils.typing import NDArray
 from pyproximal.ProxOperator import _check_tau
 from pyproximal.projection import BoxProj, L1BallProj
 from pyproximal import ProxOperator
-from pyproximal.utils.typing import SigmaLike
+from pyproximal.utils.typing import FloatCallableLike, SigmaLike
 
 
 def _softthreshold(x: NDArray, thresh: float) -> NDArray:
@@ -38,7 +38,7 @@ def _softthreshold(x: NDArray, thresh: float) -> NDArray:
 
 
 def _current_sigma(
-        sigma: Union[float, Callable[[int], Union[float, NDArray]]], 
+        sigma: FloatCallableLike, 
         count: int,
     ) -> Union[float, NDArray]:
     if not callable(sigma):

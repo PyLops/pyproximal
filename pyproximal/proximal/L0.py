@@ -8,7 +8,7 @@ from pyproximal.ProxOperator import _check_tau
 from pyproximal.projection import L0BallProj, L10BallProj
 from pyproximal import ProxOperator
 from pyproximal.proximal.L1 import _current_sigma
-from pyproximal.utils.typing import SigmaLike
+from pyproximal.utils.typing import IntCallableLike, SigmaLike
 
 
 def _hardthreshold(x: NDArray, thresh: float) -> NDArray:
@@ -118,7 +118,7 @@ class L0Ball(ProxOperator):
     (see :class:`pyproximal.projection.L0BallProj` for details.
 
     """
-    def __init__(self, radius: Union[int, Callable[..., Any]]) -> None:
+    def __init__(self, radius: IntCallableLike) -> None:
         super().__init__(None, False)
         self.radius = radius
         self.ball = L0BallProj(self.radius if not callable(radius) else radius(0))        
@@ -172,7 +172,7 @@ class L10Ball(ProxOperator):
     (see :class:`pyproximal.projection.L10BallProj` for details.
 
     """
-    def __init__(self, ndim: int, radius: Union[int, Callable[..., Any]]) -> None:
+    def __init__(self, ndim: int, radius: IntCallableLike) -> None:
         super().__init__(None, False)
         self.ndim = ndim
         self.radius = radius
@@ -203,7 +203,7 @@ class L10Ball(ProxOperator):
 
 
 class L01Ball(L10Ball):
-    def __init__(self, ndim: int, radius: Union[int, Callable[..., Any]]) -> None:
+    def __init__(self, ndim: int, radius: IntCallableLike) -> None:
         warnings.warn(
             "The L01Ball class has been renamed L10Ball due " \
             "to a mistake in the original choice of the name. As such " \

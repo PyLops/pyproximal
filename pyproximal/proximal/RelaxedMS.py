@@ -6,6 +6,7 @@ from pylops.utils.typing import NDArray
 from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
 from pyproximal.proximal.L1 import _current_sigma
+from pyproximal.utils.typing import FloatCallableLike, IntCallableLike, SigmaLike
 
 
 def _l2(x: NDArray, alpha: float) -> NDArray:
@@ -31,7 +32,7 @@ def _l2(x: NDArray, alpha: float) -> NDArray:
 
 
 def _current_kappa(
-        kappa: Union[float, Callable[[int], Union[float, NDArray]]], 
+        kappa: FloatCallableLike, 
         count: int,
     ) -> float:
     if not callable(kappa):
