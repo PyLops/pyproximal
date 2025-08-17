@@ -1,4 +1,5 @@
 import numpy as np
+from pylops.utils.typing import NDArray
 
 
 class HalfSpaceProj():
@@ -37,12 +38,12 @@ class HalfSpaceProj():
 
     """
 
-    def __init__(self, w, b):
+    def __init__(self, w: NDArray, b: float) -> None:
         self.w = w
         self.b = b
         self.w_norm_sq = np.dot(w, w)
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> NDArray:
         val = np.dot(self.w, x)
         if val <= self.b:
             return x
