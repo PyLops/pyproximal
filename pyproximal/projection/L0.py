@@ -1,5 +1,8 @@
+from typing import Tuple
+
 import warnings
 import numpy as np
+from pylops.utils.typing import NDArray
 
 
 class L0BallProj():
@@ -25,10 +28,10 @@ class L0BallProj():
     indicator function :math:`\mathcal{I}_{L0_{r}}`.
 
     """
-    def __init__(self, radius):
+    def __init__(self, radius: int) -> None:
         self.radius = int(radius)
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> NDArray:
         xshape = x.shape
         xf = x.copy().flatten()
         xf[np.argsort(np.abs(xf))[:-self.radius]] = 0
@@ -61,10 +64,10 @@ class L10BallProj():
     indicator function :math:`\mathcal{I}_{L_{1,0}^{r}}`.
 
     """
-    def __init__(self, radius):
+    def __init__(self, radius: int) -> None:
         self.radius = int(radius)
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> NDArray:
         xc = x.copy()
         xf = np.linalg.norm(x, axis=0, ord=1)
         xc[:, np.argsort(np.abs(xf))[:-self.radius]] = 0
@@ -72,11 +75,11 @@ class L10BallProj():
 
 
 class L01BallProj(L10BallProj):
-    def __init__(self, radius):
+    def __init__(self, radius: int) -> None:
         warnings.warn(
             "The L01BallProj class has been renamed L10BallProj due " \
             "to a mistake in the original choice of the name. As such " \
             "L01BallProj will be deprecated in v1.0.0.",
             FutureWarning,
         )
-        self.super().__init__(radius)
+        super().__init__(radius)

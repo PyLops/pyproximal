@@ -34,7 +34,7 @@ def _l2(x: NDArray, alpha: float) -> NDArray:
 def _current_kappa(
         kappa: FloatCallableLike, 
         count: int,
-    ) -> float:
+    ) -> Union[float, NDArray]:
     if not callable(kappa):
         return kappa
     else:

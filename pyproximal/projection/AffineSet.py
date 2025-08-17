@@ -1,6 +1,12 @@
+from typing import TYPE_CHECKING
+
 from scipy.sparse.linalg import cg as sp_cg
 from pylops.optimization.basic import cg
 from pylops.utils.backend import get_array_module, get_module_name
+from pylops.utils.typing import NDArray
+
+if TYPE_CHECKING:
+    from pylops.linearoperator import LinearOperator
 
 
 class AffineSetProj():
@@ -34,15 +40,15 @@ class AffineSetProj():
     indicator function :math:`I_{\{\mathbf{Opx}=\mathbf{b}\}}`
 
     """
-    def __init__(self, Op, b, niter):
+    def __init__(self, Op: "LinearOperator", b: NDArray, niter: int) -> None:
         self.Op = Op
         self.b = b
         self.niter = niter
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> NDArray:
         if get_module_name(get_array_module(x)) == 'numpy':
-            inv = sp_cg(self.Op * self.Op.H, self.Op * x - self.b, maxiter=self.niter)[0]
+            xinv = sp_cg(self.Op * self.Op.H, self.Op * x - self.b, maxiter=self.niter)[0]
         else:
-            inv = cg(self.Op * self.Op.H, self.Op * x - self.b, niter=self.niter)[0]
-        y = x - self.Op.H * inv.ravel() # currently ravel is added to ensure that the output is always a vector
+            xinv = cg(self.Op * self.Op.H, self.Op * x - self.b, niter=self.niter)[0]
+        y = x - self.Op.rmatvec(xinv.ravel()) # currently ravel is added to ensure that the output is always a vector
         return y

@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.linalg import hankel
+from pylops.utils.typing import NDArray
 
 
 class HankelProj():
@@ -19,7 +20,7 @@ class HankelProj():
     anti-diagonals of the original matrix :math:`X_0`.
     """
 
-    def __call__(self, X):
+    def __call__(self, X: NDArray) -> NDArray:
         m, n = X.shape
         ind = hankel(np.arange(m, dtype=np.int32), m - 1 + np.arange(n, dtype=np.int32))
         mean_values = np.bincount(ind.ravel(), weights=X.ravel()) / np.bincount(ind.ravel())

@@ -1,5 +1,7 @@
+from typing import Union
+
 import numpy as np
-from pyproximal.projection import HyperPlaneBoxProj
+from pylops.utils.typing import NDArray
 
 
 class IntersectionProj():
@@ -34,7 +36,14 @@ class IntersectionProj():
         Minimal Partitions", Journal of Mathematical, 2011.
 
     """
-    def __init__(self, k, n, sigma, niter=100, tol=1e-5):
+    def __init__(
+            self, 
+            k: int, 
+            n: int, 
+            sigma: Union[float, NDArray],
+            niter: int = 100, 
+            tol: float = 1e-5,
+            ) -> None:
         self.k, self.n = k, n
         if isinstance(sigma, np.ndarray):
             self.sigma = sigma
@@ -43,7 +52,7 @@ class IntersectionProj():
         self.niter = niter
         self.tol = tol
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> NDArray:
         x = x.reshape(self.k, self.n)
         x12 = np.zeros((self.k, self.k, self.n))
         for iiter in range(self.niter):
