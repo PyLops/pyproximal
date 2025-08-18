@@ -1,7 +1,16 @@
 import numpy as np
 
+from pyproximal import ProxOperator
+from pylops.utils.typing import NDArray
 
-def moreau(prox, x, tau, tol=1e-5, raiseerror=True, verb=False):
+
+def moreau(
+        prox: ProxOperator, 
+        x: NDArray, tau: float,
+        tol: float = 1e-5, 
+        raiseerror: bool = True, 
+        verb: bool = False,
+    ) -> bool:
     r"""Moreau Identity.
 
     The Moreau identity defines a relation between the vector :math:`\mathbf{u}`,
