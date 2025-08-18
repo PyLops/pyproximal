@@ -48,13 +48,6 @@ exclude = ["pytests"]
 [tool.setuptools_scm]
 version_file = "pyproximal/version.py"
 
-[tool.flake8]
-ignore = ["E203", "E501", "W503", "E402"]
-per-file-ignores = [
-    "__init__.py: F401, F403, F405"
-]
-max-line-length = 88
-
 [tool.mypy]
 files = ["pyproximal", ]
 python_version = "3.10"
@@ -68,9 +61,5 @@ disallow_incomplete_defs = false
 plugins = ["numpy.typing.mypy_plugin"]
 
 [[tool.mypy.overrides]]
-module = "pyproximal.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = ["cupy.*", "numpy.*", "numba.*", "pylops.*", "scipy.*"]
+module = ["cupy.*", "numpy.*", "numba.*", "pylops.*", "scipy.*", "pyproximal.*"]
 ignore_missing_imports = true

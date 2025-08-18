@@ -1,6 +1,6 @@
 # This workflow runs Flake8 on the PR
 # For more information see: https://github.com/marketplace/actions/python-flake8-lint
-name: PyLops-flake8
+name: PyProximal-flake8
 
 on: [push, pull_request]
 
@@ -20,5 +20,5 @@ jobs:
         with:
           ignore: "E203,E501,W503,E402"
           max-line-length: "88"
-          path: "pylops"
+          path: "pyproximal"
           args: "--per-file-ignores=__init__.py:F401,F403,F405"
