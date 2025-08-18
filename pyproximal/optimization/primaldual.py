@@ -1,11 +1,33 @@
+from typing import TYPE_CHECKING, Callable, Optional, Tuple, Union
+
 import time
 import numpy as np
-
 from pylops.utils.backend import get_array_module, to_numpy
+from pylops.utils.typing import NDArray
+
+from pyproximal.ProxOperator import ProxOperator
+
+if TYPE_CHECKING:
+    from pylops.linearoperator import LinearOperator
 
 
-def PrimalDual(proxf, proxg, A, x0, tau, mu, y0=None, z=None, theta=1., niter=10,
-               gfirst=True, callback=None, callbacky=False, returny=False, show=False):
+def PrimalDual(
+        proxf: ProxOperator, 
+        proxg: ProxOperator, 
+        A: "LinearOperator",
+        x0: NDArray, 
+        tau: Union[float, NDArray],
+        mu: Union[float, NDArray], 
+        y0: Optional[NDArray] = None,
+        z: Optional[NDArray] = None, 
+        theta: float = 1.,
+        niter: int = 10, 
+        gfirst: bool = True,
+        callback: Optional[Callable[..., None]] = None,
+        callbacky: bool = False, 
+        returny: bool = False,
+        show: bool = False,
+        ) -> Union[NDArray, Tuple[NDArray, NDArray]]:
     r"""Primal-dual algorithm
 
     Solves the following (possibly) nonlinear minimization problem using
@@ -75,6 +97,8 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, y0=None, z=None, theta=1., niter=10
     -------
     x : :obj:`numpy.ndarray`
         Inverted model
+    y : :obj:`numpy.ndarray`, optional
+        Inverted second model, only returned if ``returny=True``
 
     Notes
     -----
@@ -178,9 +202,23 @@ def PrimalDual(proxf, proxg, A, x0, tau, mu, y0=None, z=None, theta=1., niter=10
         return x, y
 
 
-def AdaptivePrimalDual(proxf, proxg, A, x0, tau, mu,
-                       alpha=0.5, eta=0.95, s=1., delta=1.5,
-                       z=None, niter=10, tol=1e-10, callback=None, show=False):
+def AdaptivePrimalDual(
+        proxf: ProxOperator,
+        proxg: ProxOperator,
+        A: "LinearOperator",
+        x0: NDArray,
+        tau: float,
+        mu: float,
+        alpha: float = 0.5,
+        eta: float = 0.95,
+        s: float = 1.,
+        delta: float = 1.5,
+        z: Optional[NDArray] = None,
+        niter: int = 10, 
+        tol: float = 1e-10,
+        callback: Optional[Callable[[NDArray], None]] = None,
+        show: bool = False,
+        ) -> Tuple[NDArray, Tuple[NDArray, NDArray, NDArray]]:
     r"""Adaptive Primal-dual algorithm
 
     Solves the minimization problem in
@@ -302,11 +340,11 @@ def AdaptivePrimalDual(proxf, proxg, A, x0, tau, mu,
 
         # update steps
         if z is not None:
-            p = np.linalg.norm((xold - x) / tau - (ATyold - ATy) -
-                               A.rmatvec(z) + z)
+            p = float(np.linalg.norm((xold - x) / tau - (ATyold - ATy) -
+                               A.rmatvec(z) + z))
         else:
-            p = np.linalg.norm((xold - x) / tau - (ATyold - ATy))
-        d = np.linalg.norm((yold - y) / mu - (Axold - Ax))
+            p = float(np.linalg.norm((xold - x) / tau - (ATyold - ATy)))
+        d = float(np.linalg.norm((yold - y) / mu - (Axold - Ax)))
 
         if p > s * d * delta:
             tau /= 1 - alpha

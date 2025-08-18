@@ -1,9 +1,24 @@
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple
+
 import numpy as np
 import pylops
+from pylops.utils.typing import NDArray
 from scipy.sparse.linalg import lsqr as sp_lsqr
 
+if TYPE_CHECKING:
+    from pylops.linearoperator import LinearOperator
 
-def _lsqr(Op, data, iter_lim, z_old, x0, kappa, eps, Reg):
+
+def _lsqr(
+        Op: "LinearOperator", 
+        data: NDArray, 
+        iter_lim: int, 
+        z_old: NDArray, 
+        x0: NDArray, 
+        kappa: float, 
+        eps: float, 
+        Reg: "LinearOperator",
+        ) -> NDArray:
     r"""LSQR
 
     This function uses LSQR to solve the inner iteration of SR3, given by
@@ -39,8 +54,8 @@ def _lsqr(Op, data, iter_lim, z_old, x0, kappa, eps, Reg):
 
     Returns
     -------
-        x: :obj:`numpy.ndarray`
-            Approximate solution
+    x: :obj:`numpy.ndarray`
+        Approximate solution
 
     """
     data -= Op.matvec(x0)
@@ -77,8 +92,17 @@ def _lsqr(Op, data, iter_lim, z_old, x0, kappa, eps, Reg):
     return x
 
 
-def SR3(Op, Reg, data, kappa, eps, x0=None, adaptive=True,
-        iter_lim_outer=int(1e2), iter_lim_inner=int(1e2)):
+def SR3(
+        Op: "LinearOperator", 
+        Reg: "LinearOperator", 
+        data: NDArray, 
+        kappa: float, 
+        eps: float, 
+        x0: Optional[NDArray] = None, 
+        adaptive: bool = True,
+        iter_lim_outer: int = 100, 
+        iter_lim_inner: int = 100,
+        ) -> NDArray:
     r"""Sparse Relaxed Regularized Regression
 
     Applies the Sparse Relaxed Regularized Regression (SR3) algorithm to
@@ -160,7 +184,7 @@ def SR3(Op, Reg, data, kappa, eps, x0=None, adaptive=True,
         w_old = w
         temp = Reg.matvec(x)
         w = np.sign(temp) * np.maximum(abs(temp) - eta*eps, 0)
-        err1 = np.linalg.norm(v - w) / max(1, np.linalg.norm(w))
+        err1 = float(np.linalg.norm(v - w)) / max(1., float(np.linalg.norm(w)))
         if err1 < 1e-6:
             return x
         theta = 2/(1 + np.sqrt(1+4/(theta**2)))

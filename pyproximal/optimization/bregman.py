@@ -1,11 +1,31 @@
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
+
 import time
 import numpy as np
 from copy import deepcopy
+from pylops.utils.typing import NDArray
+
+from pyproximal.ProxOperator import ProxOperator
+
+if TYPE_CHECKING:
+    from pylops.linearoperator import LinearOperator
 
 
-def Bregman(proxf, proxg, x0, solver, A=None, alpha=1., niterouter=10,
-            warm=False, tolx=1e-10, tolf=1e-10, bregcallback=None, show=False,
-            **kwargs_solver):
+def Bregman(
+        proxf: ProxOperator, 
+        proxg: ProxOperator, 
+        x0: NDArray,
+        solver: Callable[..., NDArray], 
+        A: Optional["LinearOperator"] = None,
+        alpha: float = 1., 
+        niterouter: int = 10,
+        warm: bool = False, 
+        tolx: float = 1e-10, 
+        tolf: float = 1e-10,
+        bregcallback: Optional[Callable[[NDArray], None]] = None,
+        show: bool = False, 
+        **kwargs_solver: Dict[str, Any],
+        ) -> NDArray:
     r"""Bregman iterations with Proximal Solver
 
     Solves one of the following minimization problem using Bregman iterations
