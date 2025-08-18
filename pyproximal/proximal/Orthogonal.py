@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING, Optional
 
-import numpy as np
 from pylops.utils.typing import NDArray
 
 from pyproximal import ProxOperator

@@ -1,5 +1,5 @@
 import numpy as np
-from pylops.utils.typing import NDArray, ShapeLike
+from pylops.utils.typing import NDArray
 
 from pyproximal import ProxOperator
 from pyproximal.proximal import L1, L2

@@ -196,8 +196,8 @@ def PrimalDual(
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(A.matvec(x))
-                pf = 0.0 if type(pf) == bool else pf
-                pg = 0.0 if type(pg) == bool else pg
+                pf = 0.0 if isinstance(pf, bool) else pf
+                pg = 0.0 if isinstance(pg, bool) else pg
                 zx = 0.0 if z is None else np.dot(z, x)
                 msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e      %10.3e" % (
                     iiter + 1,
@@ -397,8 +397,8 @@ def AdaptivePrimalDual(
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(A.matvec(x))
-                pf = 0.0 if type(pf) == bool else pf
-                pg = 0.0 if type(pg) == bool else pg
+                pf = 0.0 if isinstance(pf, bool) else pf
+                pg = 0.0 if isinstance(pg, bool) else pg
                 zx = 0.0 if z is None else np.dot(z, x)
                 msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e      %10.3e" % (
                     iiter + 1,

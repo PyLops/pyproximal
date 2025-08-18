@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, Callable, List, Union
+from typing import Any, Callable
 
 import numpy as np
 from pylops.utils.typing import NDArray

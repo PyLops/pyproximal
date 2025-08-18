@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Callable, Dict, Tuple, Union
+from typing import Any, Callable, Dict, Tuple, Union
 
 from pylops.utils.typing import NDArray, ShapeLike
 

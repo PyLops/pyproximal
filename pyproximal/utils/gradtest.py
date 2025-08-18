@@ -83,10 +83,9 @@ def gradtest_proximal(
 
     # get random vectors for x and y
     if x is None:
-        x = np.random.normal(0.0, 1.0, n).astype(dtype)
-
+        x = ncp.random.normal(0.0, 1.0, n).astype(dtype)
         if complexflag:
-            x = x + 1j * np.random.normal(0.0, 1.0, n).astype(dtype)
+            x = x + 1j * ncp.random.normal(0.0, 1.0, n).astype(dtype)
 
     # compute function
     f = Op(x)
@@ -110,9 +109,9 @@ def gradtest_proximal(
     fdelta = Op(x)
 
     # evaluate if gradient test passed
-    grad_delta = (fdelta - f) / np.abs(delta)
+    grad_delta = (fdelta - f) / ncp.abs(delta)
     grad_diff = grad_delta - (grad.real if r_or_i == 0 else grad.imag)
-    passed = bool(np.isclose(grad_diff, 0, rtol, atol))
+    passed = bool(ncp.isclose(grad_diff, 0, rtol, atol))
 
     # verbosity or error raising
     if (not passed and raiseerror) or verb:
@@ -236,11 +235,11 @@ def gradtest_bilinear(
     fdelta = Op(x, y)
 
     # evaluate if gradient test passed
-    grad_delta = (fdelta - f) / np.abs(delta)
+    grad_delta = (fdelta - f) / ncp.abs(delta)
     grad_diff = grad_delta - (
         grad.real if not complexflag or r_or_i == 0 else grad.imag
     )
-    passed = bool(np.isclose(grad_diff, 0, rtol, atol))
+    passed = bool(ncp.isclose(grad_diff, 0, rtol, atol))
 
     # verbosity or error raising
     if (not passed and raiseerror) or verb:

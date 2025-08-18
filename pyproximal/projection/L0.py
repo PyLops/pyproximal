@@ -1,5 +1,4 @@
 import warnings
-from typing import Tuple
 
 import numpy as np
 from pylops.utils.typing import NDArray

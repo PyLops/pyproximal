@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Tuple
 
-import numpy as np
 from pylops.utils.typing import NDArray
 
 from pyproximal import ProxOperator

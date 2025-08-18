@@ -12,7 +12,7 @@ from pyproximal.ProxOperator import _check_tau
 try:
     from numba import jit
 
-    from ._Simplex_cuda import bisect_jit_cuda, fun_jit_cuda, simplex_jit_cuda
+    from ._Simplex_cuda import simplex_jit_cuda
     from ._Simplex_numba import bisect_jit, fun_jit, simplex_jit
 except ModuleNotFoundError:
     jit = None
@@ -183,7 +183,7 @@ class _Simplex_cuda(_Simplex):
         x = x.reshape(self.dims)
         if self.axis == 0:
             x = x.T
-        if type(self.coeffs) != type(x):
+        if type(self.coeffs) is not type(x):
             self.coeffs = to_cupy_conditional(x, self.coeffs)
 
         y = ncp.empty_like(x)
@@ -265,7 +265,7 @@ def Simplex(
     positive number can be provided.
 
     """
-    if not engine in ["numpy", "numba", "cuda"]:
+    if engine not in ["numpy", "numba", "cuda"]:
         raise KeyError("engine must be numpy or numba or cuda")
 
     if engine == "numba" and jit is not None:

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Union
+from typing import Union
 
 import numpy as np
 from pylops.optimization.cls_sparsity import _hardthreshold

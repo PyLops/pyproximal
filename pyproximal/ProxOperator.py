@@ -155,7 +155,7 @@ class ProxOperator(object):
         return self._proxdual_moreau(x, tau, **kwargs)
 
     def grad(self, x: NDArray) -> NDArray:
-        """Gradient of the Moreau envelope of the function.
+        r"""Gradient of the Moreau envelope of the function.
 
         This method is only called if the user does not provide a gradient
         because the function is not differentiable. In this case, the gradient
@@ -181,7 +181,7 @@ class ProxOperator(object):
         return g
 
     def affine_addition(self, v: NDArray) -> "ProxOperator":
-        """Affine addition
+        r"""Affine addition
 
         Adds the dot-product of vector ``v`` and vector ``x`` (which is passed
         to ``dual`` or ``proxdual``) to the current function.

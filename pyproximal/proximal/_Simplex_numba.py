@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-from numba import jit, prange
+from numba import jit
 
 # detect whether to use parallel or not
 numba_threads = int(os.getenv("NUMBA_NUM_THREADS", "1"))

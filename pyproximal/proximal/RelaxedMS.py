@@ -1,4 +1,4 @@
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Union
 
 import numpy as np
 from pylops.utils.typing import NDArray
