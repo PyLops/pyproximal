@@ -5,15 +5,15 @@ In this tutorial we focus on a modification of the `Quadratic program
 with box constraints` tutorial where the quadratic function is replaced by a
 nonlinear function:
 
-    .. math::
-        \mathbf{x} = \argmin_\mathbf{x} f(\mathbf{x}) \quad \text{s.t.} \quad \mathbf{x}
-        \in \mathcal{I}_{\operatorname{Box}}
+.. math::
+    \mathbf{x} = \argmin_\mathbf{x} f(\mathbf{x}) \quad \text{s.t.} \quad \mathbf{x}
+    \in \mathcal{I}_{\operatorname{Box}}
 
 For this example we will use the well-known Rosenbrock
 function:
 
-    .. math::
-        f(\mathbf{x}) = (a - x)^2 + b(y - x^2)^2
+.. math::
+    f(\mathbf{x}) = (a - x)^2 + b(y - x^2)^2
 
 where :math:`\mathbf{x}=[x, y]`, :math:`a=1`, and :math:`b=10`.
 
@@ -28,9 +28,9 @@ functional with respect to :math:`x`. The third method implements an
 optimization routine that solves the proximal operator of :math:`f`,
 more specifically:
 
-    .. math::
-        \prox_{\tau f} (\mathbf{x}) = \argmin_{\mathbf{y}} f(\mathbf{y}) +
-        \frac{1}{2 \tau}\|\mathbf{y} - \mathbf{x}\|^2_2
+.. math::
+    \prox_{\tau f} (\mathbf{x}) = \argmin_{\mathbf{y}} f(\mathbf{y}) +
+    \frac{1}{2 \tau}\|\mathbf{y} - \mathbf{x}\|^2_2
 
 Note that when creating the ``optimize`` method a user must use the gradient
 of the augmented functional which is provided by the `_gradprox` built-in

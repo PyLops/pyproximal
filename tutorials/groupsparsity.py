@@ -137,7 +137,7 @@ eps = 1  # not used given that a projection is used as regularizer
 niter = 400
 tau = 0.99 / L
 
-l0 = pyproximal.proximal.L01Ball(ndim=2, radius=4)
+l0 = pyproximal.proximal.L10Ball(ndim=2, radius=4)
 l2 = pyproximal.proximal.L2(Op=Opp, b=yy)
 
 XXest = pyproximal.optimization.primal.ProximalGradient(
@@ -155,6 +155,9 @@ X1est, X2est = XXest[: FFTop.shape[0]], XXest[FFTop.shape[0] :]
 x1est = FFTop.H * X1est
 x2est = FFTop.H * X2est
 
+###############################################################################
+# We can see that the first signal is now much better interpolated
+
 fig, axs = plt.subplots(1, 2, sharey=True, figsize=(14, 3))
 axs[0].plot(np.abs(X1), "k", lw=4, label="Original")
 axs[0].plot(np.abs(X1est), "--b", lw=2, label="Rec")
@@ -164,6 +167,9 @@ axs[1].plot(np.abs(X2est), "--b", lw=2)
 axs[0].set_xlim(0, 30)
 axs[1].set_xlim(0, 30)
 plt.tight_layout()
+
+###############################################################################
+# And similarly the second signal is also better interpolated
 
 fig, axs = plt.subplots(1, 2, sharey=True, figsize=(14, 3))
 axs[0].plot(t, x1, "k", lw=4, label="Original")

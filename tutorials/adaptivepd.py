@@ -103,9 +103,7 @@ iml12_ada, steps = pyproximal.optimization.primaldual.AdaptivePrimalDual(
 iml12_ada = iml12_ada.reshape(img.shape)
 
 ###############################################################################
-# Let's now compare the final results as well as the convergence curves of the
-# two algorithms. We can see how the adaptive Primal-Dual produces a better
-# estimate of the clean image in a much smaller number of iterations
+# Let's now compare the final results
 
 fig, axs = plt.subplots(1, 4, figsize=(16, 4))
 axs[0].imshow(img, cmap="gray", vmin=0, vmax=255)
@@ -124,6 +122,12 @@ axs[3].imshow(iml12_ada, cmap="gray", vmin=0, vmax=255)
 axs[3].set_title("Adaptive PD")
 axs[3].axis("off")
 axs[3].axis("tight")
+plt.tight_layout()
+
+###############################################################################
+# And the convergence curves of the two algorithms. We can see how the adaptive
+# Primal-Dual produces a better estimate of the clean image in a much smaller
+# number of iterations
 
 fig, axs = plt.subplots(2, 1, figsize=(12, 7))
 axs[0].plot(cost_fixed, "k", label="Fixed step")
@@ -135,6 +139,11 @@ axs[1].plot(err_ada, "r", label="Adaptive step")
 axs[1].set_title("MSE")
 axs[1].legend()
 plt.tight_layout()
+
+
+###############################################################################
+# And to conclude we display the three different step sizes involved in the
+# solver
 
 fig, axs = plt.subplots(3, 1, figsize=(12, 7))
 axs[0].plot(steps[0], "k")
