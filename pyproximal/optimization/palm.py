@@ -1,19 +1,35 @@
+from typing import Callable, List, Optional, Tuple
+
 import time
 import numpy as np
+from pylops.utils.typing import NDArray
+
+from pyproximal.ProxOperator import ProxOperator
+from pyproximal.utils.bilinear import BilinearOperator
 
 
-def _backtracking(x, tau, H, proxf, ix, beta=0.5, niterback=10):
+def _backtracking(
+        x: List[NDArray], 
+        tau: float, 
+        H: BilinearOperator,
+        proxf: Optional[ProxOperator], 
+        ix: int, 
+        beta: float = 0.5,
+        niterback: int = 10,
+        ) -> Tuple[NDArray, float]:
     r"""Backtracking
 
-    Line-search algorithm for finding step sizes in palm algorithms when
+    Line-search algorithm for finding step sizes in PALM algorithms when
     the Lipschitz constant of the operator is unknown (or expensive to
     estimate).
 
     """
-    def ftilde(x, y, f, g, tau, ix):
+    def ftilde(x: NDArray, y: List[NDArray], 
+               f: BilinearOperator, g: NDArray, 
+               tau: float, ix: int) -> float:
         xy = x - y[ix]
-        return f(*y) + np.dot(g, xy) + \
-               (1. / (2. * tau)) * np.linalg.norm(xy) ** 2
+        return float(f(*y) + np.dot(g, xy) + \
+               (1. / (2. * tau)) * np.linalg.norm(xy) ** 2)
 
     iiterback = 0
     if ix == 0:
@@ -34,8 +50,19 @@ def _backtracking(x, tau, H, proxf, ix, beta=0.5, niterback=10):
     return z[ix], tau
 
 
-def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1., beta=0.5,
-         niter=10, niterback=100, callback=None, show=False):
+def PALM(
+        H: BilinearOperator, 
+        proxf: Optional[ProxOperator],
+        proxg: Optional[ProxOperator], 
+        x0: NDArray, 
+        y0: NDArray,
+        gammaf: Optional[float] = 1., 
+        gammag: Optional[float] = 1.,
+        beta: float = 0.5, 
+        niter: int = 10, 
+        niterback: int = 100,
+        callback: Optional[Callable[[NDArray, NDArray], None]] = None,
+        show: bool = False) -> Tuple[NDArray, NDArray]:
     r"""Proximal Alternating Linearized Minimization
 
     Solves the following minimization problem using the Proximal Alternating
@@ -126,7 +153,7 @@ def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1., beta=0.5,
         backtrackingf = True
         tauf = 1.
         ck = 0.
-    if gammaf is None:
+    if gammag is None:
         backtrackingg = True
         taug = 1.
         dk = 0.
@@ -153,7 +180,7 @@ def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1., beta=0.5,
             if proxg is not None:
                 y = proxg.prox(y, 1. / dk)
         else:
-            y, taug = _backtracking([x, y], tauf, H,
+            y, taug = _backtracking([x, y], taug, H,
                                     proxf, 1, beta=beta,
                                     niterback=niterback)
         # update y parameter in H function
@@ -177,9 +204,21 @@ def PALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1., beta=0.5,
     return x, y
 
 
-def iPALM(H, proxf, proxg, x0, y0, gammaf=1., gammag=1., 
-          a=[1., 1.], b=None, beta=0.5, niter=10, niterback=100,
-          callback=None, show=False):
+def iPALM(
+        H: BilinearOperator, 
+        proxf: Optional[ProxOperator],
+        proxg: Optional[ProxOperator], 
+        x0: NDArray, 
+        y0: NDArray,
+        gammaf: Optional[float] = 1., 
+        gammag: Optional[float] = 1.,
+        a: List[float] = [1., 1.], 
+        beta: float = 0.5, 
+        niter: int = 10, 
+        niterback: int = 100,
+        callback: Optional[Callable[[NDArray, NDArray], None]] = None,
+        show: bool = False,
+        ) -> Tuple[NDArray, NDArray]:
     r"""Inertial Proximal Alternating Linearized Minimization
 
     Solves the following minimization problem using the Inertial Proximal

@@ -1,13 +1,27 @@
-import time
+from typing import Any, Callable, Dict, Optional, Tuple
+
 import numpy as np
 
 from pylops import Gradient, BlockDiag
-from pyproximal import Simplex, L1, L21, VStack
+from pylops.utils.typing import NDArray
+
+from pyproximal import Simplex, L21, VStack
 from pyproximal.optimization.primaldual import PrimalDual
 
 
-def Segment(y, cl, sigma, alpha, clsigmas=None, z=None, niter=10, x0=None,
-            callback=None, show=False, kwargs_simplex=None):
+def Segment(
+        y: NDArray, 
+        cl: NDArray, 
+        sigma: float, 
+        alpha: float,
+        clsigmas: Optional[NDArray] = None,
+        z: Optional[NDArray] = None, 
+        niter: int = 10,
+        x0: Optional[NDArray] = None,
+        callback: Optional[Callable[[NDArray], None]] = None,
+        show: bool = False,
+        kwargs_simplex: Optional[Dict[str, Any]] = None,
+        ) -> Tuple[NDArray, NDArray]:
     r"""Primal-dual algorithm for image segmentation
 
     Perform image segmentation over :math:`N_{cl}` classes using the
@@ -92,10 +106,9 @@ def Segment(y, cl, sigma, alpha, clsigmas=None, z=None, niter=10, x0=None,
                    kind='forward', dtype='float64')
     Gop = BlockDiag([Gop] * ncl)
 
-    # Simplex and L1 proximal operators
+    # Simplex and L21 proximal operators
     simp = Simplex(dimsprod * ncl, radius=1, dims=(ncl, dimsprod), axis=0,
                    **kwargs_simplex)
-    #l1 = L1(sigma=0.5 * alpha)
     l21 = VStack([L21(ndim=ndims, sigma=0.5 * alpha)] * ncl,
                  nn=[ndims * dimsprod] * ncl)
 
@@ -105,10 +118,12 @@ def Segment(y, cl, sigma, alpha, clsigmas=None, z=None, niter=10, x0=None,
     mu = 1. / (tau * L)
 
     # Inversion
-    x = PrimalDual(simp, l21, Gop, tau=tau, mu=mu,
-                   z=g if z is None else g + z, theta=1.,
-                   x0=np.zeros_like(g) if x0 is None else x0,
-                   niter=niter, callback=callback, show=show)
+    x: NDArray = PrimalDual(
+        simp, l21, Gop, tau=tau, mu=mu,
+        z=g if z is None else g + z, theta=1.,
+        x0=np.zeros_like(g) if x0 is None else x0,
+        niter=niter, callback=callback, 
+        show=show, returny=False)
     x = x.reshape(ncl, dimsprod).T
     cl = np.argmax(x, axis=1)
     cl = cl.reshape(dims)

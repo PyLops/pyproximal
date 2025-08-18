@@ -1,15 +1,30 @@
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
+
 import time
 import warnings
 import numpy as np
-
 from math import sqrt
 from pylops.optimization.leastsquares import regularized_inversion
 from pylops.utils.backend import to_numpy
+from pylops.utils.typing import NDArray
+
+from pyproximal import ProxOperator
 from pyproximal.proximal import L2
 from pyproximal.utils.bilinear import BilinearOperator
 
+if TYPE_CHECKING:
+    from pylops.linearoperator import LinearOperator
 
-def _backtracking(x, tau, proxf, proxg, epsg, beta=0.5, niterback=10):
+
+def _backtracking(
+        x: NDArray, 
+        tau: float, 
+        proxf: ProxOperator,
+        proxg: ProxOperator, 
+        epsg: float,
+        beta: float = 0.5, 
+        niterback: int = 10,
+    ) -> Tuple[NDArray, float]:
     r"""Backtracking
 
     Line-search algorithm for finding step sizes in proximal algorithms when
@@ -17,10 +32,10 @@ def _backtracking(x, tau, proxf, proxg, epsg, beta=0.5, niterback=10):
     estimate).
 
     """
-    def ftilde(x, y, f, tau):
+    def ftilde(x: NDArray, y: NDArray, f: ProxOperator, tau: float) -> float:
         xy = x - y
-        return f(y) + np.dot(f.grad(y), xy) + \
-               (1. / (2. * tau)) * np.linalg.norm(xy) ** 2
+        return float(f(y) + np.dot(f.grad(y), xy) + \
+               (1. / (2. * tau)) * np.linalg.norm(xy) ** 2)
 
     iiterback = 0
     while iiterback < niterback:
@@ -33,8 +48,15 @@ def _backtracking(x, tau, proxf, proxg, epsg, beta=0.5, niterback=10):
     return z, tau
 
 
-def ProximalPoint(prox, x0, tau, niter=10,
-                  tol=None, callback=None, show=False):
+def ProximalPoint(
+        prox: ProxOperator, 
+        x0: NDArray, 
+        tau: float, 
+        niter: int = 10,
+        tol: Optional[float] = None,
+        callback: Optional[Callable[[NDArray], None]] = None,
+        show: bool = False,
+        ) -> NDArray:
     r"""Proximal point algorithm
 
     Solves the following minimization problem using Proximal point algorithm:
@@ -129,12 +151,22 @@ def ProximalPoint(prox, x0, tau, niter=10,
     return x
 
 
-def ProximalGradient(proxf, proxg, x0, epsg=1.,
-                     tau=None, backtracking=False,
-                     beta=0.5, eta=1.,
-                     niter=10, niterback=100,
-                     acceleration=None, tol=None,
-                     callback=None, show=False):
+def ProximalGradient(
+    proxf: ProxOperator, 
+    proxg: ProxOperator, 
+    x0: NDArray,
+    epsg: Union[float, NDArray] = 1.,
+    tau: Optional[float] = None, 
+    backtracking: bool = False,
+    beta: float = 0.5, 
+    eta: float = 1.,
+    niter: int = 10, 
+    niterback: int = 100,
+    acceleration: Optional[str] = None, 
+    tol: Optional[float] = None,
+    callback: Optional[Callable[[NDArray], None]] = None,
+    show: bool = False,
+    ) -> NDArray:
     r"""Proximal gradient (optionally accelerated)
 
     Solves the following minimization problem using (Accelerated) Proximal
@@ -235,7 +267,8 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
 
     """
     # check if epgs is a vector
-    if np.asarray(epsg).size == 1.:
+    epsg = np.asarray(epsg, dtype=float)
+    if epsg.size == 1:
         epsg = epsg * np.ones(niter)
         epsg_print = str(epsg[0])
     else:
@@ -338,10 +371,19 @@ def ProximalGradient(proxf, proxg, x0, epsg=1.,
     return x
 
 
-def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
-                                epsg=1., niter=10, niterback=100,
-                                acceleration='vandenberghe', tol=None,
-                                callback=None, show=False):
+def AcceleratedProximalGradient(
+        proxf: ProxOperator, 
+        proxg: ProxOperator,
+        x0: NDArray, 
+        tau: Optional[float] = None,
+        beta: float = 0.5,
+        epsg: float = 1.,
+        niter: int = 10, 
+        niterback: int = 100,
+        acceleration: str = 'vandenberghe',
+        tol: Optional[float] = None,
+        callback: Optional[Callable[[NDArray], None]] = None,
+        show: bool = False) -> NDArray:
     r"""Accelerated Proximal gradient
 
     This is a thin wrapper around :func:`pyproximal.optimization.primal.ProximalGradient` with
@@ -359,11 +401,20 @@ def AcceleratedProximalGradient(proxf, proxg, x0, tau=None, beta=0.5,
                             callback=callback, show=show)
 
 
-def AndersonProximalGradient(proxf, proxg, x0, epsg=1.,
-                             tau=None, niter=10, 
-                             nhistory=10, epsr=1e-10, 
-                             safeguard=False, tol=None, 
-                             callback=None, show=False):
+def AndersonProximalGradient(
+        proxf: ProxOperator, 
+        proxg: ProxOperator,
+        x0: NDArray, 
+        epsg: Union[float, NDArray] = 1.,
+        tau: Union[float, NDArray] = 1., 
+        niter: int = 10,
+        nhistory: int = 10, 
+        epsr: float = 1e-10,
+        safeguard: bool = False, 
+        tol: Optional[float] = None,
+        callback: Optional[Callable[[NDArray], None]] = None,
+        show: bool = False,
+        ) -> NDArray:
     r"""Proximal gradient with Anderson acceleration
 
     Solves the following minimization problem using the Proximal
@@ -390,10 +441,9 @@ def AndersonProximalGradient(proxf, proxg, x0, epsg=1.,
     tau : :obj:`float` or :obj:`numpy.ndarray`, optional
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
-        the Lipschitz constant of :math:`\nabla f`. When ``tau=None``,
-        backtracking is used to adaptively estimate the best tau at each
-        iteration. Finally, note that :math:`\tau` can be chosen to be a vector
-        when dealing with problems with multiple right-hand-sides
+        the Lipschitz constant of :math:`\nabla f`. N   ote that :math:`\tau` 
+        can be chosen to be a vector when dealing with problems with 
+        multiple right-hand-sides
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
     nhistory : :obj:`int`, optional
@@ -444,7 +494,8 @@ def AndersonProximalGradient(proxf, proxg, x0, epsg=1.,
     
     """
     # check if epgs is a vector
-    if np.asarray(epsg).size == 1.:
+    epsg = np.asarray(epsg, dtype=float)
+    if epsg.size == 1:
         epsg = epsg * np.ones(niter)
         epsg_print = str(epsg[0])
     else:
@@ -555,11 +606,19 @@ def AndersonProximalGradient(proxf, proxg, x0, epsg=1.,
     return x
 
 
-def GeneralizedProximalGradient(proxfs, proxgs, x0, tau,
-                                epsg=1., weights=None,
-                                eta=1., niter=10,
-                                acceleration=None,
-                                callback=None, show=False):
+def GeneralizedProximalGradient(
+        proxfs: List[ProxOperator], 
+        proxgs: List[ProxOperator],
+        x0: NDArray, 
+        tau: Optional[float],
+        epsg: Union[float, NDArray] = 1.,
+        weights: Optional[NDArray] = None,
+        eta: float = 1., 
+        niter: int = 10,
+        acceleration: Optional[str] = None,
+        callback: Optional[Callable[[NDArray], None]] = None,
+        show: bool = False,
+        ) -> NDArray:
     r"""Generalized Proximal gradient
 
     Solves the following minimization problem using Generalized Proximal
@@ -610,7 +669,7 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau,
 
     Notes
     -----
-    The Generalized Proximal point algorithm can be expressed by the
+    The Generalized Proximal gradient algorithm can be expressed by the
     following recursion:
 
     .. math::
@@ -632,7 +691,8 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau,
                          f'summing to 1')
 
     # check if epgs is a vector
-    if np.asarray(epsg).size == 1.:
+    epsg = np.asarray(epsg, dtype=float)
+    if epsg.size == 1:
         epsg_print = str(epsg)
         epsg = epsg * np.ones(len(proxgs))
     else:
@@ -651,7 +711,7 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau,
                                                        [type(proxg) for proxg in proxgs],
                                                        0 if tau is None else tau,
                                                        epsg_print, niter))
-        head = '   Itn       x[0]          f           g       J=f+eps*g'
+        head = '   Itn       x[0]          f           g       J=f+g'
         print(head)
 
     if tau is None:
@@ -697,11 +757,11 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau,
 
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf, pg = np.sum([proxf(x) for proxf in proxfs]), np.sum([proxg(x) for proxg in proxgs])
+                pf: float = np.sum([proxf(x) for proxf in proxfs])
+                pg: float = np.sum([eg * proxg(x) for proxg, eg in zip(proxgs, epsg)])
                 msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
                       (iiter + 1, x[0] if x.ndim == 1 else x[0, 0],
-                       pf, pg[0] if epsg_print == 'Multi' else pg,
-                       pf + np.sum(epsg * pg))
+                       pf, pg, pf + pg)
                 print(msg)
     if show:
         print('\nTotal time (s) = %.2f' % (time.time() - tstart))
@@ -709,8 +769,18 @@ def GeneralizedProximalGradient(proxfs, proxgs, x0, tau,
     return x
 
 
-def HQS(proxf, proxg, x0, tau, niter=10, z0=None, gfirst=True,
-        callback=None, callbackz=False, show=False):
+def HQS(
+        proxf: ProxOperator, 
+        proxg: ProxOperator, 
+        x0: NDArray,
+        tau: Union[float, NDArray], 
+        niter: int = 10,
+        z0: Optional[NDArray] = None, 
+        gfirst: bool = True,
+        callback: Optional[Callable[..., None]] = None,
+        callbackz: bool = False, 
+        show: bool = False,
+        ) -> Tuple[NDArray, NDArray]:
     r"""Half Quadratic splitting
 
     Solves the following minimization problem using Half Quadratic splitting
@@ -788,8 +858,9 @@ def HQS(proxf, proxg, x0, tau, niter=10, z0=None, gfirst=True,
          4, 7, pp. 932-946, 1995.
 
     """
-    # check if epgs is a ve
-    if np.asarray(tau).size == 1.:
+    # check if tau is a vector
+    tau = np.asarray(tau, dtype=float)
+    if tau.size == 1.:
         tau_print = str(tau)
         tau = tau * np.ones(niter)
     else:
@@ -839,8 +910,17 @@ def HQS(proxf, proxg, x0, tau, niter=10, z0=None, gfirst=True,
     return x, z
 
 
-def ADMM(proxf, proxg, x0, tau, niter=10, gfirst=False,
-         callback=None, callbackz=False, show=False):
+def ADMM(
+    proxf: ProxOperator, 
+    proxg: ProxOperator, 
+    x0: NDArray,
+    tau: float, 
+    niter: int = 10, 
+    gfirst: bool = False,
+    callback: Optional[Callable[..., None]] = None,
+    callbackz: bool = False, 
+    show: bool = False,
+    ) -> Tuple[NDArray, NDArray]:
     r"""Alternating Direction Method of Multipliers
 
     Solves the following minimization problem using Alternating Direction
@@ -970,8 +1050,19 @@ def ADMM(proxf, proxg, x0, tau, niter=10, gfirst=False,
     return x, z
 
 
-def ADMML2(proxg, Op, b, A, x0, tau, niter=10, gfirst=False,
-           callback=None, show=False, **kwargs_solver):
+def ADMML2(
+        proxg: ProxOperator, 
+        Op: "LinearOperator", 
+        b: NDArray,
+        A: "LinearOperator", 
+        x0: NDArray, 
+        tau: float, 
+        niter: int = 10,
+        gfirst: bool = False,
+        callback: Optional[Callable[[NDArray], None]] = None,
+        show: bool = False, 
+        **kwargs_solver: Dict[str, Any],
+        ) -> Tuple[NDArray, NDArray]:
     r"""Alternating Direction Method of Multipliers for L2 misfit term
 
     Solves the following minimization problem using Alternating Direction
@@ -1085,8 +1176,17 @@ def ADMML2(proxg, Op, b, A, x0, tau, niter=10, gfirst=False,
     return x, z
 
 
-def LinearizedADMM(proxf, proxg, A, x0, tau, mu, niter=10,
-                   callback=None, show=False):
+def LinearizedADMM(
+        proxf: ProxOperator, 
+        proxg: ProxOperator, 
+        A: "LinearOperator",
+        x0: NDArray, 
+        tau: float, 
+        mu: float, 
+        niter: int = 10,
+        callback: Optional[Callable[[NDArray], None]] = None,
+        show: bool = False,
+        ) -> Tuple[NDArray, NDArray]:
     r"""Linearized Alternating Direction Method of Multipliers
 
     Solves the following minimization problem using Linearized Alternating
@@ -1194,8 +1294,19 @@ def LinearizedADMM(proxf, proxg, A, x0, tau, mu, niter=10,
     return x, z
 
 
-def TwIST(proxg, A, b, x0, alpha=None, beta=None, eigs=None, niter=10,
-          callback=None, show=False, returncost=False):
+def TwIST(
+        proxg: ProxOperator, 
+        A: "LinearOperator", 
+        b: NDArray,
+        x0: NDArray, 
+        alpha: Optional[float] = None,
+        beta: Optional[float] = None, 
+        eigs: Optional[Tuple[float, float]] = None,
+        niter: int = 10,
+        callback: Optional[Callable[[NDArray], None]] = None,
+        show: bool = False, 
+        returncost: bool = False,
+        ) -> Union[NDArray, Tuple[NDArray, NDArray]]:
     r"""Two-step Iterative Shrinkage/Threshold
 
     Solves the following minimization problem using Two-step Iterative
@@ -1309,7 +1420,6 @@ def TwIST(proxg, A, b, x0, alpha=None, beta=None, eigs=None, niter=10,
         print(head)
 
     # iterate
-    j = None
     if returncost:
         j = np.zeros(niter)
     for iiter in range(niter):
@@ -1347,17 +1457,17 @@ def TwIST(proxg, A, b, x0, alpha=None, beta=None, eigs=None, niter=10,
 
 
 def DouglasRachfordSplitting(
-    proxf,
-    proxg,
-    x0,
-    tau,
-    eta=1.0,
-    niter=10,
-    gfirst=True,
-    callback=None,
-    callbacky=False,
-    show=False,
-):
+    proxf: ProxOperator,
+    proxg: ProxOperator,
+    x0: NDArray,
+    tau: float,
+    eta: float = 1.0,
+    niter: int = 10,
+    gfirst: bool = True,
+    callback: Optional[Callable[..., None]] = None,
+    callbacky: bool = False,
+    show: bool = False,
+) -> Tuple[NDArray, NDArray]:
     r"""Douglas-Rachford Splitting
 
     Solves the following minimization problem using Douglas-Rachford Splitting
@@ -1400,7 +1510,8 @@ def DouglasRachfordSplitting(
     -------
     x : :obj:`numpy.ndarray`
         Inverted model
-
+    y : :obj:`numpy.ndarray`
+        Inverted second model
 
     Notes
     -----
