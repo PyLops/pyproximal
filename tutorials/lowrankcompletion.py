@@ -34,6 +34,7 @@ where :math:`\|\mathbf{X}\|_*=\sum_i \sigma_i` is the nuclear norm of
 :math:`\mathbf{X}` (i.e., the sum of the singular values).
 
 """
+
 import matplotlib.pyplot as plt
 
 # sphinx_gallery_thumbnail_number = 2

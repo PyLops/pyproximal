@@ -24,6 +24,7 @@ where :math:`\mathcal{H}` is the set of Hankel matrices.
         Journal of Computer Vision (IJCV), 120:194–214, 2016.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.linalg import hankel

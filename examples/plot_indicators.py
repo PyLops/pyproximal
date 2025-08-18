@@ -5,6 +5,7 @@ This example considers proximal operators of indicator functions, which can be
 computed via their orthogonal projections.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops

@@ -21,6 +21,7 @@ solver. We will show how to pass a solver of choice to our
 :func:`pyproximal.optimization.pnp.PlugAndPlay` solver.
 
 """
+
 import bm3d
 import matplotlib.pyplot as plt
 import numpy as np

@@ -15,6 +15,7 @@ on the data term which must be satisfied exactly. Similarly, we can also conside
     \argmin_\mathbf{x} \|\mathbf{x}\|_1 \; \text{s.t.} \;  \|\mathbf{Ax} - \mathbf{y}\|_2 < \epsilon
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops

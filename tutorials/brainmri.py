@@ -17,6 +17,7 @@ is the object of interest and :math:`\mathbf{y}` the set of available Fourier co
 Once the model is reconstructed, we solve a second inverse problem with the aim of segmenting the retrieved object into
 :math:`N` classes of different luminosity.
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops

@@ -27,6 +27,7 @@ outperforms TV and Tikhonov regularization, modeled after the experiments in [2]
 .. [2] Kadu, A., and Kumar, R. and van Leeuwen, Tristan. Full-waveform inversion with Mumford-Shah regularization. SEG International Exposition and Annual Meeting, SEG-2018-2997224
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops

@@ -43,6 +43,7 @@ will simply use the `grad` method whilst the second solver relies on the
 `optimize` method.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp

@@ -11,7 +11,7 @@ par2 = {"ny": 21, "nx": 11, "nt": 20, "imag": 1j, "dtype": "complex64"}  # compl
 np.random.seed(10)
 
 
-@pytest.mark.parametrize("par", [(par1)])
+@pytest.mark.parametrize("par", [par1])
 def test_negativetau(par):
     """Check error is raised when passing negative tau"""
     l1 = Euclidean(sigma=1.0)
@@ -21,7 +21,7 @@ def test_negativetau(par):
         l1.prox(x, -1)
 
 
-@pytest.mark.parametrize("par", [(par1)])
+@pytest.mark.parametrize("par", [par1])
 def test_add(par):
     """Check __add__ operator against one proximal operator to which we
     can add a dot-product (e.g., Quadratic)
@@ -39,7 +39,7 @@ def test_add(par):
     assert_array_equal(quad.proxdual(x, tau), quad1.proxdual(x, tau))
 
 
-@pytest.mark.parametrize("par", [(par1)])
+@pytest.mark.parametrize("par", [par1])
 def test_mul(par):
     """Check __mul__ operator against one proximal operator to which we
     can multiply a scalar (e.g., L2)
@@ -55,7 +55,7 @@ def test_mul(par):
     assert_array_equal(l2.proxdual(x, tau), l21.proxdual(x, tau))
 
 
-@pytest.mark.parametrize("par", [(par1)])
+@pytest.mark.parametrize("par", [par1])
 def test_precomposition_type(par):
     """Check precomposition method raises an error
     when type of a and b is incorrect
@@ -70,7 +70,7 @@ def test_precomposition_type(par):
         )  # should be float, np.ndarray or cp.ndarray
 
 
-@pytest.mark.parametrize("par", [(par1)])
+@pytest.mark.parametrize("par", [par1])
 def test_postcomposition_type(par):
     """Check postcomposition method raises an error
     when type of sigma is incorrect
@@ -86,7 +86,7 @@ def test_postcomposition_type(par):
         )
 
 
-@pytest.mark.parametrize("par", [(par1)])
+@pytest.mark.parametrize("par", [par1])
 def test_affine_addition_type(par):
     """Check affine_addition method raises an error
     when type of v is incorrect

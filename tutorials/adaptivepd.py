@@ -12,6 +12,7 @@ with an expensive proximal operator.
 For this example, we consider a simple denoising problem.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops

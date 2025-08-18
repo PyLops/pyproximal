@@ -375,9 +375,11 @@ def ProximalGradient(
                     pfg = pf + np.sum(epsg[iiter] * pg)
                 msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e  %10.3e" % (
                     iiter + 1,
-                    np.real(to_numpy(x[0]))
-                    if x.ndim == 1
-                    else np.real(to_numpy(x[0, 0])),
+                    (
+                        np.real(to_numpy(x[0]))
+                        if x.ndim == 1
+                        else np.real(to_numpy(x[0, 0]))
+                    ),
                     pf,
                     pg,
                     pfg,
@@ -569,7 +571,9 @@ def AndersonProximalGradient(
     x = proxg.prox(y, epsg[0] * tau)
     g = y.copy()
     r = g - x0
-    R, G = [g,], [
+    R, G = [
+        g,
+    ], [
         r,
     ]
     pf = proxf(x)
@@ -641,9 +645,11 @@ def AndersonProximalGradient(
                     pfg = pf + np.sum(epsg[iiter] * pg)
                 msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e  %10.3e" % (
                     iiter + 1,
-                    np.real(to_numpy(x[0]))
-                    if x.ndim == 1
-                    else np.real(to_numpy(x[0, 0])),
+                    (
+                        np.real(to_numpy(x[0]))
+                        if x.ndim == 1
+                        else np.real(to_numpy(x[0, 0]))
+                    ),
                     pf,
                     pg,
                     pfg,

@@ -23,6 +23,7 @@ signals :math:`\mathbf{x}_i`, and the :math:`L_{0,1}` norm computes the number o
 a vector whose elements are the $L_1$ norm of each column of :math:`\mathbf{X}`.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops

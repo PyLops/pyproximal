@@ -20,6 +20,7 @@ For both examples we investigate with different choices of regularization:
 - Isotropic TV :math:`J(\mathbf{u}) = \|\nabla \mathbf{u}\|_{2,1}`
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops

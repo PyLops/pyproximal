@@ -4,6 +4,7 @@ Concave penalties
 This example considers proximal operators of concave separable penalties.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 

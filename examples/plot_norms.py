@@ -10,6 +10,7 @@ namely:
 - L21 norm (:class:`pyproximal.L21`)
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops

@@ -11,6 +11,7 @@ In this example we consider the proximal operator for a quadratic function:
 which is implemented by the :class:`pyproximal.Quadratic` class.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops

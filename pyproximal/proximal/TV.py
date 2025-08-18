@@ -191,21 +191,12 @@ class TV(ProxOperator):
                 div = np.concatenate(
                     (
                         np.expand_dims(
-                            rr[
-                                0,
-                            ],
+                            rr[0,],
                             axis=0,
                         ),
-                        rr[
-                            1:-1,
-                        ]
-                        - rr[
-                            :-2,
-                        ],
+                        rr[1:-1,] - rr[:-2,],
                         -np.expand_dims(
-                            rr[
-                                -2,
-                            ],
+                            rr[-2,],
                             axis=0,
                         ),
                     ),

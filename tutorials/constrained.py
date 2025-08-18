@@ -19,6 +19,7 @@ a Proximal gradient solver when used with a constraint that admits a proximal
 (instead of a soft regularizer).
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops
@@ -58,6 +59,7 @@ indic = indic[0].reshape(nm1, nm2) & indic[1].reshape(nm1, nm2)
 # We can now define both the quadratic functional and the box
 l2 = pyproximal.L2(Op=pylops.MatrixMult(G), b=d, niter=2)
 ind = pyproximal.Box(lower, upper)
+
 
 ###############################################################################
 # We are now ready to solve our problem. All we need to do is to choose an
