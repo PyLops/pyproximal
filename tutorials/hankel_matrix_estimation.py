@@ -168,11 +168,11 @@ plt.tight_layout()
 # numbers. First, we consider the Frobenius norm error for the different
 # reconstructions
 metric = lambda X: np.linalg.norm(X_gt - X, "fro")
-print(f"Projection onto set of Hankel matrices:")
+print("Projection onto set of Hankel matrices:")
 print(f"Rec. error: {metric(X_rec_hankel):.4f}")
-print(f"Low-rank approximation:")
+print("Low-rank approximation:")
 print(f"Rec. error: {metric(X_rec_lowrank):.4f}")
-print(f"Quadratic envelope relaxation:")
+print("Quadratic envelope relaxation:")
 print(f"Rec. error: {metric(X_rec_quadenv):.4f}")
 
 ###############################################################################
@@ -180,11 +180,11 @@ print(f"Rec. error: {metric(X_rec_quadenv):.4f}")
 # namely the sum of the smallest singular values (which ought to vanish if the
 # reconstruction is correct)
 metric = lambda X: np.sum(np.linalg.svd(X, compute_uv=False)[r0:])
-print(f"Projection onto set of Hankel matrices:")
+print("Projection onto set of Hankel matrices:")
 print(f"Sum of sing. val. > r0: {metric(X_rec_hankel):.4f}")
-print(f"Low-rank approximation:")
+print("Low-rank approximation:")
 print(f"Sum of sing. val. > r0: {metric(X_rec_lowrank):.4e}")
-print(f"Quadratic envelope relaxation:")
+print("Quadratic envelope relaxation:")
 print(f"Sum of sing. val. > r0: {metric(X_rec_quadenv):.4e}")
 
 ###############################################################################

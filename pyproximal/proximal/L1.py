@@ -187,7 +187,7 @@ class L1Ball(ProxOperator):
         self.ball = L1BallProj(self.n, self.radius, self.maxiter, self.xtol)
 
     def __call__(self, x: NDArray, tol: float = 1e-4) -> bool:
-        return np.sum(np.abs(x)) - self.radius < tol
+        return bool(np.sum(np.abs(x)) - self.radius < tol)
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:

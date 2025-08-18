@@ -50,9 +50,9 @@ def test_EuclBall(par):
     x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"]) + 1.0
 
     # evaluation
-    assert eucl(x) == False
+    assert eucl(x) is False
     xp = eucl.prox(x, 1.0)
-    assert eucl(xp) == True
+    assert eucl(xp) is True
 
     # prox / dualprox
     tau = 2.0
@@ -68,9 +68,9 @@ def test_L0Ball(par):
     x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"]) + 1.0
 
     # evaluation
-    assert l0(x) == False
+    assert l0(x) is False
     xp = l0.prox(x, 1.0)
-    assert l0(xp) == True
+    assert l0(xp) is True
 
     # prox / dualprox
     tau = 2.0
@@ -86,9 +86,9 @@ def test_L10Ball(par):
     x = np.random.normal(0.0, 1.0, (3, par["nx"])).astype(par["dtype"]).ravel() + 1.0
 
     # evaluation
-    assert l0(x) == False
+    assert l0(x) is False
     xp = l0.prox(x, 1.0)
-    assert l0(xp) == True
+    assert l0(xp) is True
 
     # prox / dualprox
     tau = 2.0
@@ -104,9 +104,9 @@ def test_L1Ball(par):
     x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"]) + 1.0
 
     # evaluation
-    assert l1(x) == False
+    assert l1(x) is False
     xp = l1.prox(x, 1.0)
-    assert l1(xp) == True
+    assert l1(xp) is True
 
     # prox / dualprox
     tau = 2.0
@@ -124,9 +124,9 @@ def test_NuclBall(par):
     ) + np.eye(par["nx"], par["ny"])
 
     # evaluation
-    assert nuc(x) == False
+    assert nuc(x) is False
     xp = nuc.prox(x, 1.0)
-    assert nuc(xp, 1e-4) == True
+    assert nuc(xp, 1e-4) is True
 
     # prox / dualprox
     tau = 2.0
@@ -145,8 +145,8 @@ def test_Simplex(par):
         sim1 = Simplex(n=par["nx"], radius=np.sum(x) - 0.1, engine=engine)
 
         # evaluation
-        assert sim(x) == True
-        assert sim1(x) == False
+        assert sim(x) is True
+        assert sim1(x) is False
 
         # prox / dualprox
         tau = 2.0
@@ -213,9 +213,9 @@ def test_Hankel(par):
     x = np.random.normal(0.0, 1.0, dim).astype(par["dtype"])
 
     # evaluation
-    assert hankel(x) == False
+    assert hankel(x) is False
     xp = hankel.prox(x, 1.0)
-    assert hankel(xp) == True
+    assert hankel(xp) is True
 
     # prox / dualprox
     tau = 2.0
