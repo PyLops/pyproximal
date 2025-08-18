@@ -1,8 +1,8 @@
+import time
+from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
-import time
 import numpy as np
-from copy import deepcopy
 from pylops.utils.typing import NDArray
 
 from pyproximal.ProxOperator import ProxOperator
@@ -12,20 +12,20 @@ if TYPE_CHECKING:
 
 
 def Bregman(
-        proxf: ProxOperator, 
-        proxg: ProxOperator, 
-        x0: NDArray,
-        solver: Callable[..., NDArray], 
-        A: Optional["LinearOperator"] = None,
-        alpha: float = 1., 
-        niterouter: int = 10,
-        warm: bool = False, 
-        tolx: float = 1e-10, 
-        tolf: float = 1e-10,
-        bregcallback: Optional[Callable[[NDArray], None]] = None,
-        show: bool = False, 
-        **kwargs_solver: Dict[str, Any],
-        ) -> NDArray:
+    proxf: ProxOperator,
+    proxg: ProxOperator,
+    x0: NDArray,
+    solver: Callable[..., NDArray],
+    A: Optional["LinearOperator"] = None,
+    alpha: float = 1.0,
+    niterouter: int = 10,
+    warm: bool = False,
+    tolx: float = 1e-10,
+    tolf: float = 1e-10,
+    bregcallback: Optional[Callable[[NDArray], None]] = None,
+    show: bool = False,
+    **kwargs_solver: Dict[str, Any],
+) -> NDArray:
     r"""Bregman iterations with Proximal Solver
 
     Solves one of the following minimization problem using Bregman iterations
@@ -115,16 +115,18 @@ def Bregman(
     """
     if show:
         tstart = time.time()
-        print('Bregman\n'
-              '---------------------------------------------------------\n'
-              'Proximal operator (f): %s\n'
-              'Proximal operator (g): %s\n'
-              'Linear operator (A): %s\n'
-              'Inner Solver: %s\n'
-              'alpha = %10e\ttolf = %10e\ttolx = %10e\n'
-              'niter = %d\n' % (type(proxf), type(proxg), type(A), solver,
-                                alpha, tolf, tolx, niterouter))
-        head = '   Itn       x[0]          f           g       J = f + g'
+        print(
+            "Bregman\n"
+            "---------------------------------------------------------\n"
+            "Proximal operator (f): %s\n"
+            "Proximal operator (g): %s\n"
+            "Linear operator (A): %s\n"
+            "Inner Solver: %s\n"
+            "alpha = %10e\ttolf = %10e\ttolx = %10e\n"
+            "niter = %d\n"
+            % (type(proxf), type(proxg), type(A), solver, alpha, tolf, tolx, niterouter)
+        )
+        head = "   Itn       x[0]          f           g       J = f + g"
         print(head)
 
     # multiply alpha to proxg
@@ -148,7 +150,7 @@ def Bregman(
             x = x[0]
 
         # update q
-        q = q - (1. / alpha) * proxf.grad(x)
+        q = q - (1.0 / alpha) * proxf.grad(x)
 
         # run callback
         if bregcallback is not None:
@@ -158,14 +160,19 @@ def Bregman(
         if show:
             if iiter < 10 or niterouter - iiter < 10 or iiter % 10 == 0:
                 pg = proxg(A.matvec(x)) if A is not None else proxg(x)
-                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, x[0], pf, pg, pf + pg)
+                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
+                    iiter + 1,
+                    x[0],
+                    pf,
+                    pg,
+                    pf + pg,
+                )
                 print(msg)
 
         if np.linalg.norm(x - xold) < tolx or pf < tolf:
             break
 
     if show:
-        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
-        print('---------------------------------------------------------\n')
+        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
+        print("---------------------------------------------------------\n")
     return x

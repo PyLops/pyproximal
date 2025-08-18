@@ -8,7 +8,7 @@ non-smooth convex optimization problems using the so-called proximal algorithms.
 PyProximal provides
   1. A general construct for creating proximal operators
   2. An extensive set of commonly used proximal operators
-  3. A set of solvers for composite objective functions with 
+  3. A set of solvers for composite objective functions with
      differentiable and proximable functions.
 
 Available subpackages
@@ -44,4 +44,5 @@ except ImportError:
     # warning here, but this case *should* be rare. PyProximal should be installed
     # properly!
     from datetime import datetime
-    __version__ = 'unknown-'+datetime.today().strftime('%Y%m%d')
+
+    __version__ = "unknown-" + datetime.today().strftime("%Y%m%d")

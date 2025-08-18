@@ -34,23 +34,24 @@ where :math:`\|\mathbf{X}\|_*=\sum_i \sigma_i` is the nuclear norm of
 :math:`\mathbf{X}` (i.e., the sum of the singular values).
 
 """
+import matplotlib.pyplot as plt
+
 # sphinx_gallery_thumbnail_number = 2
 import numpy as np
-import matplotlib.pyplot as plt
 import pylops
-import pyproximal
-
 from scipy import datasets
 
+import pyproximal
+
 np.random.seed(0)
-plt.close('all')
+plt.close("all")
 
 ###############################################################################
 # Let's start by loading a sample image
 
 # Load image
 X = datasets.ascent()
-X = X/np.max(X)
+X = X / np.max(X)
 ny, nx = X.shape
 
 ###############################################################################
@@ -59,10 +60,10 @@ ny, nx = X.shape
 
 # Restriction operator
 sub = 0.4
-nsub = int(ny*nx*sub)
-iava = np.random.permutation(np.arange(ny*nx))[:nsub]
+nsub = int(ny * nx * sub)
+iava = np.random.permutation(np.arange(ny * nx))[:nsub]
 
-Rop = pylops.Restriction(ny*nx, iava)
+Rop = pylops.Restriction(ny * nx, iava)
 
 # Data
 y = Rop * X.ravel()
@@ -75,8 +76,8 @@ Ux, Sx, Vhx = np.linalg.svd(X, full_matrices=False)
 Uy, Sy, Vhy = np.linalg.svd(Y, full_matrices=False)
 
 plt.figure()
-plt.semilogy(Sx, 'k', label=r'$||X||_*$=%.2f' % np.sum(Sx))
-plt.semilogy(Sy, 'r', label=r'$||Y||_*$=%.2f' % np.sum(Sy))
+plt.semilogy(Sx, "k", label=r"$||X||_*$=%.2f" % np.sum(Sx))
+plt.semilogy(Sy, "r", label=r"$||Y||_*$=%.2f" % np.sum(Sy))
 plt.legend()
 plt.tight_layout()
 
@@ -89,13 +90,13 @@ plt.tight_layout()
 #
 # Let's now set up the inverse problem using the Proximal gradient algorithm
 
-mu = .8
+mu = 0.8
 f = pyproximal.L2(Rop, y)
 g = pyproximal.Nuclear((ny, nx), mu)
 
-Xpg = pyproximal.optimization.primal.ProximalGradient(f, g, np.zeros(ny*nx), 
-                                                      acceleration='vandenberghe',
-                                                      tau=1., niter=100, show=True)
+Xpg = pyproximal.optimization.primal.ProximalGradient(
+    f, g, np.zeros(ny * nx), acceleration="vandenberghe", tau=1.0, niter=100, show=True
+)
 Xpg = Xpg.reshape(ny, nx)
 
 # Recompute SVD and see how the singular values look like
@@ -106,9 +107,9 @@ Upg, Spg, Vhpg = np.linalg.svd(Xpg, full_matrices=False)
 mu1 = 0.8 * np.sum(Sx)
 g = pyproximal.proximal.NuclearBall((ny, nx), mu1)
 
-Xpgc = pyproximal.optimization.primal.ProximalGradient(f, g, np.zeros(ny*nx), 
-                                                       acceleration='vandenberghe',
-                                                       tau=1., niter=100, show=True)
+Xpgc = pyproximal.optimization.primal.ProximalGradient(
+    f, g, np.zeros(ny * nx), acceleration="vandenberghe", tau=1.0, niter=100, show=True
+)
 Xpgc = Xpgc.reshape(ny, nx)
 
 # Recompute SVD and see how the singular values look like
@@ -118,14 +119,14 @@ Upgc, Spgc, Vhpgc = np.linalg.svd(Xpgc, full_matrices=False)
 # We now display the reconstructed images
 
 fig, axs = plt.subplots(1, 4, figsize=(14, 6))
-axs[0].imshow(X, cmap='gray')
-axs[0].set_title('True')
-axs[1].imshow(Y, cmap='gray')
-axs[1].set_title('Masked')
-axs[2].imshow(Xpg, cmap='gray')
-axs[2].set_title('Reconstructed reg.')
-axs[3].imshow(Xpgc, cmap='gray')
-axs[3].set_title('Reconstructed constr.')
+axs[0].imshow(X, cmap="gray")
+axs[0].set_title("True")
+axs[1].imshow(Y, cmap="gray")
+axs[1].set_title("Masked")
+axs[2].imshow(Xpg, cmap="gray")
+axs[2].set_title("Reconstructed reg.")
+axs[3].imshow(Xpgc, cmap="gray")
+axs[3].set_title("Reconstructed constr.")
 fig.tight_layout()
 
 ###############################################################################
@@ -133,9 +134,9 @@ fig.tight_layout()
 # image and the reconstructed images
 
 plt.figure()
-plt.semilogy(Sx, 'k', label=r'$||X||_*$=%.2f' % np.sum(Sx))
-plt.semilogy(Sy, 'r', label=r'$||Y||_*$=%.2f' % np.sum(Sy))
-plt.semilogy(Spg, 'b', label=r'$||X_{pg}||_*$=%.2f' % np.sum(Spg))
-plt.semilogy(Spgc, 'g', label=r'$||X_{pgc}||_*$=%.2f' % np.sum(Spgc))
+plt.semilogy(Sx, "k", label=r"$||X||_*$=%.2f" % np.sum(Sx))
+plt.semilogy(Sy, "r", label=r"$||Y||_*$=%.2f" % np.sum(Sy))
+plt.semilogy(Spg, "b", label=r"$||X_{pg}||_*$=%.2f" % np.sum(Spg))
+plt.semilogy(Spgc, "g", label=r"$||X_{pgc}||_*$=%.2f" % np.sum(Spgc))
 plt.legend()
 plt.tight_layout()

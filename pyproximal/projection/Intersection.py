@@ -4,7 +4,7 @@ import numpy as np
 from pylops.utils.typing import NDArray
 
 
-class IntersectionProj():
+class IntersectionProj:
     r"""Intersection of multiple convex sets
 
     Parameters
@@ -36,14 +36,15 @@ class IntersectionProj():
         Minimal Partitions", Journal of Mathematical, 2011.
 
     """
+
     def __init__(
-            self, 
-            k: int, 
-            n: int, 
-            sigma: Union[float, NDArray],
-            niter: int = 100, 
-            tol: float = 1e-5,
-            ) -> None:
+        self,
+        k: int,
+        n: int,
+        sigma: Union[float, NDArray],
+        niter: int = 100,
+        tol: float = 1e-5,
+    ) -> None:
         self.k, self.n = k, n
         if isinstance(sigma, np.ndarray):
             self.sigma = sigma
@@ -61,9 +62,11 @@ class IntersectionProj():
                 for i2 in range(i1 + 1, self.k):
                     xtilde = x[i2] - x[i1] + x12[i1, i2]
                     xtildeabs = np.abs(xtilde)
-                    xdtilde = \
-                        np.maximum(0, xtildeabs - self.sigma[i1, i2]) * \
-                        xtilde / (xtildeabs + 1e-10)
+                    xdtilde = (
+                        np.maximum(0, xtildeabs - self.sigma[i1, i2])
+                        * xtilde
+                        / (xtildeabs + 1e-10)
+                    )
                     x[i1] = x[i1] + 0.5 * (xdtilde - x12[i1, i2])
                     x[i2] = x[i2] - 0.5 * (xdtilde - x12[i1, i2])
                     x12[i1, i2] = xdtilde

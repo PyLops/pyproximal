@@ -1,16 +1,15 @@
 from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Union
 
 import numpy as np
-
-from scipy.linalg import cho_factor, cho_solve
-from scipy.sparse.linalg import lsqr as sp_lsqr
-from pylops import MatrixMult, Identity
+from pylops import Identity, MatrixMult
 from pylops.optimization.basic import lsqr
 from pylops.utils.backend import get_array_module, get_module_name
 from pylops.utils.typing import NDArray, ShapeLike
+from scipy.linalg import cho_factor, cho_solve
+from scipy.sparse.linalg import lsqr as sp_lsqr
 
-from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
+from pyproximal.ProxOperator import _check_tau
 
 if TYPE_CHECKING:
     from pylops.linearoperator import LinearOperator
@@ -100,20 +99,21 @@ class L2(ProxOperator):
     iterations are used alongside a proximal solver.
 
     """
+
     def __init__(
-            self, 
-            Op: Optional["LinearOperator"] = None, 
-            b: Optional[NDArray] = None, 
-            q: Optional[NDArray] = None, 
-            sigma: float = 1., 
-            alpha: float = 1.,
-            qgrad: bool = True,
-            niter: Union[int, Callable[[int], int]] = 10,
-            x0: Optional[NDArray] = None, 
-            warm: bool = True,
-            densesolver: Optional[str] = None,
-            kwargs_solver: Optional[Dict[str, Any]] = None,
-            ) -> None:
+        self,
+        Op: Optional["LinearOperator"] = None,
+        b: Optional[NDArray] = None,
+        q: Optional[NDArray] = None,
+        sigma: float = 1.0,
+        alpha: float = 1.0,
+        qgrad: bool = True,
+        niter: Union[int, Callable[[int], int]] = 10,
+        x0: Optional[NDArray] = None,
+        warm: bool = True,
+        densesolver: Optional[str] = None,
+        kwargs_solver: Optional[Dict[str, Any]] = None,
+    ) -> None:
         super().__init__(Op, True)
         self.b = b
         self.q = q
@@ -129,8 +129,8 @@ class L2(ProxOperator):
 
         # when using factorize, store the first tau*sigma=0 so that the
         # first time it will be recomputed (as tau cannot be 0)
-        if self.densesolver == 'factorize':
-            self.tausigma = 0.
+        if self.densesolver == "factorize":
+            self.tausigma = 0.0
 
         # create data term
         if self.Op is not None and self.b is not None:
@@ -141,21 +141,22 @@ class L2(ProxOperator):
 
     def __call__(self, x: NDArray) -> float:
         if self.Op is not None and self.b is not None:
-            f = (self.sigma / 2.) * (np.linalg.norm(self.Op * x - self.b) ** 2)
+            f = (self.sigma / 2.0) * (np.linalg.norm(self.Op * x - self.b) ** 2)
         elif self.b is not None:
-            f = (self.sigma / 2.) * (np.linalg.norm(x - self.b) ** 2)
+            f = (self.sigma / 2.0) * (np.linalg.norm(x - self.b) ** 2)
         else:
-            f = (self.sigma / 2.) * (np.linalg.norm(x) ** 2)
+            f = (self.sigma / 2.0) * (np.linalg.norm(x) ** 2)
         if self.q is not None:
             f += self.alpha * np.dot(self.q, x)
         return float(f)
 
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
-        """Increment counter
-        """
+        """Increment counter"""
+
         def wrapped(self, *args, **kwargs):
             self.count += 1
             return func(self, *args, **kwargs)
+
         return wrapped
 
     @_increment_count
@@ -173,12 +174,13 @@ class L2(ProxOperator):
             if self.q is not None:
                 y -= tau * self.alpha * self.q
             if self.Op.explicit:
-                if self.densesolver != 'factorize':
-                    Op1 = MatrixMult(np.eye(self.Op.shape[1]) +
-                                     tau * self.sigma * self.ATA)
+                if self.densesolver != "factorize":
+                    Op1 = MatrixMult(
+                        np.eye(self.Op.shape[1]) + tau * self.sigma * self.ATA
+                    )
                     if self.densesolver is None:
-                        # to allow backward compatibility with 
-                        # PyLops versions earlier than v1.18.1 
+                        # to allow backward compatibility with
+                        # PyLops versions earlier than v1.18.1
                         # and v2.0.0
                         x = Op1.div(y)
                     else:
@@ -187,31 +189,33 @@ class L2(ProxOperator):
                     if self.tausigma != tau * self.sigma:
                         # recompute factorization
                         self.tausigma = tau * self.sigma
-                        ATA = np.eye(self.Op.shape[1]) + \
-                              self.tausigma * self.ATA
+                        ATA = np.eye(self.Op.shape[1]) + self.tausigma * self.ATA
                         self.cl = cho_factor(ATA)
                     x = cho_solve(self.cl, y)
             else:
-                Op1 = Identity(self.Op.shape[1], dtype=self.Op.dtype) + \
-                      float(tau * self.sigma) * (self.Op.H * self.Op)
-                if get_module_name(get_array_module(x)) == 'numpy':
-                    x = sp_lsqr(Op1, y, iter_lim=niter, x0=self.x0,
-                                **self.kwargs_solver)[0]
+                Op1 = Identity(self.Op.shape[1], dtype=self.Op.dtype) + float(
+                    tau * self.sigma
+                ) * (self.Op.H * self.Op)
+                if get_module_name(get_array_module(x)) == "numpy":
+                    x = sp_lsqr(
+                        Op1, y, iter_lim=niter, x0=self.x0, **self.kwargs_solver
+                    )[0]
                 else:
-                    x = lsqr(Op1, y, niter=niter, x0=self.x0,
-                             **self.kwargs_solver)[0].ravel()
+                    x = lsqr(Op1, y, niter=niter, x0=self.x0, **self.kwargs_solver)[
+                        0
+                    ].ravel()
             if self.warm:
                 self.x0 = x
         elif self.b is not None:
             num = x + tau * self.sigma * self.b
             if self.q is not None:
                 num -= tau * self.alpha * self.q
-            x = num / (1. + tau * self.sigma)
+            x = num / (1.0 + tau * self.sigma)
         else:
             num = x
             if self.q is not None:
                 num -= tau * self.alpha * self.q
-            x = num / (1. + tau * self.sigma)
+            x = num / (1.0 + tau * self.sigma)
         return x
 
     def grad(self, x: NDArray) -> NDArray:
@@ -261,15 +265,16 @@ class L2Convolve(ProxOperator):
         {1 + \tau\sigma F(\mathbf{h})^* F(\mathbf{h})} \right)
 
     """
+
     def __init__(
-            self, 
-            h: NDArray, 
-            b: Optional[NDArray] = None, 
-            nfft: int = 2 ** 10, 
-            sigma: float = 1., 
-            dims: Optional[ShapeLike] = None,
-            dir: Optional[int] = None,
-            ) -> None:
+        self,
+        h: NDArray,
+        b: Optional[NDArray] = None,
+        nfft: int = 2**10,
+        sigma: float = 1.0,
+        dims: Optional[ShapeLike] = None,
+        dir: Optional[int] = None,
+    ) -> None:
         super().__init__(None, True)
         self.nfft = nfft
         self.sigma = sigma
@@ -300,8 +305,9 @@ class L2Convolve(ProxOperator):
         if self.dims is not None:
             x = x.reshape(self.dims)
         xf = np.fft.fft(x, self.nfft, axis=self.dir)
-        f = (self.sigma / 2.) * np.linalg.norm(np.fft.ifft(self.bf - self.hf * xf,
-                                                           axis=self.dir)) ** 2
+        f = (self.sigma / 2.0) * np.linalg.norm(
+            np.fft.ifft(self.bf - self.hf * xf, axis=self.dir)
+        ) ** 2
         return float(f)
 
     @_check_tau
@@ -309,11 +315,10 @@ class L2Convolve(ProxOperator):
         if self.dims is not None:
             x = x.reshape(self.dims)
         xf = np.fft.fft(x, self.nfft, axis=self.dir)
-        yf = (xf + self.sigma * tau * self.hbf) / \
-             (1. + self.sigma * tau * self.h2f)
+        yf = (xf + self.sigma * tau * self.hbf) / (1.0 + self.sigma * tau * self.h2f)
         y = np.fft.ifft(yf, axis=self.dir)
         if self.dims is None:
-            y = y[:len(x)]
+            y = y[: len(x)]
         else:
             y = np.take(y, range(self.dims[self.dir]), axis=self.dir).ravel()
         return y.ravel()
@@ -323,6 +328,7 @@ class L2Convolve(ProxOperator):
             x = x.reshape(self.dims)
         xf = np.fft.fft(x, self.nfft, axis=self.dir)
 
-        f = self.sigma * np.fft.ifft(np.conj(self.hf) * (self.hf * xf - self.bf),
-                                     axis=self.dir)
+        f = self.sigma * np.fft.ifft(
+            np.conj(self.hf) * (self.hf * xf - self.bf), axis=self.dir
+        )
         return f.ravel()

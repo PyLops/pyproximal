@@ -1,8 +1,8 @@
 import numpy as np
 from pylops.utils.typing import NDArray, ShapeLike
 
-from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
+from pyproximal.ProxOperator import _check_tau
 
 
 class SingularValuePenalty(ProxOperator):

@@ -21,16 +21,15 @@ solver. We will show how to pass a solver of choice to our
 :func:`pyproximal.optimization.pnp.PlugAndPlay` solver.
 
 """
-import numpy as np
-import matplotlib.pyplot as plt
-import pylops
-
-import pyproximal
 import bm3d
-
+import matplotlib.pyplot as plt
+import numpy as np
+import pylops
 from pylops.config import set_ndarray_multiplication
 
-plt.close('all')
+import pyproximal
+
+plt.close("all")
 np.random.seed(0)
 set_ndarray_multiplication(False)
 
@@ -74,40 +73,52 @@ plt.tight_layout()
 # At this point we create a denoiser instance using the BM3D algorithm and use
 # as Plug-and-Play Prior to the PG and ADMM algorithms
 
+
 def callback(x, xtrue, errhist):
     errhist.append(np.linalg.norm(x - xtrue))
 
+
 Op = Rop * Fop
-L = np.real((Op.H*Op).eigs(neigs=1, which='LM')[0])
-tau = 1./L
+L = np.real((Op.H * Op).eigs(neigs=1, which="LM")[0])
+tau = 1.0 / L
 sigma = 0.05
 
 l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel(), niter=50, warm=True)
 
 # BM3D denoiser
-denoiser = lambda x, tau: bm3d.bm3d(np.real(x), sigma_psd=sigma * tau,
-                                    stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING)
+denoiser = lambda x, tau: bm3d.bm3d(
+    np.real(x), sigma_psd=sigma * tau, stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING
+)
 
 # PG-Pnp
 errhistpg = []
-xpnppg = pyproximal.optimization.pnp.PlugAndPlay(l2, denoiser, x.shape,
-                                                 solver=pyproximal.optimization.primal.ProximalGradient,
-                                                 tau=tau, x0=np.zeros(x.size),
-                                                 niter=40,
-                                                 acceleration='fista',
-                                                 show=True,
-                                                 callback=lambda xx: callback(xx, x.ravel(),
-                                                                              errhistpg))
+xpnppg = pyproximal.optimization.pnp.PlugAndPlay(
+    l2,
+    denoiser,
+    x.shape,
+    solver=pyproximal.optimization.primal.ProximalGradient,
+    tau=tau,
+    x0=np.zeros(x.size),
+    niter=40,
+    acceleration="fista",
+    show=True,
+    callback=lambda xx: callback(xx, x.ravel(), errhistpg),
+)
 xpnppg = np.real(xpnppg.reshape(x.shape))
 
 # ADMM-PnP
 errhistadmm = []
-xpnpadmm = pyproximal.optimization.pnp.PlugAndPlay(l2, denoiser, x.shape,
-                                                   solver=pyproximal.optimization.primal.ADMM,
-                                                   tau=tau, x0=np.zeros(x.size),
-                                                   niter=40, show=True,
-                                                   callback=lambda xx: callback(xx, x.ravel(),
-                                                                                errhistadmm))[0]
+xpnpadmm = pyproximal.optimization.pnp.PlugAndPlay(
+    l2,
+    denoiser,
+    x.shape,
+    solver=pyproximal.optimization.primal.ADMM,
+    tau=tau,
+    x0=np.zeros(x.size),
+    niter=40,
+    show=True,
+    callback=lambda xx: callback(xx, x.ravel(), errhistadmm),
+)[0]
 xpnpadmm = np.real(xpnpadmm.reshape(x.shape))
 
 fig, axs = plt.subplots(1, 3, figsize=(14, 5))
@@ -126,8 +137,8 @@ plt.tight_layout()
 # Finally, let's compare the error convergence of the two variations of PnP
 
 plt.figure(figsize=(12, 3))
-plt.plot(errhistpg, 'k', lw=2, label='PG')
-plt.plot(errhistadmm, 'r', lw=2, label='ADMM')
+plt.plot(errhistpg, "k", lw=2, label="PG")
+plt.plot(errhistadmm, "r", lw=2, label="ADMM")
 plt.title("Error norm")
 plt.legend()
 plt.tight_layout()

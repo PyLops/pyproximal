@@ -1,9 +1,9 @@
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
-
 import time
 import warnings
-import numpy as np
 from math import sqrt
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
+
+import numpy as np
 from pylops.optimization.leastsquares import regularized_inversion
 from pylops.utils.backend import to_numpy
 from pylops.utils.typing import NDArray
@@ -17,14 +17,14 @@ if TYPE_CHECKING:
 
 
 def _backtracking(
-        x: NDArray, 
-        tau: float, 
-        proxf: ProxOperator,
-        proxg: ProxOperator, 
-        epsg: float,
-        beta: float = 0.5, 
-        niterback: int = 10,
-    ) -> Tuple[NDArray, float]:
+    x: NDArray,
+    tau: float,
+    proxf: ProxOperator,
+    proxg: ProxOperator,
+    epsg: float,
+    beta: float = 0.5,
+    niterback: int = 10,
+) -> Tuple[NDArray, float]:
     r"""Backtracking
 
     Line-search algorithm for finding step sizes in proximal algorithms when
@@ -32,10 +32,12 @@ def _backtracking(
     estimate).
 
     """
+
     def ftilde(x: NDArray, y: NDArray, f: ProxOperator, tau: float) -> float:
         xy = x - y
-        return float(f(y) + np.dot(f.grad(y), xy) + \
-               (1. / (2. * tau)) * np.linalg.norm(xy) ** 2)
+        return float(
+            f(y) + np.dot(f.grad(y), xy) + (1.0 / (2.0 * tau)) * np.linalg.norm(xy) ** 2
+        )
 
     iiterback = 0
     while iiterback < niterback:
@@ -49,14 +51,14 @@ def _backtracking(
 
 
 def ProximalPoint(
-        prox: ProxOperator, 
-        x0: NDArray, 
-        tau: float, 
-        niter: int = 10,
-        tol: Optional[float] = None,
-        callback: Optional[Callable[[NDArray], None]] = None,
-        show: bool = False,
-        ) -> NDArray:
+    prox: ProxOperator,
+    x0: NDArray,
+    tau: float,
+    niter: int = 10,
+    tol: Optional[float] = None,
+    callback: Optional[Callable[[NDArray], None]] = None,
+    show: bool = False,
+) -> NDArray:
     r"""Proximal point algorithm
 
     Solves the following minimization problem using Proximal point algorithm:
@@ -103,13 +105,14 @@ def ProximalPoint(
     """
     if show:
         tstart = time.time()
-        print('Proximal point algorithm\n'
-              '---------------------------------------------------------\n'
-              'Proximal operator: %s\n'
-              'tau = %10e\tniter = %d\ttol = %s\n' % (type(prox), tau, niter, str(tol)))
-        head = '   Itn       x[0]          f'
+        print(
+            "Proximal point algorithm\n"
+            "---------------------------------------------------------\n"
+            "Proximal operator: %s\n"
+            "tau = %10e\tniter = %d\ttol = %s\n" % (type(prox), tau, niter, str(tol))
+        )
+        head = "   Itn       x[0]          f"
         print(head)
-
 
     # initialize model
     x = x0.copy()
@@ -137,8 +140,7 @@ def ProximalPoint(
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 if tol is None:
                     pf = prox(x)
-                msg = '%6g  %12.5e  %10.3e' % \
-                      (iiter + 1, x[0], pf)
+                msg = "%6g  %12.5e  %10.3e" % (iiter + 1, x[0], pf)
                 print(msg)
 
         # break if tolerance condition is met
@@ -146,27 +148,27 @@ def ProximalPoint(
             break
 
     if show:
-        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
-        print('---------------------------------------------------------\n')
+        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
+        print("---------------------------------------------------------\n")
     return x
 
 
 def ProximalGradient(
-    proxf: ProxOperator, 
-    proxg: ProxOperator, 
+    proxf: ProxOperator,
+    proxg: ProxOperator,
     x0: NDArray,
-    epsg: Union[float, NDArray] = 1.,
-    tau: Optional[float] = None, 
+    epsg: Union[float, NDArray] = 1.0,
+    tau: Optional[float] = None,
     backtracking: bool = False,
-    beta: float = 0.5, 
-    eta: float = 1.,
-    niter: int = 10, 
+    beta: float = 0.5,
+    eta: float = 1.0,
+    niter: int = 10,
     niterback: int = 100,
-    acceleration: Optional[str] = None, 
+    acceleration: Optional[str] = None,
     tol: Optional[float] = None,
     callback: Optional[Callable[[NDArray], None]] = None,
     show: bool = False,
-    ) -> NDArray:
+) -> NDArray:
     r"""Proximal gradient (optionally accelerated)
 
     Solves the following minimization problem using (Accelerated) Proximal
@@ -272,33 +274,45 @@ def ProximalGradient(
         epsg = epsg * np.ones(niter)
         epsg_print = str(epsg[0])
     else:
-        epsg_print = 'Multi'
+        epsg_print = "Multi"
 
-    if acceleration not in [None, 'None', 'vandenberghe', 'fista']:
-        raise NotImplementedError('Acceleration should be None, vandenberghe '
-                                  'or fista')
+    if acceleration not in [None, "None", "vandenberghe", "fista"]:
+        raise NotImplementedError(
+            "Acceleration should be None, vandenberghe " "or fista"
+        )
     if show:
         tstart = time.time()
-        print('Accelerated Proximal Gradient\n'
-              '---------------------------------------------------------\n'
-              'Proximal operator (f): %s\n'
-              'Proximal operator (g): %s\n'
-              'tau = %s\tbacktrack = %s\tbeta = %10e\n'
-              'epsg = %s\tniter = %d\ttol = %s\n'
-              ''
-              'niterback = %d\tacceleration = %s\n' % (type(proxf), type(proxg),
-                                                       str(tau), backtracking, beta,
-                                                       epsg_print, niter, str(tol),
-                                                       niterback, acceleration))
-        head = '   Itn       x[0]          f           g       J=f+eps*g       tau'
+        print(
+            "Accelerated Proximal Gradient\n"
+            "---------------------------------------------------------\n"
+            "Proximal operator (f): %s\n"
+            "Proximal operator (g): %s\n"
+            "tau = %s\tbacktrack = %s\tbeta = %10e\n"
+            "epsg = %s\tniter = %d\ttol = %s\n"
+            ""
+            "niterback = %d\tacceleration = %s\n"
+            % (
+                type(proxf),
+                type(proxg),
+                str(tau),
+                backtracking,
+                beta,
+                epsg_print,
+                niter,
+                str(tol),
+                niterback,
+                acceleration,
+            )
+        )
+        head = "   Itn       x[0]          f           g       J=f+eps*g       tau"
         print(head)
 
     if tau is None:
         backtracking = True
-        tau = 1.
+        tau = 1.0
 
     # initialize model
-    t = 1.
+    t = 1.0
     x = x0.copy()
     y = x.copy()
     pfg = np.inf
@@ -310,27 +324,32 @@ def ProximalGradient(
 
         # proximal step
         if not backtracking:
-            if eta == 1.:
+            if eta == 1.0:
                 x = proxg.prox(y - tau * proxf.grad(y), epsg[iiter] * tau)
             else:
-                x = x + eta * (proxg.prox(x - tau * proxf.grad(x), epsg[iiter] * tau) - x)
+                x = x + eta * (
+                    proxg.prox(x - tau * proxf.grad(x), epsg[iiter] * tau) - x
+                )
         else:
-            x, tau = _backtracking(y, tau, proxf, proxg, epsg[iiter],
-                                   beta=beta, niterback=niterback)
-            if eta != 1.:
-                x = x + eta * (proxg.prox(x - tau * proxf.grad(x), epsg[iiter] * tau) - x)
+            x, tau = _backtracking(
+                y, tau, proxf, proxg, epsg[iiter], beta=beta, niterback=niterback
+            )
+            if eta != 1.0:
+                x = x + eta * (
+                    proxg.prox(x - tau * proxf.grad(x), epsg[iiter] * tau) - x
+                )
 
         # update internal parameters for bilinear operator
         if isinstance(proxf, BilinearOperator):
             proxf.updatexy(x)
 
         # update y
-        if acceleration == 'vandenberghe':
+        if acceleration == "vandenberghe":
             omega = iiter / (iiter + 3)
-        elif acceleration == 'fista':
+        elif acceleration == "fista":
             told = t
-            t = (1. + np.sqrt(1. + 4. * t ** 2)) / 2.
-            omega = ((told - 1.) / t)
+            t = (1.0 + np.sqrt(1.0 + 4.0 * t**2)) / 2.0
+            omega = (told - 1.0) / t
         else:
             omega = 0
         y = x + omega * (x - xold)
@@ -354,11 +373,16 @@ def ProximalGradient(
                 if tol is None:
                     pf, pg = proxf(x), proxg(x)
                     pfg = pf + np.sum(epsg[iiter] * pg)
-                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, np.real(to_numpy(x[0])) if x.ndim == 1 else np.real(to_numpy(x[0, 0])),
-                       pf, pg,
-                       pfg,
-                       tau)
+                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e  %10.3e" % (
+                    iiter + 1,
+                    np.real(to_numpy(x[0]))
+                    if x.ndim == 1
+                    else np.real(to_numpy(x[0, 0])),
+                    pf,
+                    pg,
+                    pfg,
+                    tau,
+                )
                 print(msg)
 
         # break if tolerance condition is met
@@ -366,24 +390,25 @@ def ProximalGradient(
             break
 
     if show:
-        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
-        print('---------------------------------------------------------\n')
+        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
+        print("---------------------------------------------------------\n")
     return x
 
 
 def AcceleratedProximalGradient(
-        proxf: ProxOperator, 
-        proxg: ProxOperator,
-        x0: NDArray, 
-        tau: Optional[float] = None,
-        beta: float = 0.5,
-        epsg: float = 1.,
-        niter: int = 10, 
-        niterback: int = 100,
-        acceleration: str = 'vandenberghe',
-        tol: Optional[float] = None,
-        callback: Optional[Callable[[NDArray], None]] = None,
-        show: bool = False) -> NDArray:
+    proxf: ProxOperator,
+    proxg: ProxOperator,
+    x0: NDArray,
+    tau: Optional[float] = None,
+    beta: float = 0.5,
+    epsg: float = 1.0,
+    niter: int = 10,
+    niterback: int = 100,
+    acceleration: str = "vandenberghe",
+    tol: Optional[float] = None,
+    callback: Optional[Callable[[NDArray], None]] = None,
+    show: bool = False,
+) -> NDArray:
     r"""Accelerated Proximal gradient
 
     This is a thin wrapper around :func:`pyproximal.optimization.primal.ProximalGradient` with
@@ -391,30 +416,43 @@ def AcceleratedProximalGradient(
     for details.
 
     """
-    warnings.warn('AcceleratedProximalGradient has been integrated directly into ProximalGradient '
-                  'from v0.5.0. It is recommended to start using ProximalGradient by selecting the '
-                  'appropriate acceleration parameter as this behaviour will become default in '
-                  'version v1.0.0 and AcceleratedProximalGradient will be removed.', FutureWarning)
-    return ProximalGradient(proxf, proxg, x0, tau=tau, beta=beta,
-                            epsg=epsg, niter=niter, niterback=niterback,
-                            acceleration=acceleration, tol=tol,
-                            callback=callback, show=show)
+    warnings.warn(
+        "AcceleratedProximalGradient has been integrated directly into ProximalGradient "
+        "from v0.5.0. It is recommended to start using ProximalGradient by selecting the "
+        "appropriate acceleration parameter as this behaviour will become default in "
+        "version v1.0.0 and AcceleratedProximalGradient will be removed.",
+        FutureWarning,
+    )
+    return ProximalGradient(
+        proxf,
+        proxg,
+        x0,
+        tau=tau,
+        beta=beta,
+        epsg=epsg,
+        niter=niter,
+        niterback=niterback,
+        acceleration=acceleration,
+        tol=tol,
+        callback=callback,
+        show=show,
+    )
 
 
 def AndersonProximalGradient(
-        proxf: ProxOperator, 
-        proxg: ProxOperator,
-        x0: NDArray, 
-        epsg: Union[float, NDArray] = 1.,
-        tau: Union[float, NDArray] = 1., 
-        niter: int = 10,
-        nhistory: int = 10, 
-        epsr: float = 1e-10,
-        safeguard: bool = False, 
-        tol: Optional[float] = None,
-        callback: Optional[Callable[[NDArray], None]] = None,
-        show: bool = False,
-        ) -> NDArray:
+    proxf: ProxOperator,
+    proxg: ProxOperator,
+    x0: NDArray,
+    epsg: Union[float, NDArray] = 1.0,
+    tau: Union[float, NDArray] = 1.0,
+    niter: int = 10,
+    nhistory: int = 10,
+    epsr: float = 1e-10,
+    safeguard: bool = False,
+    tol: Optional[float] = None,
+    callback: Optional[Callable[[NDArray], None]] = None,
+    show: bool = False,
+) -> NDArray:
     r"""Proximal gradient with Anderson acceleration
 
     Solves the following minimization problem using the Proximal
@@ -441,8 +479,8 @@ def AndersonProximalGradient(
     tau : :obj:`float` or :obj:`numpy.ndarray`, optional
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
-        the Lipschitz constant of :math:`\nabla f`. N   ote that :math:`\tau` 
-        can be chosen to be a vector when dealing with problems with 
+        the Lipschitz constant of :math:`\nabla f`. N   ote that :math:`\tau`
+        can be chosen to be a vector when dealing with problems with
         multiple right-hand-sides
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
@@ -468,7 +506,7 @@ def AndersonProximalGradient(
 
     Notes
     -----
-    The Proximal gradient algorithm with Anderson acceleration can be expressed by the 
+    The Proximal gradient algorithm with Anderson acceleration can be expressed by the
     following recursion [1]_:
 
     .. math::
@@ -484,14 +522,14 @@ def AndersonProximalGradient(
 
     where :math:`m` equals ``nhistory``, :math:`k=1,2,...,n_{iter}`, :math:`\mathbf{y}^{0}=\mathbf{x}^{0}`,
     :math:`\mathbf{y}^{1}=\mathbf{x}^{0} - \tau^0 \nabla f(\mathbf{x}^0)`,
-    :math:`\mathbf{x}^{1}=\prox_{\tau^k g}(\mathbf{y}^{1})`, and 
+    :math:`\mathbf{x}^{1}=\prox_{\tau^k g}(\mathbf{y}^{1})`, and
     :math:`\mathbf{g}^{0}=\mathbf{y}^{1}`.
-    
+
     Refer to [1]_ for the guarded version of the algorithm (when ``safeguard=True``).
 
-    .. [1] Mai, V., and Johansson, M. "Anderson Acceleration of Proximal Gradient 
+    .. [1] Mai, V., and Johansson, M. "Anderson Acceleration of Proximal Gradient
        Methods", 2020.
-    
+
     """
     # check if epgs is a vector
     epsg = np.asarray(epsg, dtype=float)
@@ -499,21 +537,31 @@ def AndersonProximalGradient(
         epsg = epsg * np.ones(niter)
         epsg_print = str(epsg[0])
     else:
-        epsg_print = 'Multi'
+        epsg_print = "Multi"
 
     if show:
         tstart = time.time()
-        print('Proximal Gradient with Anderson Acceleration \n'
-              '---------------------------------------------------------\n'
-              'Proximal operator (f): %s\n'
-              'Proximal operator (g): %s\n'
-              'tau = %s\t\tepsg = %s\tniter = %d\n'
-              'nhist = %d\tepsr = %s\n'
-              'guard = %s\ttol = %s\n' % (type(proxf), type(proxg),
-                                          str(tau), epsg_print, niter,
-                                          nhistory, str(epsr), 
-                                          str(safeguard), str(tol)))
-        head = '   Itn       x[0]          f           g       J=f+eps*g       tau'
+        print(
+            "Proximal Gradient with Anderson Acceleration \n"
+            "---------------------------------------------------------\n"
+            "Proximal operator (f): %s\n"
+            "Proximal operator (g): %s\n"
+            "tau = %s\t\tepsg = %s\tniter = %d\n"
+            "nhist = %d\tepsr = %s\n"
+            "guard = %s\ttol = %s\n"
+            % (
+                type(proxf),
+                type(proxg),
+                str(tau),
+                epsg_print,
+                niter,
+                nhistory,
+                str(epsr),
+                str(safeguard),
+                str(tol),
+            )
+        )
+        head = "   Itn       x[0]          f           g       J=f+eps*g       tau"
         print(head)
 
     # initialize model
@@ -521,14 +569,16 @@ def AndersonProximalGradient(
     x = proxg.prox(y, epsg[0] * tau)
     g = y.copy()
     r = g - x0
-    R, G = [g, ], [r, ]
+    R, G = [g,], [
+        r,
+    ]
     pf = proxf(x)
     pfg = np.inf
     tolbreak = False
 
     # iterate
     for iiter in range(niter):
-        
+
         # update fix point
         g = x - tau * proxf.grad(x)
         r = g - y
@@ -537,23 +587,23 @@ def AndersonProximalGradient(
         R.insert(0, r)
         G.insert(0, g)
         if iiter >= nhistory - 1:
-           R.pop(-1)
-           G.pop(-1)
-        
+            R.pop(-1)
+            G.pop(-1)
+
         # solve for alpha coefficients
         Rstack = np.vstack(R)
         Rinv = np.linalg.pinv(Rstack @ Rstack.T + epsr * np.linalg.norm(Rstack) ** 2)
-        ones = np.ones(min(nhistory, iiter + 2)) 
+        ones = np.ones(min(nhistory, iiter + 2))
         Rinvones = Rinv @ ones
         alpha = Rinvones / (ones[None] @ Rinvones)
-        
+
         if not safeguard:
             # update auxiliary variable
             y = np.vstack(G).T @ alpha
 
             # update main variable
             x = proxg.prox(y, epsg[iiter] * tau)
-        
+
         else:
             # update auxiliary variable
             ytest = np.vstack(G).T @ alpha
@@ -589,11 +639,16 @@ def AndersonProximalGradient(
                 if tol is None:
                     pf, pg = proxf(x), proxg(x)
                     pfg = pf + np.sum(epsg[iiter] * pg)
-                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, np.real(to_numpy(x[0])) if x.ndim == 1 else np.real(to_numpy(x[0, 0])),
-                       pf, pg,
-                       pfg,
-                       tau)
+                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e  %10.3e" % (
+                    iiter + 1,
+                    np.real(to_numpy(x[0]))
+                    if x.ndim == 1
+                    else np.real(to_numpy(x[0, 0])),
+                    pf,
+                    pg,
+                    pfg,
+                    tau,
+                )
                 print(msg)
 
         # break if tolerance condition is met
@@ -601,24 +656,24 @@ def AndersonProximalGradient(
             break
 
     if show:
-        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
-        print('---------------------------------------------------------\n')
+        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
+        print("---------------------------------------------------------\n")
     return x
 
 
 def GeneralizedProximalGradient(
-        proxfs: List[ProxOperator], 
-        proxgs: List[ProxOperator],
-        x0: NDArray, 
-        tau: Optional[float],
-        epsg: Union[float, NDArray] = 1.,
-        weights: Optional[NDArray] = None,
-        eta: float = 1., 
-        niter: int = 10,
-        acceleration: Optional[str] = None,
-        callback: Optional[Callable[[NDArray], None]] = None,
-        show: bool = False,
-        ) -> NDArray:
+    proxfs: List[ProxOperator],
+    proxgs: List[ProxOperator],
+    x0: NDArray,
+    tau: Optional[float],
+    epsg: Union[float, NDArray] = 1.0,
+    weights: Optional[NDArray] = None,
+    eta: float = 1.0,
+    niter: int = 10,
+    acceleration: Optional[str] = None,
+    callback: Optional[Callable[[NDArray], None]] = None,
+    show: bool = False,
+) -> NDArray:
     r"""Generalized Proximal gradient
 
     Solves the following minimization problem using Generalized Proximal
@@ -626,7 +681,7 @@ def GeneralizedProximalGradient(
 
     .. math::
 
-        \mathbf{x} = \argmin_\mathbf{x} \sum_{i=1}^n f_i(\mathbf{x}) 
+        \mathbf{x} = \argmin_\mathbf{x} \sum_{i=1}^n f_i(\mathbf{x})
         + \sum_{j=1}^m \epsilon_j g_j(\mathbf{x}),~~n,m \in \mathbb{N}^+
 
     where the :math:`f_i(\mathbf{x})` are smooth convex functions with a uniquely
@@ -686,9 +741,10 @@ def GeneralizedProximalGradient(
     # check if weights sum to 1
     if weights is None:
         weights = np.ones(len(proxgs)) / len(proxgs)
-    if len(weights) != len(proxgs) or np.sum(weights) != 1.:
-        raise ValueError(f'omega={weights} must be an array of size {len(proxgs)} '
-                         f'summing to 1')
+    if len(weights) != len(proxgs) or np.sum(weights) != 1.0:
+        raise ValueError(
+            f"omega={weights} must be an array of size {len(proxgs)} " f"summing to 1"
+        )
 
     # check if epgs is a vector
     epsg = np.asarray(epsg, dtype=float)
@@ -696,29 +752,36 @@ def GeneralizedProximalGradient(
         epsg_print = str(epsg)
         epsg = epsg * np.ones(len(proxgs))
     else:
-        epsg_print = 'Multi'
+        epsg_print = "Multi"
 
-    if acceleration not in [None, 'None', 'vandenberghe', 'fista']:
-        raise NotImplementedError('Acceleration should be None, vandenberghe '
-                                  'or fista')
+    if acceleration not in [None, "None", "vandenberghe", "fista"]:
+        raise NotImplementedError(
+            "Acceleration should be None, vandenberghe " "or fista"
+        )
     if show:
         tstart = time.time()
-        print('Generalized Proximal Gradient\n'
-              '---------------------------------------------------------\n'
-              'Proximal operators (f): %s\n'
-              'Proximal operators (g): %s\n'
-              'tau = %10e\nepsg = %s\tniter = %d\n' % ([type(proxf) for proxf in proxfs],
-                                                       [type(proxg) for proxg in proxgs],
-                                                       0 if tau is None else tau,
-                                                       epsg_print, niter))
-        head = '   Itn       x[0]          f           g       J=f+g'
+        print(
+            "Generalized Proximal Gradient\n"
+            "---------------------------------------------------------\n"
+            "Proximal operators (f): %s\n"
+            "Proximal operators (g): %s\n"
+            "tau = %10e\nepsg = %s\tniter = %d\n"
+            % (
+                [type(proxf) for proxf in proxfs],
+                [type(proxg) for proxg in proxgs],
+                0 if tau is None else tau,
+                epsg_print,
+                niter,
+            )
+        )
+        head = "   Itn       x[0]          f           g       J=f+g"
         print(head)
 
     if tau is None:
-        tau = 1.
+        tau = 1.0
 
     # initialize model
-    t = 1.
+    t = 1.0
     x = x0.copy()
     y = x.copy()
     zs = [x.copy() for _ in range(len(proxgs))]
@@ -741,12 +804,12 @@ def GeneralizedProximalGradient(
             x += weights[i] * zs[i]
 
         # update y
-        if acceleration == 'vandenberghe':
+        if acceleration == "vandenberghe":
             omega = iiter / (iiter + 3)
-        elif acceleration == 'fista':
+        elif acceleration == "fista":
             told = t
-            t = (1. + np.sqrt(1. + 4. * t ** 2)) / 2.
-            omega = ((told - 1.) / t)
+            t = (1.0 + np.sqrt(1.0 + 4.0 * t**2)) / 2.0
+            omega = (told - 1.0) / t
         else:
             omega = 0
         y = x + omega * (x - xold)
@@ -759,28 +822,32 @@ def GeneralizedProximalGradient(
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf: float = np.sum([proxf(x) for proxf in proxfs])
                 pg: float = np.sum([eg * proxg(x) for proxg, eg in zip(proxgs, epsg)])
-                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, x[0] if x.ndim == 1 else x[0, 0],
-                       pf, pg, pf + pg)
+                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
+                    iiter + 1,
+                    x[0] if x.ndim == 1 else x[0, 0],
+                    pf,
+                    pg,
+                    pf + pg,
+                )
                 print(msg)
     if show:
-        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
-        print('---------------------------------------------------------\n')
+        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
+        print("---------------------------------------------------------\n")
     return x
 
 
 def HQS(
-        proxf: ProxOperator, 
-        proxg: ProxOperator, 
-        x0: NDArray,
-        tau: Union[float, NDArray], 
-        niter: int = 10,
-        z0: Optional[NDArray] = None, 
-        gfirst: bool = True,
-        callback: Optional[Callable[..., None]] = None,
-        callbackz: bool = False, 
-        show: bool = False,
-        ) -> Tuple[NDArray, NDArray]:
+    proxf: ProxOperator,
+    proxg: ProxOperator,
+    x0: NDArray,
+    tau: Union[float, NDArray],
+    niter: int = 10,
+    z0: Optional[NDArray] = None,
+    gfirst: bool = True,
+    callback: Optional[Callable[..., None]] = None,
+    callbackz: bool = False,
+    show: bool = False,
+) -> Tuple[NDArray, NDArray]:
     r"""Half Quadratic splitting
 
     Solves the following minimization problem using Half Quadratic splitting
@@ -860,21 +927,22 @@ def HQS(
     """
     # check if tau is a vector
     tau = np.asarray(tau, dtype=float)
-    if tau.size == 1.:
+    if tau.size == 1.0:
         tau_print = str(tau)
         tau = tau * np.ones(niter)
     else:
-        tau_print = 'Variable'
+        tau_print = "Variable"
 
     if show:
         tstart = time.time()
-        print('HQS\n'
-              '---------------------------------------------------------\n'
-              'Proximal operator (f): %s\n'
-              'Proximal operator (g): %s\n'
-              'tau = %s\tniter = %d\n' % (type(proxf), type(proxg),
-                                          tau_print, niter))
-        head = '   Itn       x[0]          f           g       J = f + g'
+        print(
+            "HQS\n"
+            "---------------------------------------------------------\n"
+            "Proximal operator (f): %s\n"
+            "Proximal operator (g): %s\n"
+            "tau = %s\tniter = %d\n" % (type(proxf), type(proxg), tau_print, niter)
+        )
+        head = "   Itn       x[0]          f           g       J = f + g"
         print(head)
 
     x = x0.copy()
@@ -900,27 +968,31 @@ def HQS(
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
-                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, np.real(to_numpy(x[0])), 
-                       pf, pg, pf + pg)
+                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
+                    iiter + 1,
+                    np.real(to_numpy(x[0])),
+                    pf,
+                    pg,
+                    pf + pg,
+                )
                 print(msg)
     if show:
-        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
-        print('---------------------------------------------------------\n')
+        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
+        print("---------------------------------------------------------\n")
     return x, z
 
 
 def ADMM(
-    proxf: ProxOperator, 
-    proxg: ProxOperator, 
+    proxf: ProxOperator,
+    proxg: ProxOperator,
     x0: NDArray,
-    tau: float, 
-    niter: int = 10, 
+    tau: float,
+    niter: int = 10,
     gfirst: bool = False,
     callback: Optional[Callable[..., None]] = None,
-    callbackz: bool = False, 
+    callbackz: bool = False,
     show: bool = False,
-    ) -> Tuple[NDArray, NDArray]:
+) -> Tuple[NDArray, NDArray]:
     r"""Alternating Direction Method of Multipliers
 
     Solves the following minimization problem using Alternating Direction
@@ -1011,13 +1083,14 @@ def ADMM(
     """
     if show:
         tstart = time.time()
-        print('ADMM\n'
-              '---------------------------------------------------------\n'
-              'Proximal operator (f): %s\n'
-              'Proximal operator (g): %s\n'
-              'tau = %10e\tniter = %d\n' % (type(proxf), type(proxg),
-                                            tau, niter))
-        head = '   Itn       x[0]          f           g       J = f + g'
+        print(
+            "ADMM\n"
+            "---------------------------------------------------------\n"
+            "Proximal operator (f): %s\n"
+            "Proximal operator (g): %s\n"
+            "tau = %10e\tniter = %d\n" % (type(proxf), type(proxg), tau, niter)
+        )
+        head = "   Itn       x[0]          f           g       J = f + g"
         print(head)
 
     x = x0.copy()
@@ -1040,29 +1113,33 @@ def ADMM(
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
-                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, np.real(to_numpy(x[0])),
-                       pf, pg, pf + pg)
+                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
+                    iiter + 1,
+                    np.real(to_numpy(x[0])),
+                    pf,
+                    pg,
+                    pf + pg,
+                )
                 print(msg)
     if show:
-        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
-        print('---------------------------------------------------------\n')
+        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
+        print("---------------------------------------------------------\n")
     return x, z
 
 
 def ADMML2(
-        proxg: ProxOperator, 
-        Op: "LinearOperator", 
-        b: NDArray,
-        A: "LinearOperator", 
-        x0: NDArray, 
-        tau: float, 
-        niter: int = 10,
-        gfirst: bool = False,
-        callback: Optional[Callable[[NDArray], None]] = None,
-        show: bool = False, 
-        **kwargs_solver: Dict[str, Any],
-        ) -> Tuple[NDArray, NDArray]:
+    proxg: ProxOperator,
+    Op: "LinearOperator",
+    b: NDArray,
+    A: "LinearOperator",
+    x0: NDArray,
+    tau: float,
+    niter: int = 10,
+    gfirst: bool = False,
+    callback: Optional[Callable[[NDArray], None]] = None,
+    show: bool = False,
+    **kwargs_solver: Dict[str, Any],
+) -> Tuple[NDArray, NDArray]:
     r"""Alternating Direction Method of Multipliers for L2 misfit term
 
     Solves the following minimization problem using Alternating Direction
@@ -1131,14 +1208,16 @@ def ADMML2(
     """
     if show:
         tstart = time.time()
-        print('ADMM\n'
-              '---------------------------------------------------------\n'
-              'Proximal operator (g): %s\n'
-              'tau = %10e\tniter = %d\n' % (type(proxg), tau, niter))
-        head = '   Itn       x[0]          f           g       J = f + g'
+        print(
+            "ADMM\n"
+            "---------------------------------------------------------\n"
+            "Proximal operator (g): %s\n"
+            "tau = %10e\tniter = %d\n" % (type(proxg), tau, niter)
+        )
+        head = "   Itn       x[0]          f           g       J = f + g"
         print(head)
 
-    sqrttau = 1. / sqrt(tau)
+    sqrttau = 1.0 / sqrt(tau)
     x = x0.copy()
     u = z = np.zeros(A.shape[0], dtype=A.dtype)
     for iiter in range(niter):
@@ -1147,14 +1226,38 @@ def ADMML2(
             z = proxg.prox(Ax + u, tau)
 
             # solve augumented system
-            x = regularized_inversion(Op, b, [A, ], x0=x,
-                                      dataregs=[z - u, ], epsRs=[sqrttau, ],
-                                      **kwargs_solver)[0]
+            x = regularized_inversion(
+                Op,
+                b,
+                [
+                    A,
+                ],
+                x0=x,
+                dataregs=[
+                    z - u,
+                ],
+                epsRs=[
+                    sqrttau,
+                ],
+                **kwargs_solver,
+            )[0]
         else:
             # solve augumented system
-            x = regularized_inversion(Op, b, [A, ], x0=x,
-                                      dataregs=[z - u, ], epsRs=[sqrttau, ],
-                                      **kwargs_solver)[0]
+            x = regularized_inversion(
+                Op,
+                b,
+                [
+                    A,
+                ],
+                x0=x,
+                dataregs=[
+                    z - u,
+                ],
+                epsRs=[
+                    sqrttau,
+                ],
+                **kwargs_solver,
+            )[0]
             Ax = A @ x
             z = proxg.prox(Ax + u, tau)
         u = u + Ax - z
@@ -1166,27 +1269,31 @@ def ADMML2(
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = 0.5 * np.linalg.norm(Op @ x - b) ** 2, proxg(Ax)
-                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, np.real(to_numpy(x[0])),
-                       pf, pg, pf + pg)
+                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
+                    iiter + 1,
+                    np.real(to_numpy(x[0])),
+                    pf,
+                    pg,
+                    pf + pg,
+                )
                 print(msg)
     if show:
-        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
-        print('---------------------------------------------------------\n')
+        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
+        print("---------------------------------------------------------\n")
     return x, z
 
 
 def LinearizedADMM(
-        proxf: ProxOperator, 
-        proxg: ProxOperator, 
-        A: "LinearOperator",
-        x0: NDArray, 
-        tau: float, 
-        mu: float, 
-        niter: int = 10,
-        callback: Optional[Callable[[NDArray], None]] = None,
-        show: bool = False,
-        ) -> Tuple[NDArray, NDArray]:
+    proxf: ProxOperator,
+    proxg: ProxOperator,
+    A: "LinearOperator",
+    x0: NDArray,
+    tau: float,
+    mu: float,
+    niter: int = 10,
+    callback: Optional[Callable[[NDArray], None]] = None,
+    show: bool = False,
+) -> Tuple[NDArray, NDArray]:
     r"""Linearized Alternating Direction Method of Multipliers
 
     Solves the following minimization problem using Linearized Alternating
@@ -1257,16 +1364,16 @@ def LinearizedADMM(
     """
     if show:
         tstart = time.time()
-        print('Linearized-ADMM\n'
-              '---------------------------------------------------------\n'
-              'Proximal operator (f): %s\n'
-              'Proximal operator (g): %s\n'
-              'Linear operator (A): %s\n'
-              'tau = %10e\tmu = %10e\tniter = %d\n' % (type(proxf),
-                                                       type(proxg),
-                                                       type(A),
-                                                       tau, mu, niter))
-        head = '   Itn       x[0]          f           g       J = f + g'
+        print(
+            "Linearized-ADMM\n"
+            "---------------------------------------------------------\n"
+            "Proximal operator (f): %s\n"
+            "Proximal operator (g): %s\n"
+            "Linear operator (A): %s\n"
+            "tau = %10e\tmu = %10e\tniter = %d\n"
+            % (type(proxf), type(proxg), type(A), tau, mu, niter)
+        )
+        head = "   Itn       x[0]          f           g       J = f + g"
         print(head)
     x = x0.copy()
     Ax = A.matvec(x)
@@ -1284,29 +1391,33 @@ def LinearizedADMM(
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(Ax)
-                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, np.real(to_numpy(x[0])),
-                       pf, pg, pf + pg)
+                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
+                    iiter + 1,
+                    np.real(to_numpy(x[0])),
+                    pf,
+                    pg,
+                    pf + pg,
+                )
                 print(msg)
     if show:
-        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
-        print('---------------------------------------------------------\n')
+        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
+        print("---------------------------------------------------------\n")
     return x, z
 
 
 def TwIST(
-        proxg: ProxOperator, 
-        A: "LinearOperator", 
-        b: NDArray,
-        x0: NDArray, 
-        alpha: Optional[float] = None,
-        beta: Optional[float] = None, 
-        eigs: Optional[Tuple[float, float]] = None,
-        niter: int = 10,
-        callback: Optional[Callable[[NDArray], None]] = None,
-        show: bool = False, 
-        returncost: bool = False,
-        ) -> Union[NDArray, Tuple[NDArray, NDArray]]:
+    proxg: ProxOperator,
+    A: "LinearOperator",
+    b: NDArray,
+    x0: NDArray,
+    alpha: Optional[float] = None,
+    beta: Optional[float] = None,
+    eigs: Optional[Tuple[float, float]] = None,
+    niter: int = 10,
+    callback: Optional[Callable[[NDArray], None]] = None,
+    show: bool = False,
+    returncost: bool = False,
+) -> Union[NDArray, Tuple[NDArray, NDArray]]:
     r"""Two-step Iterative Shrinkage/Threshold
 
     Solves the following minimization problem using Two-step Iterative
@@ -1394,29 +1505,30 @@ def TwIST(
     # find alpha and beta
     if alpha is None or beta is None:
         if eigs is None:
-            emin = A.eigs(neigs=1, which='SM')
-            emax = max([1, A.eigs(neigs=1, which='LM')])
+            emin = A.eigs(neigs=1, which="SM")
+            emax = max([1, A.eigs(neigs=1, which="LM")])
         else:
             emax, emin = eigs
         k = emin / emax
-        rho =  (1 - sqrt(k)) / (1 + sqrt(k))
-        alpha = 1 + rho ** 2
+        rho = (1 - sqrt(k)) / (1 + sqrt(k))
+        alpha = 1 + rho**2
         beta = 2 * alpha / (emax + emin)
 
     # compute proximal of g on initial guess (x_1)
     xold = x0.copy()
-    x = proxg.prox(xold - proxf.grad(xold), 1.)
+    x = proxg.prox(xold - proxf.grad(xold), 1.0)
 
     if show:
         tstart = time.time()
-        print('TwIST\n'
-              '---------------------------------------------------------\n'
-              'Proximal operator (g): %s\n'
-              'Linear operator (A): %s\n'
-              'alpha = %10e\tbeta = %10e\tniter = %d\n' % (type(proxg),
-                                                           type(A),
-                                                           alpha, beta, niter))
-        head = '   Itn       x[0]          f           g       J = f + g'
+        print(
+            "TwIST\n"
+            "---------------------------------------------------------\n"
+            "Proximal operator (g): %s\n"
+            "Linear operator (A): %s\n"
+            "alpha = %10e\tbeta = %10e\tniter = %d\n"
+            % (type(proxg), type(A), alpha, beta, niter)
+        )
+        head = "   Itn       x[0]          f           g       J = f + g"
         print(head)
 
     # iterate
@@ -1424,9 +1536,11 @@ def TwIST(
         j = np.zeros(niter)
     for iiter in range(niter):
         # compute new x
-        xnew = (1 - alpha) * xold + \
-               (alpha - beta) * x + \
-               beta * proxg.prox(x - proxf.grad(x), 1.)
+        xnew = (
+            (1 - alpha) * xold
+            + (alpha - beta) * x
+            + beta * proxg.prox(x - proxf.grad(x), 1.0)
+        )
         # save current x as old (x_i -> x_i-1)
         xold = x.copy()
         # save new x as current (x_i+1 -> x_i)
@@ -1443,13 +1557,17 @@ def TwIST(
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(x)
-                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e' % \
-                      (iiter + 1, np.real(to_numpy(x[0])),
-                       pf, pg, pf + pg)
+                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
+                    iiter + 1,
+                    np.real(to_numpy(x[0])),
+                    pf,
+                    pg,
+                    pf + pg,
+                )
                 print(msg)
     if show:
-        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
-        print('---------------------------------------------------------\n')
+        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
+        print("---------------------------------------------------------\n")
     if returncost:
         return x, j
     else:

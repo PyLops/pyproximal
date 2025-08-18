@@ -1,27 +1,26 @@
 from typing import Any, Callable, Dict, Optional, Tuple
 
 import numpy as np
-
-from pylops import Gradient, BlockDiag
+from pylops import BlockDiag, Gradient
 from pylops.utils.typing import NDArray
 
-from pyproximal import Simplex, L21, VStack
+from pyproximal import L21, Simplex, VStack
 from pyproximal.optimization.primaldual import PrimalDual
 
 
 def Segment(
-        y: NDArray, 
-        cl: NDArray, 
-        sigma: float, 
-        alpha: float,
-        clsigmas: Optional[NDArray] = None,
-        z: Optional[NDArray] = None, 
-        niter: int = 10,
-        x0: Optional[NDArray] = None,
-        callback: Optional[Callable[[NDArray], None]] = None,
-        show: bool = False,
-        kwargs_simplex: Optional[Dict[str, Any]] = None,
-        ) -> Tuple[NDArray, NDArray]:
+    y: NDArray,
+    cl: NDArray,
+    sigma: float,
+    alpha: float,
+    clsigmas: Optional[NDArray] = None,
+    z: Optional[NDArray] = None,
+    niter: int = 10,
+    x0: Optional[NDArray] = None,
+    callback: Optional[Callable[[NDArray], None]] = None,
+    show: bool = False,
+    kwargs_simplex: Optional[Dict[str, Any]] = None,
+) -> Tuple[NDArray, NDArray]:
     r"""Primal-dual algorithm for image segmentation
 
     Perform image segmentation over :math:`N_{cl}` classes using the
@@ -95,35 +94,46 @@ def Segment(
     ncl = len(cl)
 
     # Data (difference between image and center of classes)
-    g = sigma / 2. * (y.reshape(1, dimsprod) - cl[:, np.newaxis]) ** 2
+    g = sigma / 2.0 * (y.reshape(1, dimsprod) - cl[:, np.newaxis]) ** 2
     if clsigmas is not None:
         g /= clsigmas[:, np.newaxis]
     g = g.ravel()
 
     # Gradient operator
-    sampling = 1.
-    Gop = Gradient(dims=dims, sampling=sampling, edge=False,
-                   kind='forward', dtype='float64')
+    sampling = 1.0
+    Gop = Gradient(
+        dims=dims, sampling=sampling, edge=False, kind="forward", dtype="float64"
+    )
     Gop = BlockDiag([Gop] * ncl)
 
     # Simplex and L21 proximal operators
-    simp = Simplex(dimsprod * ncl, radius=1, dims=(ncl, dimsprod), axis=0,
-                   **kwargs_simplex)
-    l21 = VStack([L21(ndim=ndims, sigma=0.5 * alpha)] * ncl,
-                 nn=[ndims * dimsprod] * ncl)
+    simp = Simplex(
+        dimsprod * ncl, radius=1, dims=(ncl, dimsprod), axis=0, **kwargs_simplex
+    )
+    l21 = VStack(
+        [L21(ndim=ndims, sigma=0.5 * alpha)] * ncl, nn=[ndims * dimsprod] * ncl
+    )
 
     # Steps
-    L = 8. / sampling ** 2
-    tau = 1.
-    mu = 1. / (tau * L)
+    L = 8.0 / sampling**2
+    tau = 1.0
+    mu = 1.0 / (tau * L)
 
     # Inversion
     x: NDArray = PrimalDual(
-        simp, l21, Gop, tau=tau, mu=mu,
-        z=g if z is None else g + z, theta=1.,
+        simp,
+        l21,
+        Gop,
+        tau=tau,
+        mu=mu,
+        z=g if z is None else g + z,
+        theta=1.0,
         x0=np.zeros_like(g) if x0 is None else x0,
-        niter=niter, callback=callback, 
-        show=show, returny=False)
+        niter=niter,
+        callback=callback,
+        show=show,
+        returny=False,
+    )
     x = x.reshape(ncl, dimsprod).T
     cl = np.argmax(x, axis=1)
     cl = cl.reshape(dims)

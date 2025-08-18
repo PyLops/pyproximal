@@ -43,17 +43,16 @@ instance from the CMU MOCAP dataset, which depicts a person picking something
 up from the floor.
 """
 
-import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
 
-
-plt.close('all')
+plt.close("all")
 np.random.seed(0)
-data = np.load('../testdata/mocap.npz', allow_pickle=True)
-X_gt = data['X_gt']
-markers = data['markers'].item()
+data = np.load("../testdata/mocap.npz", allow_pickle=True)
+X_gt = data["X_gt"]
+markers = data["markers"].item()
 
 ###############################################################################
 # First we view the first 3D poses. In order to easily visualize the person, we
@@ -61,16 +60,16 @@ markers = data['markers'].item()
 # that these are not used in any other way.
 
 
-def plot_first_3d_pose(ax, X, color='b', marker='o', linecolor='k'):
+def plot_first_3d_pose(ax, X, color="b", marker="o", linecolor="k"):
     ax.scatter(X[0, :], X[1, :], X[2, :], color, marker=marker)
     for j, ind in enumerate(markers.values()):
-        ax.plot(X[0, ind], X[1, ind], X[2, ind], '-', color=linecolor)
+        ax.plot(X[0, ind], X[1, ind], X[2, ind], "-", color=linecolor)
     ax.set_box_aspect(np.ptp(X[:3, :], axis=1))
     ax.view_init(20, 25)
 
 
 fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
+ax = fig.add_subplot(projection="3d")
 plot_first_3d_pose(ax, X_gt)
 plt.tight_layout()
 
@@ -79,12 +78,12 @@ plt.tight_layout()
 # sequence of 2D images from varying views. The goal is to recreate the 3D
 # points, such as in the example above, from all timestamps.
 
-M = data['M']
+M = data["M"]
 F = int(X_gt.shape[0] / 3)
 
 
 def _update(f: int):
-    X = M[2 * f:2 * f + 2, :]
+    X = M[2 * f : 2 * f + 2, :]
     lines[0].set_data(X[0, :], X[1, :])
     for j, ind in enumerate(markers.values()):
         lines[j + 1].set_data(X[0, ind], X[1, ind])
@@ -92,11 +91,11 @@ def _update(f: int):
 
 
 fig, ax = plt.subplots()
-lines = ax.plot([], [], 'r.')
+lines = ax.plot([], [], "r.")
 for _ in range(len(markers)):
-    lines.append(ax.plot([], [], 'k-')[0])
+    lines.append(ax.plot([], [], "k-")[0])
 ax.set(xlim=(-2.5, 2.5), ylim=(-3.5, 3.5))
-ax.set_aspect('equal')
+ax.set_aspect("equal")
 
 ani = animation.FuncAnimation(fig, _update, F, interval=25, blit=True)
 
@@ -146,11 +145,11 @@ def stack(X: np.ndarray):
 Xi = np.arange(15).reshape((3, 5))
 fig, ax = plt.subplots(1, 2)
 ax[0].matshow(Xi)
-ax[0].set_title(r'$X_i$')
-ax[0].axis('off')
+ax[0].set_title(r"$X_i$")
+ax[0].axis("off")
 ax[1].matshow(stack(Xi))
-ax[1].set_title(r'$X_i^\sharp$')
-ax[1].axis('off')
+ax[1].set_title(r"$X_i^\sharp$")
+ax[1].axis("off")
 plt.tight_layout()
 
 ###############################################################################
@@ -166,9 +165,10 @@ def unstack(Xs: np.ndarray):
     n //= 3
     X = np.zeros((m, n), dtype=Xs.dtype)
     X[::3] = Xs[:, :n]
-    X[1::3] = Xs[:, n:2*n]
-    X[2::3] = Xs[:, 2*n:3*n]
+    X[1::3] = Xs[:, n : 2 * n]
+    X[2::3] = Xs[:, 2 * n : 3 * n]
     return X
+
 
 ###############################################################################
 # In many cases, the necessary amount of basis shapes is not known
@@ -209,8 +209,8 @@ def unstack(Xs: np.ndarray):
 # are simply those of the (stacked) nuclear norm and the Frobenius norm.
 # We implement these next:
 
-from pyproximal.ProxOperator import _check_tau
 from pyproximal import Nuclear, ProxOperator
+from pyproximal.ProxOperator import _check_tau
 
 
 class BlockDiagFrobenius(ProxOperator):
@@ -218,6 +218,7 @@ class BlockDiagFrobenius(ProxOperator):
     Note: You could also wrap pyproximal.L2, but this class is used here in
     this tutorial to increase legibility.
     """
+
     def __init__(self, dim, R, M):
         super().__init__(None, False)
         self.dim = dim
@@ -226,23 +227,24 @@ class BlockDiagFrobenius(ProxOperator):
 
     def __call__(self, x):
         X = x.reshape(self.dim)
-        return 0.5 * np.linalg.norm(self.R @ X - self.M, 'fro') ** 2
+        return 0.5 * np.linalg.norm(self.R @ X - self.M, "fro") ** 2
 
     @_check_tau
     def prox(self, x, tau):
         X = x.reshape(self.dim)
         Y = np.zeros_like(X)
         for f, Rf in enumerate(self.R):
-            Y[3 * f: 3 * f + 3, :] = np.linalg.solve(
+            Y[3 * f : 3 * f + 3, :] = np.linalg.solve(
                 tau * Rf.T @ Rf + np.eye(3),
-                tau * Rf.T @ self.M[2 * f:2 * f + 2, :] + X[3 * f: 3 * f + 3, :]
+                tau * Rf.T @ self.M[2 * f : 2 * f + 2, :] + X[3 * f : 3 * f + 3, :],
             )
         return Y.flatten()
 
 
 class StackedNuclear(Nuclear):
     r"""Proximal operator for the stacked nuclear norm."""
-    def __init__(self, dim, sigma=1.):
+
+    def __init__(self, dim, sigma=1.0):
         super().__init__(dim, sigma)
         self.unstacked_dim = (dim[0] * 3, dim[1] // 3)
 
@@ -262,14 +264,13 @@ class StackedNuclear(Nuclear):
 
 from pyproximal.optimization.primal import ADMM
 
-
 mu = 1
-R = data['R']
+R = data["R"]
 Rblk = sp.linalg.block_diag(*R)
 M = Rblk @ X_gt
 N = M.shape[1]
-normal_size = (3*F, N)
-stacked_size = (F, 3*N)
+normal_size = (3 * F, N)
+stacked_size = (F, 3 * N)
 X0 = np.zeros(normal_size)
 proxf = BlockDiagFrobenius(normal_size, R, M)
 proxg = StackedNuclear(stacked_size, mu)
@@ -279,9 +280,9 @@ X_rec = X_rec.reshape(normal_size)
 ###############################################################################
 # Let us compare the results with the ground truth data.
 fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
+ax = fig.add_subplot(projection="3d")
 plot_first_3d_pose(ax, X_gt)
-plot_first_3d_pose(ax, X_rec, color='r', marker='v', linecolor='r')
+plot_first_3d_pose(ax, X_rec, color="r", marker="v", linecolor="r")
 plt.tight_layout()
 
 ###############################################################################
@@ -320,4 +321,3 @@ print(f'Distance to GT: {np.linalg.norm(X_rec - X_gt, "fro")}')
 # .. [5] M. Valtonen Örnhag and C. Olsson. A unified optimization framework for
 #    low-rank inducing penalties. In the Proceedings of the IEEE/CVF conference
 #    on computer vision and pattern recognition (CVPR), 2020.
-

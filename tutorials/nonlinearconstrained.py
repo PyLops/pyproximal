@@ -43,25 +43,28 @@ will simply use the `grad` method whilst the second solver relies on the
 `optimize` method.
 
 """
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
-import matplotlib.pyplot as plt
 
 import pyproximal
 
-plt.close('all')
+plt.close("all")
 
 ###############################################################################
 # Let's start by defining the class for the nonlinear functional
 
+
 def rosenbrock(x, y, a=1, b=10):
-    f = (a - x)**2 + b*(y - x**2)**2
+    f = (a - x) ** 2 + b * (y - x**2) ** 2
     return f
 
+
 def rosenbrock_grad(x, y, a=1, b=10):
-    dfx = -2*(a - x) - 2*b*(y - x**2) * 2 * x
-    dfy = 2*b*(y - x**2)
+    dfx = -2 * (a - x) - 2 * b * (y - x**2) * 2 * x
+    dfy = 2 * b * (y - x**2)
     return dfx, dfy
+
 
 def contour_rosenbrock(x, y):
     fig, ax = plt.subplots(figsize=(12, 6))
@@ -71,19 +74,24 @@ def contour_rosenbrock(x, y):
     z = rosenbrock(x, y)
 
     # Plot the surface.
-    surf = ax.contour(x, y, z, 200, cmap='gist_heat_r', vmin=-20, vmax=200,
-                      antialiased=False)
+    surf = ax.contour(
+        x, y, z, 200, cmap="gist_heat_r", vmin=-20, vmax=200, antialiased=False
+    )
     fig.colorbar(surf, shrink=0.5, aspect=10)
     return fig, ax
 
+
 class Rosebrock(pyproximal.proximal.Nonlinear):
-    def setup(self, a=1, b=10, alpha=1.):
+    def setup(self, a=1, b=10, alpha=1.0):
         self.a, self.b = a, b
         self.alpha = alpha
+
     def fun(self, x):
         return np.array(rosenbrock(x[0], x[1], a=self.a, b=self.b))
+
     def grad(self, x):
         return np.array(rosenbrock_grad(x[0], x[1], a=self.a, b=self.b))
+
     def optimize(self):
         self.solhist = []
         sol = self.x0.copy()
@@ -106,7 +114,9 @@ class Rosebrock(pyproximal.proximal.Nonlinear):
 niters = 500
 alpha = 0.02
 
-steps = [(0, 0), ]
+steps = [
+    (0, 0),
+]
 for iiter in range(niters):
     x, y = steps[-1]
     dfx, dfy = rosenbrock_grad(x, y)
@@ -123,14 +133,15 @@ nx, ny = len(x), len(y)
 
 xbound = np.arange(-1.5, 1.5, 0.01)
 ybound = np.arange(-0.5, 1.5, 0.01)
-X, Y = np.meshgrid(xbound, ybound, indexing='ij')
+X, Y = np.meshgrid(xbound, ybound, indexing="ij")
 xygrid = np.vstack((X.ravel(), Y.ravel()))
 
 lower = 0.6
 upper = 1.2
 indic = (xygrid > lower) & (xygrid < upper)
-indic = indic[0].reshape(xbound.size, ybound.size) & \
-        indic[1].reshape(xbound.size, ybound.size)
+indic = indic[0].reshape(xbound.size, ybound.size) & indic[1].reshape(
+    xbound.size, ybound.size
+)
 
 
 ###############################################################################
@@ -140,16 +151,18 @@ fnl = Rosebrock(niter=20, x0=np.zeros(2), warm=True)
 fnl.setup(1, 10, alpha=0.02)
 ind = pyproximal.proximal.Box(lower, upper)
 
+
 def callback(x):
     xhist.append(x)
 
+
 x0 = np.array([0, 0])
-xhist = [x0,]
-xinv_pg = pyproximal.optimization.primal.ProximalGradient(fnl, ind,
-                                                          tau=0.001,
-                                                          x0=x0, epsg=1.,
-                                                          niter=5000, show=True,
-                                                          callback=callback)
+xhist = [
+    x0,
+]
+xinv_pg = pyproximal.optimization.primal.ProximalGradient(
+    fnl, ind, tau=0.001, x0=x0, epsg=1.0, niter=5000, show=True, callback=callback
+)
 xhist_pg = np.array(xhist)
 
 ###############################################################################
@@ -157,12 +170,12 @@ xhist_pg = np.array(xhist)
 
 x0 = np.array([0, 0])
 
-xhist = [x0,]
-xinv_admm = pyproximal.optimization.primal.ADMM(fnl, ind,
-                                                tau=1.,
-                                                x0=x0,
-                                                niter=30, show=True,
-                                                callback=callback)
+xhist = [
+    x0,
+]
+xinv_admm = pyproximal.optimization.primal.ADMM(
+    fnl, ind, tau=1.0, x0=x0, niter=30, show=True, callback=callback
+)
 xhist_admm = np.array(xhist)
 
 ###############################################################################
@@ -174,13 +187,12 @@ ind = pyproximal.proximal.Box(lower, upper)
 
 x0 = np.array([0, 0])
 
-xhist = [x0,]
+xhist = [
+    x0,
+]
 xinv_dr = pyproximal.optimization.primal.DouglasRachfordSplitting(
-    fnl, ind,
-    tau=1.,
-    x0=x0,
-    niter=30, show=True,
-    callback=callback)
+    fnl, ind, tau=1.0, x0=x0, niter=30, show=True, callback=callback
+)
 xhist_dr = np.array(xhist)
 
 ###############################################################################
@@ -189,6 +201,7 @@ xhist_dr = np.array(xhist)
 # be used (here for example we will repeat the same exercise using L-BFGS from
 # scipy.
 
+
 class Rosebrock_lbfgs(Rosebrock):
     def optimize(self):
         def callback(x):
@@ -196,11 +209,14 @@ class Rosebrock_lbfgs(Rosebrock):
 
         self.solhist = []
         self.solhist.append(self.x0)
-        sol = sp.optimize.minimize(lambda x: self._funprox(x, self.tau),
-                                   x0=self.x0,
-                                   jac=lambda x: self._gradprox(x, self.tau),
-                                   method='L-BFGS-B', callback=callback,
-                                   options=dict(maxiter=15))
+        sol = sp.optimize.minimize(
+            lambda x: self._funprox(x, self.tau),
+            x0=self.x0,
+            jac=lambda x: self._gradprox(x, self.tau),
+            method="L-BFGS-B",
+            callback=callback,
+            options=dict(maxiter=15),
+        )
         sol = sol.x
 
         self.solhist = np.array(self.solhist)
@@ -211,12 +227,12 @@ fnl = Rosebrock_lbfgs(niter=20, x0=np.zeros(2), warm=True)
 fnl.setup(1, 10, alpha=0.02)
 
 x0 = np.array([0, 0])
-xhist = [x0,]
-xinv_admm_lbfgs = pyproximal.optimization.primal.ADMM(fnl, ind,
-                                                      tau=1.,
-                                                      x0=x0,
-                                                      niter=30, show=True,
-                                                      callback=callback)
+xhist = [
+    x0,
+]
+xinv_admm_lbfgs = pyproximal.optimization.primal.ADMM(
+    fnl, ind, tau=1.0, x0=x0, niter=30, show=True, callback=callback
+)
 xhist_admm_lbfgs = np.array(xhist)
 
 ###############################################################################
@@ -228,13 +244,12 @@ ind = pyproximal.proximal.Box(lower, upper)
 
 x0 = np.array([0, 0])
 
-xhist = [x0,]
+xhist = [
+    x0,
+]
 xinv_dr_lbfgs = pyproximal.optimization.primal.DouglasRachfordSplitting(
-    fnl, ind,
-    tau=1.,
-    x0=x0,
-    niter=30, show=True,
-    callback=callback)
+    fnl, ind, tau=1.0, x0=x0, niter=30, show=True, callback=callback
+)
 xhist_dr_lbfgs = np.array(xhist)
 
 ###############################################################################
@@ -242,17 +257,29 @@ xhist_dr_lbfgs = np.array(xhist)
 
 fig, ax = contour_rosenbrock(x, y)
 steps = np.array(steps)
-ax.contour(X, Y, indic, colors='k')
-ax.scatter(1, 1, c='k', s=300)
-ax.plot(steps[:, 0], steps[:, 1], '.-k', lw=2, ms=20, alpha=0.4, label='GD')
-ax.plot(xhist_pg[:, 0], xhist_pg[:, 1], '.-b', ms=20, lw=2, label='PG')
-ax.plot(xhist_admm[:, 0], xhist_admm[:, 1], '.-g', ms=20, lw=2, label='ADMM')
-ax.plot(xhist_admm_lbfgs[:, 0], xhist_admm_lbfgs[:, 1], '.-m', ms=20, lw=2,
-        label='ADMM with LBFGS')
+ax.contour(X, Y, indic, colors="k")
+ax.scatter(1, 1, c="k", s=300)
+ax.plot(steps[:, 0], steps[:, 1], ".-k", lw=2, ms=20, alpha=0.4, label="GD")
+ax.plot(xhist_pg[:, 0], xhist_pg[:, 1], ".-b", ms=20, lw=2, label="PG")
+ax.plot(xhist_admm[:, 0], xhist_admm[:, 1], ".-g", ms=20, lw=2, label="ADMM")
+ax.plot(
+    xhist_admm_lbfgs[:, 0],
+    xhist_admm_lbfgs[:, 1],
+    ".-m",
+    ms=20,
+    lw=2,
+    label="ADMM with LBFGS",
+)
 ax.plot(xhist_dr[:, 0], xhist_dr[:, 1], ".--y", ms=20, lw=2, label="DR")
-ax.plot(xhist_dr_lbfgs[:, 0], xhist_dr_lbfgs[:, 1], ".--r", ms=20, lw=2,
-        label="DR with LBFGS")
-ax.set_title('Rosenbrock optimization')
+ax.plot(
+    xhist_dr_lbfgs[:, 0],
+    xhist_dr_lbfgs[:, 1],
+    ".--r",
+    ms=20,
+    lw=2,
+    label="DR with LBFGS",
+)
+ax.set_title("Rosenbrock optimization")
 ax.legend()
 ax.set_xlim(x[0], x[-1])
 ax.set_ylim(y[0], y[-1])

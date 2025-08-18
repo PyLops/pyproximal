@@ -15,13 +15,13 @@ on the data term which must be satisfied exactly. Similarly, we can also conside
     \argmin_\mathbf{x} \|\mathbf{x}\|_1 \; \text{s.t.} \;  \|\mathbf{Ax} - \mathbf{y}\|_2 < \epsilon
 
 """
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import pylops
 
 import pyproximal
 
-plt.close('all')
+plt.close("all")
 np.random.seed(10)
 
 ###############################################################################
@@ -47,21 +47,23 @@ y = Aop * x
 f = pyproximal.AffineSet(Aop, y, niter=20)
 g = pyproximal.L1()
 
-xinv_early = pyproximal.optimization.primal.ADMM(f, g, np.zeros_like(x),
-                                                 0.1, niter=10, show=True)[0]
+xinv_early = pyproximal.optimization.primal.ADMM(
+    f, g, np.zeros_like(x), 0.1, niter=10, show=True
+)[0]
 
-xinv = pyproximal.optimization.primal.ADMM(f, g, np.zeros_like(x),
-                                           0.1, niter=150, show=True)[0]
+xinv = pyproximal.optimization.primal.ADMM(
+    f, g, np.zeros_like(x), 0.1, niter=150, show=True
+)[0]
 
 fig, axs = plt.subplots(1, 2, figsize=(12, 3))
-axs[0].plot(x, 'k')
-axs[0].plot(xinv_early, '--r')
-axs[0].plot(xinv, '--b')
-axs[0].set_title('Model')
-axs[1].plot(y, 'k', label='True')
-axs[1].plot(Aop * xinv_early, '--r', label='Early Inv')
-axs[1].plot(Aop * xinv, '--b', label='Inv')
-axs[1].set_title('Data')
+axs[0].plot(x, "k")
+axs[0].plot(xinv_early, "--r")
+axs[0].plot(xinv, "--b")
+axs[0].set_title("Model")
+axs[1].plot(y, "k", label="True")
+axs[1].plot(Aop * xinv_early, "--r", label="Early Inv")
+axs[1].plot(Aop * xinv, "--b", label="Inv")
+axs[1].set_title("Data")
 axs[1].legend()
 plt.tight_layout()
 
@@ -72,27 +74,29 @@ plt.tight_layout()
 # Finally let's consider the case with a soft constraint.
 
 f = pyproximal.L1()
-g = pyproximal.proximal.EuclideanBall(y, .1)
+g = pyproximal.proximal.EuclideanBall(y, 0.1)
 
 L = np.real((Aop.H @ Aop).eigs(1))[0]
-tau = .99
+tau = 0.99
 mu = tau / L
 
-xinv_early = pyproximal.optimization.primaldual.PrimalDual(f, g, Aop, np.zeros_like(x),
-                                                           tau, mu, niter=10)
+xinv_early = pyproximal.optimization.primaldual.PrimalDual(
+    f, g, Aop, np.zeros_like(x), tau, mu, niter=10
+)
 
-xinv = pyproximal.optimization.primaldual.PrimalDual(f, g, Aop, np.zeros_like(x),
-                                                     tau, mu, niter=1000)
+xinv = pyproximal.optimization.primaldual.PrimalDual(
+    f, g, Aop, np.zeros_like(x), tau, mu, niter=1000
+)
 
 fig, axs = plt.subplots(1, 2, figsize=(12, 3))
-axs[0].plot(x, 'k')
-axs[0].plot(xinv_early, '--r')
-axs[0].plot(xinv, '--b')
-axs[0].set_title('Model')
-axs[1].plot(y, 'k', label='True')
-axs[1].plot(Aop * xinv_early, '--r', label='Early Inv')
-axs[1].plot(Aop * xinv, '--b', label='Inv (Res=%.2f)' % np.linalg.norm(y - Aop @ xinv))
-axs[1].set_title('Data')
+axs[0].plot(x, "k")
+axs[0].plot(xinv_early, "--r")
+axs[0].plot(xinv, "--b")
+axs[0].set_title("Model")
+axs[1].plot(y, "k", label="True")
+axs[1].plot(Aop * xinv_early, "--r", label="Early Inv")
+axs[1].plot(Aop * xinv, "--b", label="Inv (Res=%.2f)" % np.linalg.norm(y - Aop @ xinv))
+axs[1].set_title("Data")
 axs[1].legend()
 plt.tight_layout()
 

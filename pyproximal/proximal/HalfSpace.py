@@ -1,7 +1,8 @@
 import numpy as np
-from pyproximal.ProxOperator import _check_tau
+
 from pyproximal import ProxOperator
 from pyproximal.projection import HalfSpaceProj
+from pyproximal.ProxOperator import _check_tau
 
 
 class HalfSpace(ProxOperator):

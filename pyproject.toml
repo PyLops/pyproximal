@@ -48,6 +48,13 @@ exclude = ["pytests"]
 [tool.setuptools_scm]
 version_file = "pyproximal/version.py"
 
+[tool.flake8]
+ignore = ["E203", "E501", "W503", "E402"]
+per-file-ignores = [
+    "__init__.py: F401, F403, F405"
+]
+max-line-length = 88
+
 [tool.mypy]
 files = ["pyproximal", ]
 python_version = "3.10"

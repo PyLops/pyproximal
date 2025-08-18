@@ -1,6 +1,6 @@
+import time
 from typing import TYPE_CHECKING, Callable, Optional, Tuple, Union
 
-import time
 import numpy as np
 from pylops.utils.backend import get_array_module, to_numpy
 from pylops.utils.typing import NDArray
@@ -12,22 +12,22 @@ if TYPE_CHECKING:
 
 
 def PrimalDual(
-        proxf: ProxOperator, 
-        proxg: ProxOperator, 
-        A: "LinearOperator",
-        x0: NDArray, 
-        tau: Union[float, NDArray],
-        mu: Union[float, NDArray], 
-        y0: Optional[NDArray] = None,
-        z: Optional[NDArray] = None, 
-        theta: float = 1.,
-        niter: int = 10, 
-        gfirst: bool = True,
-        callback: Optional[Callable[..., None]] = None,
-        callbacky: bool = False, 
-        returny: bool = False,
-        show: bool = False,
-        ) -> Union[NDArray, Tuple[NDArray, NDArray]]:
+    proxf: ProxOperator,
+    proxg: ProxOperator,
+    A: "LinearOperator",
+    x0: NDArray,
+    tau: Union[float, NDArray],
+    mu: Union[float, NDArray],
+    y0: Optional[NDArray] = None,
+    z: Optional[NDArray] = None,
+    theta: float = 1.0,
+    niter: int = 10,
+    gfirst: bool = True,
+    callback: Optional[Callable[..., None]] = None,
+    callbacky: bool = False,
+    returny: bool = False,
+    show: bool = False,
+) -> Union[NDArray, Tuple[NDArray, NDArray]]:
     r"""Primal-dual algorithm
 
     Solves the following (possibly) nonlinear minimization problem using
@@ -64,10 +64,10 @@ def PrimalDual(
     x0 : :obj:`numpy.ndarray`
         Initial vector
     tau : :obj:`float` or :obj:`np.ndarray`
-        Stepsize of subgradient of :math:`f`. This can be constant 
+        Stepsize of subgradient of :math:`f`. This can be constant
         or function of iterations (in the latter cases provided as np.ndarray)
     mu : :obj:`float` or :obj:`np.ndarray`
-        Stepsize of subgradient of :math:`g^*`. This can be constant 
+        Stepsize of subgradient of :math:`g^*`. This can be constant
         or function of iterations (in the latter cases provided as np.ndarray)
     z0 : :obj:`numpy.ndarray`
         Initial auxiliary vector
@@ -145,17 +145,26 @@ def PrimalDual(
 
     if show:
         tstart = time.time()
-        print('Primal-dual: min_x f(Ax) + x^T z + g(x)\n'
-              '---------------------------------------------------------\n'
-              'Proximal operator (f): %s\n'
-              'Proximal operator (g): %s\n'
-              'Linear operator (A): %s\n'
-              'Additional vector (z): %s\n'
-              'tau = %s\t\tmu = %s\ntheta = %.2f\t\tniter = %d\n' %
-              (type(proxf), type(proxg), type(A),
-               None if z is None else 'vector', str(tau[0]) if fixedtau else 'Variable',
-               str(mu[0]) if fixedmu else 'Variable', theta, niter))
-        head = '   Itn       x[0]          f           g          z^x       J = f + g + z^x'
+        print(
+            "Primal-dual: min_x f(Ax) + x^T z + g(x)\n"
+            "---------------------------------------------------------\n"
+            "Proximal operator (f): %s\n"
+            "Proximal operator (g): %s\n"
+            "Linear operator (A): %s\n"
+            "Additional vector (z): %s\n"
+            "tau = %s\t\tmu = %s\ntheta = %.2f\t\tniter = %d\n"
+            % (
+                type(proxf),
+                type(proxg),
+                type(A),
+                None if z is None else "vector",
+                str(tau[0]) if fixedtau else "Variable",
+                str(mu[0]) if fixedmu else "Variable",
+                theta,
+                niter,
+            )
+        )
+        head = "   Itn       x[0]          f           g          z^x       J = f + g + z^x"
         print(head)
 
     x = x0.copy()
@@ -187,15 +196,21 @@ def PrimalDual(
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(A.matvec(x))
-                pf = 0. if type(pf) == bool else pf
-                pg = 0. if type(pg) == bool else pg
-                zx = 0. if z is None else np.dot(z, x)
-                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e      %10.3e' % \
-                      (iiter + 1, np.real(to_numpy(x[0])), pf, pg, zx, pf + pg + zx)
+                pf = 0.0 if type(pf) == bool else pf
+                pg = 0.0 if type(pg) == bool else pg
+                zx = 0.0 if z is None else np.dot(z, x)
+                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e      %10.3e" % (
+                    iiter + 1,
+                    np.real(to_numpy(x[0])),
+                    pf,
+                    pg,
+                    zx,
+                    pf + pg + zx,
+                )
                 print(msg)
     if show:
-        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
-        print('---------------------------------------------------------\n')
+        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
+        print("---------------------------------------------------------\n")
     if not returny:
         return x
     else:
@@ -203,22 +218,22 @@ def PrimalDual(
 
 
 def AdaptivePrimalDual(
-        proxf: ProxOperator,
-        proxg: ProxOperator,
-        A: "LinearOperator",
-        x0: NDArray,
-        tau: float,
-        mu: float,
-        alpha: float = 0.5,
-        eta: float = 0.95,
-        s: float = 1.,
-        delta: float = 1.5,
-        z: Optional[NDArray] = None,
-        niter: int = 10, 
-        tol: float = 1e-10,
-        callback: Optional[Callable[[NDArray], None]] = None,
-        show: bool = False,
-        ) -> Tuple[NDArray, Tuple[NDArray, NDArray, NDArray]]:
+    proxf: ProxOperator,
+    proxg: ProxOperator,
+    A: "LinearOperator",
+    x0: NDArray,
+    tau: float,
+    mu: float,
+    alpha: float = 0.5,
+    eta: float = 0.95,
+    s: float = 1.0,
+    delta: float = 1.5,
+    z: Optional[NDArray] = None,
+    niter: int = 10,
+    tol: float = 1e-10,
+    callback: Optional[Callable[[NDArray], None]] = None,
+    show: bool = False,
+) -> Tuple[NDArray, Tuple[NDArray, NDArray, NDArray]]:
     r"""Adaptive Primal-dual algorithm
 
     Solves the minimization problem in
@@ -291,20 +306,33 @@ def AdaptivePrimalDual(
     """
     if show:
         tstart = time.time()
-        print('Adaptive Primal-dual: min_x f(Ax) + x^T z + g(x)\n'
-              '---------------------------------------------------------\n'
-              'Proximal operator (f): %s\n'
-              'Proximal operator (g): %s\n'
-              'Linear operator (A): %s\n'
-              'Additional vector (z): %s\n'
-              'tau0 = %10e\tmu0 = %10e\n'
-              'alpha0 = %10e\teta = %10e\n'
-              's = %10e\tdelta = %10e\n'
-              'niter = %d\t\ttol = %10e\n' %
-              (type(proxf), type(proxg), type(A),
-               None if z is None else 'vector', tau, mu,
-               alpha, eta, s, delta, niter, tol))
-        head = '   Itn       x[0]          f           g          z^x       J = f + g + z^x'
+        print(
+            "Adaptive Primal-dual: min_x f(Ax) + x^T z + g(x)\n"
+            "---------------------------------------------------------\n"
+            "Proximal operator (f): %s\n"
+            "Proximal operator (g): %s\n"
+            "Linear operator (A): %s\n"
+            "Additional vector (z): %s\n"
+            "tau0 = %10e\tmu0 = %10e\n"
+            "alpha0 = %10e\teta = %10e\n"
+            "s = %10e\tdelta = %10e\n"
+            "niter = %d\t\ttol = %10e\n"
+            % (
+                type(proxf),
+                type(proxg),
+                type(A),
+                None if z is None else "vector",
+                tau,
+                mu,
+                alpha,
+                eta,
+                s,
+                delta,
+                niter,
+                tol,
+            )
+        )
+        head = "   Itn       x[0]          f           g          z^x       J = f + g + z^x"
         print(head)
 
     # initialization
@@ -313,10 +341,10 @@ def AdaptivePrimalDual(
     Ax = np.zeros(A.shape[0], dtype=x.dtype)
     ATy = np.zeros(A.shape[1], dtype=x.dtype)
     taus = np.zeros(niter + 1)
-    mus =  np.zeros(niter + 1)
+    mus = np.zeros(niter + 1)
     alphas = np.zeros(niter + 1)
     taus[0], mus[0], alphas[0] = tau, mu, alpha
-    p = d = tol + 1.
+    p = d = tol + 1.0
 
     iiter = 0
     while iiter < niter and p > tol and d > tol:
@@ -340,8 +368,9 @@ def AdaptivePrimalDual(
 
         # update steps
         if z is not None:
-            p = float(np.linalg.norm((xold - x) / tau - (ATyold - ATy) -
-                               A.rmatvec(z) + z))
+            p = float(
+                np.linalg.norm((xold - x) / tau - (ATyold - ATy) - A.rmatvec(z) + z)
+            )
         else:
             p = float(np.linalg.norm((xold - x) / tau - (ATyold - ATy)))
         d = float(np.linalg.norm((yold - y) / mu - (Axold - Ax)))
@@ -368,15 +397,21 @@ def AdaptivePrimalDual(
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf, pg = proxf(x), proxg(A.matvec(x))
-                pf = 0. if type(pf) == bool else pf
-                pg = 0. if type(pg) == bool else pg
-                zx = 0. if z is None else np.dot(z, x)
-                msg = '%6g  %12.5e  %10.3e  %10.3e  %10.3e      %10.3e' % \
-                      (iiter + 1, np.real(to_numpy(x[0])), pf, pg, zx, pf + pg + zx)
+                pf = 0.0 if type(pf) == bool else pf
+                pg = 0.0 if type(pg) == bool else pg
+                zx = 0.0 if z is None else np.dot(z, x)
+                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e      %10.3e" % (
+                    iiter + 1,
+                    np.real(to_numpy(x[0])),
+                    pf,
+                    pg,
+                    zx,
+                    pf + pg + zx,
+                )
                 print(msg)
 
-    steps = (taus[:iiter + 1], mus[:iiter + 1], alphas[:iiter + 1])
+    steps = (taus[: iiter + 1], mus[: iiter + 1], alphas[: iiter + 1])
     if show:
-        print('\nTotal time (s) = %.2f' % (time.time() - tstart))
+        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
 
     return x, steps

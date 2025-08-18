@@ -1,16 +1,17 @@
 import numpy as np
+from pylops.utils.typing import NDArray
 
 from pyproximal import ProxOperator
-from pylops.utils.typing import NDArray
 
 
 def moreau(
-        prox: ProxOperator, 
-        x: NDArray, tau: float,
-        tol: float = 1e-5, 
-        raiseerror: bool = True, 
-        verb: bool = False,
-    ) -> bool:
+    prox: ProxOperator,
+    x: NDArray,
+    tau: float,
+    tol: float = 1e-5,
+    raiseerror: bool = True,
+    verb: bool = False,
+) -> bool:
     r"""Moreau Identity.
 
     The Moreau identity defines a relation between the vector :math:`\mathbf{u}`,
@@ -50,15 +51,15 @@ def moreau(
     p = prox.prox(x, tau)
 
     # compute dualprox
-    pdual = tau * prox.proxdual(x / tau, 1. / tau)
+    pdual = tau * prox.proxdual(x / tau, 1.0 / tau)
 
     if verb:
-        print('x: ', x)
-        print('p + pdual: ', p + pdual)
-        print('error: ', x - (p + pdual))
+        print("x: ", x)
+        print("p + pdual: ", p + pdual)
+        print("error: ", x - (p + pdual))
     if np.allclose(x, p + pdual, atol=tol):
         return True
     else:
         if raiseerror:
-            raise ValueError('Moreau identity not verified')
+            raise ValueError("Moreau identity not verified")
         return False

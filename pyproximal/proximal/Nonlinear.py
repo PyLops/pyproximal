@@ -1,11 +1,11 @@
+from abc import ABC, abstractmethod
 from typing import Tuple
 
 import numpy as np
-from abc import ABC, abstractmethod
 from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
+from pyproximal.ProxOperator import _check_tau
 
 
 class Nonlinear(ABC, ProxOperator):
@@ -26,10 +26,10 @@ class Nonlinear(ABC, ProxOperator):
 
     and optionally:
 
-    - ``fungrad``: a method evaluating both the generic function :math:`f` 
+    - ``fungrad``: a method evaluating both the generic function :math:`f`
       and its gradient. If not implemented, the ``fun`` and ``grad`` methods
       will be called instead and their results returned.
-    
+
     Parameters
     ----------
     x0 : :obj:`np.ndarray`
@@ -53,11 +53,13 @@ class Nonlinear(ABC, ProxOperator):
     which is done via the provided ``optimize`` method.
 
     """
-    def __init__(self, 
-                 x0: NDArray, 
-                 niter: int = 10, 
-                 warm: bool = True,
-                 ) -> None:
+
+    def __init__(
+        self,
+        x0: NDArray,
+        niter: int = 10,
+        warm: bool = True,
+    ) -> None:
         super().__init__(None, True)
         self.niter = niter
         self.x0 = x0
@@ -79,17 +81,17 @@ class Nonlinear(ABC, ProxOperator):
         return self.fun(x)
 
     def _funprox(self, x: NDArray, tau: float) -> float:
-        return self.fun(x) + 1. / (2 * tau) * float(((x - self.y) ** 2).sum())
+        return self.fun(x) + 1.0 / (2 * tau) * float(((x - self.y) ** 2).sum())
 
     def _gradprox(self, x: NDArray, tau: float) -> NDArray:
-        return self.grad(x) + 1. / tau * (x - self.y)
+        return self.grad(x) + 1.0 / tau * (x - self.y)
 
     def _fungradprox(self, x: NDArray, tau: float) -> Tuple[float, NDArray]:
         f, g = self.fungrad(x)
-        f = f + 1. / (2 * tau) * ((x - self.y) ** 2).sum()
-        g = g + 1. / tau * (x - self.y)
+        f = f + 1.0 / (2 * tau) * ((x - self.y) ** 2).sum()
+        g = g + 1.0 / tau * (x - self.y)
         return f, g
-    
+
     def fungrad(self, x: NDArray) -> Tuple[float, NDArray]:
         f = self.fun(x)
         g = self.grad(x)

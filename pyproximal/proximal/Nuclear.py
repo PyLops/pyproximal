@@ -1,13 +1,12 @@
 from typing import Union
 
 import numpy as np
-
 from pylops.optimization.cls_sparsity import _softthreshold
 from pylops.utils.typing import NDArray, ShapeLike
 
-from pyproximal.ProxOperator import _check_tau
-from pyproximal.projection import NuclearBallProj
 from pyproximal import ProxOperator
+from pyproximal.projection import NuclearBallProj
+from pyproximal.ProxOperator import _check_tau
 
 
 class Nuclear(ProxOperator):
@@ -59,7 +58,7 @@ class Nuclear(ProxOperator):
 
     """
 
-    def __init__(self, dim: ShapeLike, sigma: Union[float, NDArray] = 1.) -> None:
+    def __init__(self, dim: ShapeLike, sigma: Union[float, NDArray] = 1.0) -> None:
         super().__init__(None, False)
         self.dim = dim
         self.sigma = sigma
@@ -74,7 +73,11 @@ class Nuclear(ProxOperator):
     def prox(self, x: NDArray, tau: float) -> NDArray:
         X = x.reshape(self.dim)
         U, S, Vh = np.linalg.svd(X, full_matrices=False)
-        sigma = self.sigma[:S.size] if isinstance(self.sigma, np.ndarray) and self.sigma.size > 1 else self.sigma
+        sigma = (
+            self.sigma[: S.size]
+            if isinstance(self.sigma, np.ndarray) and self.sigma.size > 1
+            else self.sigma
+        )
         Sth = _softthreshold(S, tau * sigma)
         X = np.dot(U * Sth, Vh)
         return X.ravel()
@@ -104,17 +107,19 @@ class NuclearBall(ProxOperator):
     (see :class:`pyproximal.projection.NuclearBallProj` for details.
 
     """
+
     def __init__(self, dims, radius, maxiter=100, xtol=1e-5):
         super().__init__(None, False)
         self.dims = dims
         self.radius = radius
         self.maxiter = maxiter
         self.xtol = xtol
-        self.ball = NuclearBallProj(min(self.dims), self.radius,
-                                    self.maxiter, self.xtol)
+        self.ball = NuclearBallProj(
+            min(self.dims), self.radius, self.maxiter, self.xtol
+        )
 
     def __call__(self, x: NDArray, tol: float = 1e-5) -> bool:
-        return bool(np.linalg.norm(x.reshape(self.dims), ord='nuc') - self.radius < tol)
+        return bool(np.linalg.norm(x.reshape(self.dims), ord="nuc") - self.radius < tol)
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:

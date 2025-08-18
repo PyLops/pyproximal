@@ -27,9 +27,10 @@ outperforms TV and Tikhonov regularization, modeled after the experiments in [2]
 .. [2] Kadu, A., and Kumar, R. and van Leeuwen, Tristan. Full-waveform inversion with Mumford-Shah regularization. SEG International Exposition and Annual Meeting, SEG-2018-2997224
 
 """
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import pylops
+
 import pyproximal
 
 np.random.seed(1)
@@ -50,8 +51,8 @@ y = x + n
 
 # Plot the model and the noisy data
 fig, axs = plt.subplots(1, 1, figsize=(6, 5))
-axs.plot(x, label='True model')
-axs.plot(y, label='Noisy model')
+axs.plot(x, label="True model")
+axs.plot(y, label="Noisy model")
 axs.legend()
 plt.tight_layout()
 
@@ -61,37 +62,46 @@ plt.tight_layout()
 
 # Define functionals
 l2 = pyproximal.proximal.L2(b=y)
-l1 = pyproximal.proximal.L1(sigma=5.)
-Dop = pylops.FirstDerivative(nx, edge=True, kind='backward')
+l1 = pyproximal.proximal.L1(sigma=5.0)
+Dop = pylops.FirstDerivative(nx, edge=True, kind="backward")
 
 # TV
-L = np.real((Dop.H * Dop).eigs(neigs=1, which='LM')[0])
-tau = 1.
+L = np.real((Dop.H * Dop).eigs(neigs=1, which="LM")[0])
+tau = 1.0
 mu = 0.99 * tau / L
-xTV, _ = pyproximal.optimization.primal.LinearizedADMM(l2, l1, Dop, tau=tau, mu=mu,
-                                                       x0=np.zeros_like(x), niter=200)
+xTV, _ = pyproximal.optimization.primal.LinearizedADMM(
+    l2, l1, Dop, tau=tau, mu=mu, x0=np.zeros_like(x), niter=200
+)
 
 # rMS
 sigma = 1e5
 kappa = 1e0
 ms_relaxed = pyproximal.proximal.RelaxedMumfordShah(sigma=sigma, kappa=kappa)
-tau = 1.
+tau = 1.0
 mu = tau / L
-xrMS, _ = pyproximal.optimization.primal.LinearizedADMM(l2, ms_relaxed, Dop, tau=tau, mu=mu,
-                                                        x0=np.zeros_like(x), niter=200)
+xrMS, _ = pyproximal.optimization.primal.LinearizedADMM(
+    l2, ms_relaxed, Dop, tau=tau, mu=mu, x0=np.zeros_like(x), niter=200
+)
 
 # Tikhonov
-xTikhonov = pylops.optimization.leastsquares.regularized_inversion(Op=pylops.Identity(nx),
-                                                                   Regs=[Dop, ], y=y,
-                                                                   epsRs=[6e0, ])[0]
+xTikhonov = pylops.optimization.leastsquares.regularized_inversion(
+    Op=pylops.Identity(nx),
+    Regs=[
+        Dop,
+    ],
+    y=y,
+    epsRs=[
+        6e0,
+    ],
+)[0]
 
 # Plot the results
 fig, axs = plt.subplots(1, 1, figsize=(6, 5))
-axs.plot(x, label='True', linewidth=4, color='k')
-axs.plot(y, '--', label='Noisy', linewidth=2, color='y')
-axs.plot(xTV, label='TV')
-axs.plot(xrMS, label='rMS')
-axs.plot(xTikhonov, label='Tikhonov')
+axs.plot(x, label="True", linewidth=4, color="k")
+axs.plot(y, "--", label="Noisy", linewidth=2, color="y")
+axs.plot(xTV, label="TV")
+axs.plot(xrMS, label="rMS")
+axs.plot(xTikhonov, label="Tikhonov")
 axs.legend()
 plt.tight_layout()
 
@@ -112,8 +122,8 @@ y = x + n
 
 # Plot the model and the noisy data
 fig, axs = plt.subplots(1, 1, figsize=(6, 5))
-axs.plot(x, label='True model')
-axs.plot(y, label='Noisy model')
+axs.plot(x, label="True model")
+axs.plot(y, label="Noisy model")
 axs.legend()
 plt.tight_layout()
 
@@ -121,39 +131,47 @@ plt.tight_layout()
 
 # Define functionals
 l2 = pyproximal.proximal.L2(b=y)
-l1 = pyproximal.proximal.L1(sigma=1.)
-Dop = pylops.FirstDerivative(nx, edge=True, kind='backward')
+l1 = pyproximal.proximal.L1(sigma=1.0)
+Dop = pylops.FirstDerivative(nx, edge=True, kind="backward")
 
 # TV
-L = np.real((Dop.H * Dop).eigs(neigs=1, which='LM')[0])
-tau = 1.
+L = np.real((Dop.H * Dop).eigs(neigs=1, which="LM")[0])
+tau = 1.0
 mu = 0.99 * tau / L
-xTV, _ = pyproximal.optimization.primal.LinearizedADMM(l2, l1, Dop, tau=tau, mu=mu,
-                                                       x0=np.zeros_like(x), niter=200)
+xTV, _ = pyproximal.optimization.primal.LinearizedADMM(
+    l2, l1, Dop, tau=tau, mu=mu, x0=np.zeros_like(x), niter=200
+)
 
 # rMS
 sigma = 1e1
 kappa = 1e0
 ms_relaxed = pyproximal.proximal.RelaxedMumfordShah(sigma=sigma, kappa=kappa)
-tau = 1.
+tau = 1.0
 mu = tau / L
-xrMS, _ = pyproximal.optimization.primal.LinearizedADMM(l2, ms_relaxed, Dop, tau=tau, mu=mu,
-                                                        x0=np.zeros_like(x), niter=200)
+xrMS, _ = pyproximal.optimization.primal.LinearizedADMM(
+    l2, ms_relaxed, Dop, tau=tau, mu=mu, x0=np.zeros_like(x), niter=200
+)
 
 # Tikhonov
 Op = pylops.Identity(nx)
-Regs = [Dop, ]
-epsR = [3e0, ]
+Regs = [
+    Dop,
+]
+epsR = [
+    3e0,
+]
 
-xTikhonov = pylops.optimization.leastsquares.regularized_inversion(Op=Op, Regs=Regs, y=y, epsRs=epsR)[0]
+xTikhonov = pylops.optimization.leastsquares.regularized_inversion(
+    Op=Op, Regs=Regs, y=y, epsRs=epsR
+)[0]
 
 # Plot the results
 fig, axs = plt.subplots(1, 1, figsize=(6, 5))
-axs.plot(x, label='True', linewidth=4, color='k')
-axs.plot(y, '--', label='Noisy', linewidth=2, color='y')
-axs.plot(xTV, label='TV')
-axs.plot(xrMS, label='rMS')
-axs.plot(xTikhonov, label='Tikhonov')
+axs.plot(x, label="True", linewidth=4, color="k")
+axs.plot(y, "--", label="Noisy", linewidth=2, color="y")
+axs.plot(xTV, label="TV")
+axs.plot(xrMS, label="rMS")
+axs.plot(xTikhonov, label="Tikhonov")
 axs.legend()
 plt.tight_layout()
 
@@ -163,16 +181,16 @@ plt.tight_layout()
 # TV on the other hand will artificially create a staircasing effect.
 
 # Get a trace from the model and add some noise
-m_trace = np.load('../testdata/marmousi_trace.npy')
+m_trace = np.load("../testdata/marmousi_trace.npy")
 nz = len(m_trace)
 m_trace_noisy = m_trace + np.random.normal(0, 0.1, nz)
 
 # Plot the model and the noisy data
 fig, ax = plt.subplots(1, 1, figsize=(12, 5))
-ax.plot(m_trace, linewidth=2, label='True')
-ax.plot(m_trace_noisy, label='Noisy')
-ax.set_title('Trace and noisy trace')
-ax.axis('tight')
+ax.plot(m_trace, linewidth=2, label="True")
+ax.plot(m_trace_noisy, label="Noisy")
+ax.set_title("Trace and noisy trace")
+ax.axis("tight")
 ax.legend()
 plt.tight_layout()
 
@@ -181,40 +199,46 @@ plt.tight_layout()
 # Define functionals
 l2 = pyproximal.proximal.L2(b=m_trace_noisy)
 l1 = pyproximal.proximal.L1(sigma=5e-1)
-Dop = pylops.FirstDerivative(nz, edge=True, kind='backward')
+Dop = pylops.FirstDerivative(nz, edge=True, kind="backward")
 
 # TV
-L = np.real((Dop.H * Dop).eigs(neigs=1, which='LM')[0])
-tau = 1.
+L = np.real((Dop.H * Dop).eigs(neigs=1, which="LM")[0])
+tau = 1.0
 mu = 0.99 * tau / L
-xTV, _ = pyproximal.optimization.primal.LinearizedADMM(l2, l1, Dop, tau=tau, mu=mu,
-                                                       x0=np.zeros_like(m_trace), niter=200)
+xTV, _ = pyproximal.optimization.primal.LinearizedADMM(
+    l2, l1, Dop, tau=tau, mu=mu, x0=np.zeros_like(m_trace), niter=200
+)
 
 # rMS
 sigma = 5e0
 kappa = 1e-1
 ms_relaxed = pyproximal.proximal.RelaxedMumfordShah(sigma=sigma, kappa=kappa)
 
-tau = 1.
+tau = 1.0
 mu = tau / L
-xrMS, _ = pyproximal.optimization.primal.LinearizedADMM(l2, ms_relaxed, Dop, tau=tau, mu=mu,
-                                                        x0=np.zeros_like(m_trace), niter=200)
+xrMS, _ = pyproximal.optimization.primal.LinearizedADMM(
+    l2, ms_relaxed, Dop, tau=tau, mu=mu, x0=np.zeros_like(m_trace), niter=200
+)
 
 # Tikhonov
 Op = pylops.Identity(nz)
-Regs = [Dop, ]
-epsR = [3e0, ]
+Regs = [
+    Dop,
+]
+epsR = [
+    3e0,
+]
 
-xTikhonov = pylops.optimization.leastsquares.regularized_inversion(Op=Op, Regs=Regs,
-                                                                   y=m_trace_noisy,
-                                                                   epsRs=epsR)[0]
+xTikhonov = pylops.optimization.leastsquares.regularized_inversion(
+    Op=Op, Regs=Regs, y=m_trace_noisy, epsRs=epsR
+)[0]
 
 # Plot the results
 fig, axs = plt.subplots(1, 1, figsize=(12, 5))
-axs.plot(m_trace, label='True', linewidth=4, color='k')
-axs.plot(m_trace_noisy, '--', label='Noisy', linewidth=2, color='y')
-axs.plot(xTV, label='TV')
-axs.plot(xrMS, label='rMS')
-axs.plot(xTikhonov, label='Tikhonov')
+axs.plot(m_trace, label="True", linewidth=4, color="k")
+axs.plot(m_trace_noisy, "--", label="Noisy", linewidth=2, color="y")
+axs.plot(xTV, label="TV")
+axs.plot(xrMS, label="rMS")
+axs.plot(xTikhonov, label="Tikhonov")
 axs.legend()
 plt.tight_layout()
