@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING, Any, Callable, Dict, Tuple, Union
+from typing import Any, Callable, Dict, Tuple, Union
 
 from pylops.utils.typing import NDArray, ShapeLike
 
-from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
 from pyproximal.optimization.primal import ADMM
+from pyproximal.ProxOperator import _check_tau
 
 
 class _Denoise(ProxOperator):
@@ -21,18 +21,19 @@ class _Denoise(ProxOperator):
         prior to calling the ``denoiser``
 
     """
+
     def __init__(
-            self,
-            denoiser: Callable[[NDArray, float], NDArray],
-            dims: ShapeLike,
-        ) -> None:
+        self,
+        denoiser: Callable[[NDArray, float], NDArray],
+        dims: ShapeLike,
+    ) -> None:
         super().__init__(None, False)
         self.denoiser = denoiser
         self.dims = dims
 
     def __call__(self, x: NDArray) -> float:
         # A PnP regularizer is not a function, so return 0.
-        return 0.
+        return 0.0
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:
@@ -42,13 +43,13 @@ class _Denoise(ProxOperator):
 
 
 def PlugAndPlay(
-        proxf: ProxOperator,
-        denoiser: Callable[[NDArray, float], NDArray],
-        dims: ShapeLike, 
-        x0: NDArray, 
-        solver: Callable[..., NDArray] = ADMM,
-        **kwargs_solver: Dict[str, Any],
-        ) -> Union[NDArray, Tuple[NDArray, ...]]:
+    proxf: ProxOperator,
+    denoiser: Callable[[NDArray, float], NDArray],
+    dims: ShapeLike,
+    x0: NDArray,
+    solver: Callable[..., NDArray] = ADMM,
+    **kwargs_solver: Dict[str, Any],
+) -> Union[NDArray, Tuple[NDArray, ...]]:
     r"""Plug-and-Play Priors with any proximal algorithm of choice
 
     Solves the following minimization problem using any proximal a

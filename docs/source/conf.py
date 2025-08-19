@@ -2,8 +2,9 @@
 import sys
 import os
 import datetime
-import sphinx_gallery
+
 from sphinx_gallery.sorting import ExampleTitleSortKey
+
 from pyproximal import __version__
 
 # Sphinx needs to be able to import the package to use autodoc and get the version number
@@ -37,13 +38,13 @@ intersphinx_mapping = {
     "pylops": ("https://pylops.readthedocs.io/en/latest/", None),
 }
 
-## Generate autodoc stubs with summaries from code
+# Generate autodoc stubs with summaries from code
 autosummary_generate = True
 
-## Include Python objects as they appear in source files
+# Include Python objects as they appear in source files
 autodoc_member_order = 'bysource'
 
-## Default flags used by autodoc directives
+# Default flags used by autodoc directives
 autodoc_default_flags = ['members']
 
 numpydoc_show_class_members = False

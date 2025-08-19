@@ -11,15 +11,14 @@ def fun_jit_cuda(mu, x, coeffs, scalar, lower, upper):
 
 
 @cuda.jit(device=True)
-def bisect_jit_cuda(x, coeffs, scalar, lower, upper, bisect_lower, bisect_upper,
-                    maxiter, ftol, xtol):
-    """Bisection method (See _Simplex_numba for details).
-
-    """
+def bisect_jit_cuda(
+    x, coeffs, scalar, lower, upper, bisect_lower, bisect_upper, maxiter, ftol, xtol
+):
+    """Bisection method (See _Simplex_numba for details)."""
     a, b = bisect_lower, bisect_upper
     fa = fun_jit_cuda(a, x, coeffs, scalar, lower, upper)
     for iiter in range(maxiter):
-        c = (a + b) / 2.
+        c = (a + b) / 2.0
         if (b - a) / 2 < xtol:
             return c
         fc = fun_jit_cuda(c, x, coeffs, scalar, lower, upper)
@@ -69,8 +68,18 @@ def simplex_jit_cuda(x, coeffs, scalar, lower, upper, maxiter, ftol, xtol, y):
         while fun_jit_cuda(bisect_upper, x[i], coeffs, scalar, lower, upper) > 0:
             bisect_upper *= 2
 
-        c = bisect_jit_cuda(x[i], coeffs, scalar, lower, upper,
-                            bisect_lower, bisect_upper, maxiter, ftol, xtol)
+        c = bisect_jit_cuda(
+            x[i],
+            coeffs,
+            scalar,
+            lower,
+            upper,
+            bisect_lower,
+            bisect_upper,
+            maxiter,
+            ftol,
+            xtol,
+        )
 
         for j in range(coeffs.shape[0]):
             y[i][j] = min(max(x[i][j] - c * coeffs[j], lower), upper)

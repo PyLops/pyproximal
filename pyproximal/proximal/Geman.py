@@ -3,8 +3,8 @@ from typing import Tuple
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
+from pyproximal.ProxOperator import _check_tau
 
 
 class Geman(ProxOperator):
@@ -67,20 +67,24 @@ class Geman(ProxOperator):
     def prox(self, x: NDArray, tau: float) -> NDArray:
         out = np.zeros_like(x)
         b = 2 * self.gamma - np.abs(x)
-        c = self.gamma ** 2 - 2 * self.gamma * np.abs(x)
-        d = self.gamma * self.sigma * tau - self.gamma ** 2 * np.abs(x)
+        c = self.gamma**2 - 2 * self.gamma * np.abs(x)
+        d = self.gamma * self.sigma * tau - self.gamma**2 * np.abs(x)
         idx, loc_mins = self._find_local_minima(b, c, d)
-        global_min_idx = tau * self.elementwise(loc_mins) + \
-            (loc_mins - np.abs(x[idx])) ** 2 / 2 < np.abs(x[idx]) ** 2 / 2
+        global_min_idx = (
+            tau * self.elementwise(loc_mins) + (loc_mins - np.abs(x[idx])) ** 2 / 2
+            < np.abs(x[idx]) ** 2 / 2
+        )
         idx[idx] = global_min_idx
         out[idx] = np.sign(x[idx]) * loc_mins[global_min_idx]
         return out
 
     @staticmethod
-    def _find_local_minima(b: NDArray, c: NDArray, d: NDArray) -> Tuple[NDArray, NDArray]:
-        f = -(c - b ** 2.0 / 3.0) ** 3.0 / 27.0
-        g = (2.0 * b ** 3.0 - 9.0 * b * c + 27.0 * d) / 27.0
-        idx = g ** 2.0 / 4.0 - f <= 0
+    def _find_local_minima(
+        b: NDArray, c: NDArray, d: NDArray
+    ) -> Tuple[NDArray, NDArray]:
+        f = -((c - b**2.0 / 3.0) ** 3.0) / 27.0
+        g = (2.0 * b**3.0 - 9.0 * b * c + 27.0 * d) / 27.0
+        idx = g**2.0 / 4.0 - f <= 0
         sqrtf = np.sqrt(f[idx])
         k = np.arccos(-(g[idx] / (2 * sqrtf)))
         loc_mins = 2 * sqrtf ** (1 / 3.0) * np.cos(k / 3.0) - b[idx] / 3.0

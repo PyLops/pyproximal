@@ -31,7 +31,18 @@ from .AffineSet import *
 from .Hankel import *
 from .HalfSpace import *
 
-__all__ = ['BoxProj', 'HyperPlaneBoxProj', 'SimplexProj', 'L0BallProj',
-           'L01BallProj', 'L10BallProj', 'L1BallProj', 'EuclideanBallProj',
-           'NuclearBallProj', 'IntersectionProj', 'AffineSetProj',
-           'HankelProj', 'HalfSpaceProj']
+__all__ = [
+    "BoxProj",
+    "HyperPlaneBoxProj",
+    "SimplexProj",
+    "L0BallProj",
+    "L01BallProj",
+    "L10BallProj",
+    "L1BallProj",
+    "EuclideanBallProj",
+    "NuclearBallProj",
+    "IntersectionProj",
+    "AffineSetProj",
+    "HankelProj",
+    "HalfSpaceProj",
+]

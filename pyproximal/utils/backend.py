@@ -3,7 +3,6 @@ __all__ = [
 ]
 
 import numpy as np
-
 from pylops.utils import deps
 
 if deps.cupy_enabled:

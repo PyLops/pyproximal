@@ -6,11 +6,14 @@ from typing import Optional
 try:
     from scooby import Report as ScoobyReport
 except ImportError:
+
     class ScoobyReport:
         def __init__(self, additional, core, optional, ncol, text_width, sort):
-            print("\nNOTE: `pyproximal.Report` requires `scooby`. Install it via"
-                  "\n      `pip install scooby` or "
-                  "`conda install -c conda-forge scooby`.\n")
+            print(
+                "\nNOTE: `pyproximal.Report` requires `scooby`. Install it via"
+                "\n      `pip install scooby` or "
+                "`conda install -c conda-forge scooby`.\n"
+            )
 
 
 class Report(ScoobyReport):
@@ -72,10 +75,16 @@ class Report(ScoobyReport):
         """Initiate a scooby.Report instance."""
 
         # Mandatory packages.
-        core = ['numpy', 'scipy', 'pylops', 'pyproximal']
+        core = ["numpy", "scipy", "pylops", "pyproximal"]
 
         # Optional packages.
-        optional = ['IPython', 'matplotlib', 'numba']
+        optional = ["IPython", "matplotlib", "numba"]
 
-        super().__init__(additional=add_pckg, core=core, optional=optional,
-                         ncol=ncol, text_width=text_width, sort=sort)
+        super().__init__(
+            additional=add_pckg,
+            core=core,
+            optional=optional,
+            ncol=ncol,
+            text_width=text_width,
+            sort=sort,
+        )

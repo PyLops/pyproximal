@@ -6,10 +6,10 @@ Changelog
 * Added ``pyproximal.optimization.primal.AndersonProximalGradient`` solver
 * Added ``pyproximal.proximal.HuberCircular`` operator
 * Added `fungrad` method to ``pyproximal.proximal.Nonlinear``
-* Modified ``pyproximal.proximal.Huber`` operator as previously 
+* Modified ``pyproximal.proximal.Huber`` operator as previously
   erroneously implemented using the definition of Circular Huber norm
 
- 
+
 # 0.9.0
 
 * Added ``pyproximal.optimization.palm.iPALM`` solver
@@ -31,7 +31,7 @@ Changelog
 # 0.7.0
 
 * Added ``pyproximal.proximal.RelaxedMumfordShah`` operator
-* Added cuda version to the proximal operator of ``pyproximal.proximal.Simplex`` 
+* Added cuda version to the proximal operator of ``pyproximal.proximal.Simplex``
 * Added bilinear update to ``pyproximal.optimization.primal.ProximalGradient``
 * Modified ``pyproximal.optimization.pnp.PlugAndPlay`` function signature to allow using any proximal solver of choice
 * Fixed print in ``pyproximal.optimization.primaldual.PrimalDual`` when using cupy arrays
@@ -72,15 +72,15 @@ Changelog
 
 # 0.3.0
 * Added ``pyproximal.optimization.palm.PALM`` optimizer
-* Added ``callback`` to ``pyproximal.optimization.proximal.ProximalPoint`` 
+* Added ``callback`` to ``pyproximal.optimization.proximal.ProximalPoint``
   optimizer
-* Added ``pyproximal.utils.bilinear.BilinearOperator`` and 
+* Added ``pyproximal.utils.bilinear.BilinearOperator`` and
   ``pyproximal.utils.bilinear.LowRankFactorizedMatrix`` operators
 
 # 0.2.0
-* Added ``pyproximal.proximal.L0Ball``, ``pyproximal.proximal.L1Ball``, 
-  ``pyproximal.proximal.L21_plus_L1``, ``pyproximal.proximal.Nuclear``, 
-  ``pyproximal.proximal.NuclearBall``, and ``pyproximal.proximal.Nonlinear`` 
+* Added ``pyproximal.proximal.L0Ball``, ``pyproximal.proximal.L1Ball``,
+  ``pyproximal.proximal.L21_plus_L1``, ``pyproximal.proximal.Nuclear``,
+  ``pyproximal.proximal.NuclearBall``, and ``pyproximal.proximal.Nonlinear``
   operators
 * Added ``pyproximal.optimization.primal.TwIST`` solver
 * Added `acceleration` in
@@ -90,7 +90,7 @@ Changelog
 * Added `chain` method ``pyproximal.ProxOperator``
 * Fix ``pyproximal.proximal.Orthogonal`` by introducing `alpha`
   in the proximal evaluation
-  
+
 # 0.1.0
 * Added ``pyproximal.optimization.sr3.SR3`` solver
 * Added ``pyproximal.projection.AffineSetProj`` and
@@ -99,4 +99,3 @@ Changelog
 
 # 0.0.0
 * First official release.
-

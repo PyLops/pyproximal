@@ -1,8 +1,7 @@
+from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Optional
 
 import numpy as np
-
-from abc import ABC, abstractmethod
 from pylops.utils.typing import NDArray
 
 if TYPE_CHECKING:
@@ -38,12 +37,13 @@ class BilinearOperator(ABC):
     i.e, :math:`\mathbf{H_x}(y)\mathbf{x}` and :math:`\mathbf{H_y}(y)\mathbf{x}`.
 
     """
+
     def __init__(self) -> None:
-        # initialize sizex and sizey, e.g. to 0 to avoid runtime errors 
+        # initialize sizex and sizey, e.g. to 0 to avoid runtime errors
         # if not set by subclass and accessed
         self.sizex: int = 0
         self.sizey: int = 0
-        
+
         # initialize x and y to empty arrays or placeholder of correct type
         self.x: NDArray = np.array([])
         self.y: NDArray = np.array([])
@@ -52,7 +52,7 @@ class BilinearOperator(ABC):
     @abstractmethod
     def __call__(self, x: NDArray, y: Optional[NDArray] = None) -> Any:
         pass
-    
+
     @abstractmethod
     def gradx(self, x: NDArray) -> NDArray:
         pass
@@ -68,23 +68,21 @@ class BilinearOperator(ABC):
     @abstractmethod
     def lx(self, x: NDArray) -> float:
         pass
-    
+
     @abstractmethod
     def ly(self, y: NDArray) -> float:
         pass
-    
+
     @abstractmethod
     def updatexy(self, xy: NDArray) -> None:
         pass
 
     def updatex(self, x: NDArray) -> None:
-        """Update x variable (to be used to update the internal variable x)
-        """
+        """Update x variable (to be used to update the internal variable x)"""
         self.x = x
 
     def updatey(self, y: NDArray) -> None:
-        """Update y variable (to be used to update the internal variable y)
-        """
+        """Update y variable (to be used to update the internal variable y)"""
         self.y = y
 
 
@@ -132,13 +130,14 @@ class LowRankFactorizedMatrix(BilinearOperator):
     is used for the second variable within parenthesis (after ;).
 
     """
+
     def __init__(
-            self, 
-            X: NDArray, 
-            Y: NDArray, 
-            d: NDArray,
-            Op: Optional["LinearOperator"] = None,
-            ) -> None:
+        self,
+        X: NDArray,
+        Y: NDArray,
+        d: NDArray,
+        Op: Optional["LinearOperator"] = None,
+    ) -> None:
         self.n, self.k = X.shape
         self.m = Y.shape[1]
 
@@ -152,19 +151,19 @@ class LowRankFactorizedMatrix(BilinearOperator):
     def __call__(self, x: NDArray, y: Optional[NDArray] = None) -> float:
         # x can be concatenated [x,y] or just x if y is provided
         if y is None:
-            x, y = x[:self.n * self.k], x[self.n * self.k:]
-        # store original self.x to restore after calculation, 
+            x, y = x[: self.n * self.k], x[self.n * self.k :]
+        # store original self.x to restore after calculation,
         # as _matvecy uses self.x
         xold = self.x.copy()
         # temporarily update self.x for _matvecy
         self.updatex(x)
-        # compute residual: note that _matvecy(y) computes 
+        # compute residual: note that _matvecy(y) computes
         # Op(X @ Y) where Y is obtained reshaping y into
         # a matrix
         res = self.d - self._matvecy(y)
         # restore original self.x
         self.updatex(xold)
-        return float(np.linalg.norm(res)**2 / 2.)
+        return float(np.linalg.norm(res) ** 2 / 2.0)
 
     def _matvecx(self, x: NDArray) -> NDArray:
         # recreate matrix from flattened x
@@ -174,7 +173,7 @@ class LowRankFactorizedMatrix(BilinearOperator):
         if self.Op is not None:
             X = self.Op @ X.ravel()
         return X.ravel()
-    
+
     def _matvecy(self, y: NDArray) -> NDArray:
         # recreate matrix from flattened y
         Y = y.reshape(self.k, self.m)
@@ -187,10 +186,12 @@ class LowRankFactorizedMatrix(BilinearOperator):
     def matvec(self, x: NDArray) -> NDArray:
         # check that no ambiguous situation arises due to n==m
         if self.n == self.m:
-            raise NotImplementedError('Since n=m, this method'
-                                      'cannot distinguish automatically'
-                                      'between _matvecx and _matvecy. '
-                                      'Explicitely call either of those two methods.')
+            raise NotImplementedError(
+                "Since n=m, this method"
+                "cannot distinguish automatically"
+                "between _matvecx and _matvecy. "
+                "Explicitely call either of those two methods."
+            )
         if x.size == self.sizex:
             y = self._matvecx(x)
         else:
@@ -201,25 +202,25 @@ class LowRankFactorizedMatrix(BilinearOperator):
         if self.Op is not None:
             # Lipschitz constant for grad_y H involves Op.H Op and X.H X.
             # This is non-trivial and depends on Op's norm.
-            raise ValueError('lx cannot be computed when using Op')
+            raise ValueError("lx cannot be computed when using Op")
         # if Op is None, H = 0.5 * ||XY - d||^2. grad_y H = X.H (XY-d)
         # Lipschitz of grad_y H involves ||X.H X||_F or ||X||_2^2
         X = x.reshape(self.n, self.k)
-        return float(np.linalg.norm(np.conj(X).T @ X, 'fro'))
+        return float(np.linalg.norm(np.conj(X).T @ X, "fro"))
 
     def ly(self, y: NDArray) -> float:
         if self.Op is not None:
             # Lipschitz constant for grad_x H involves Op.H Op and Y Y.H.
             # This is non-trivial and depends on Op's norm.
-            raise ValueError('ly cannot be computed when using Op')
+            raise ValueError("ly cannot be computed when using Op")
         # if Op is None, H = 0.5 * ||XY - d||^2. grad_x H = (XY-d)Y.H
         # Lipschitz of grad_x H involves ||Y Y.H||_F or ||Y||_2^2
         Y = y.reshape(self.k, self.m)
-        return float(np.linalg.norm(Y @ np.conj(Y).T, 'fro'))
+        return float(np.linalg.norm(Y @ np.conj(Y).T, "fro"))
 
     def gradx(self, x: NDArray) -> NDArray:
         """Gradient of H wrt x
-        
+
         Computes grad_x H = - Op.H (d - Op(XY)) Y.H
         """
         # compute residual
@@ -235,7 +236,7 @@ class LowRankFactorizedMatrix(BilinearOperator):
 
     def grady(self, y: NDArray) -> NDArray:
         """Gradient of H wrt y
-        
+
         Computes grad_y H = - X.H Op.H (d - Op(XY))
         """
         # compute residual
@@ -250,11 +251,11 @@ class LowRankFactorizedMatrix(BilinearOperator):
         return g.ravel()
 
     def grad(self, x: NDArray) -> NDArray:
-        gx = self.gradx(x[:self.n * self.k])
-        gy = self.grady(x[self.n * self.k:])
+        gx = self.gradx(x[: self.n * self.k])
+        gy = self.grady(x[self.n * self.k :])
         g = np.hstack([gx, gy])
         return g
 
     def updatexy(self, x: NDArray) -> None:
-        self.updatex(x[:self.n * self.k])
-        self.updatey(x[self.n * self.k:])
+        self.updatex(x[: self.n * self.k])
+        self.updatey(x[self.n * self.k :])

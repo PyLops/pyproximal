@@ -1,13 +1,13 @@
-from typing import Any, Callable, List, Union
-
 import warnings
+from typing import Any, Callable
+
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import _check_tau
-from pyproximal.projection import L0BallProj, L10BallProj
 from pyproximal import ProxOperator
+from pyproximal.projection import L0BallProj, L10BallProj
 from pyproximal.proximal.L1 import _current_sigma
+from pyproximal.ProxOperator import _check_tau
 from pyproximal.utils.typing import FloatCallableLike, IntCallableLike
 
 
@@ -71,23 +71,25 @@ class L0(ProxOperator):
     where :math:`\operatorname{hard}` is the so-called called *hard thresholding*.
 
     """
+
     def __init__(
-            self, 
-            sigma: FloatCallableLike = 1.,
-        ) -> None:
+        self,
+        sigma: FloatCallableLike = 1.0,
+    ) -> None:
         super().__init__(None, False)
         self.sigma = sigma
         self.count = 0
 
     def __call__(self, x: NDArray) -> float:
-        return np.sum(np.abs(x) > 0.)
+        return np.sum(np.abs(x) > 0.0)
 
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
-        """Increment counter
-        """
+        """Increment counter"""
+
         def wrapped(self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
+
         return wrapped
 
     @_increment_count
@@ -118,6 +120,7 @@ class L0Ball(ProxOperator):
     (see :class:`pyproximal.projection.L0BallProj` for details.
 
     """
+
     def __init__(self, radius: IntCallableLike) -> None:
         super().__init__(None, False)
         self.radius = radius
@@ -129,11 +132,12 @@ class L0Ball(ProxOperator):
         return bool(np.linalg.norm(np.abs(x), ord=0) <= radius)
 
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
-        """Increment counter
-        """
+        """Increment counter"""
+
         def wrapped(self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
+
         return wrapped
 
     @_increment_count
@@ -172,11 +176,12 @@ class L10Ball(ProxOperator):
     (see :class:`pyproximal.projection.L10BallProj` for details.
 
     """
+
     def __init__(self, ndim: int, radius: IntCallableLike) -> None:
         super().__init__(None, False)
         self.ndim = ndim
         self.radius = radius
-        self.ball = L10BallProj(self.radius if not callable(radius) else radius(0))        
+        self.ball = L10BallProj(self.radius if not callable(radius) else radius(0))
         self.count = 0
 
     def __call__(self, x: NDArray, tol: float = 1e-4) -> bool:
@@ -185,11 +190,12 @@ class L10Ball(ProxOperator):
         return bool(np.linalg.norm(np.linalg.norm(x, ord=1, axis=0), ord=0) <= radius)
 
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
-        """Increment counter
-        """
+        """Increment counter"""
+
         def wrapped(self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
+
         return wrapped
 
     @_increment_count
@@ -205,8 +211,8 @@ class L10Ball(ProxOperator):
 class L01Ball(L10Ball):
     def __init__(self, ndim: int, radius: IntCallableLike) -> None:
         warnings.warn(
-            "The L01Ball class has been renamed L10Ball due " \
-            "to a mistake in the original choice of the name. As such " \
+            "The L01Ball class has been renamed L10Ball due "
+            "to a mistake in the original choice of the name. As such "
             "L01Ball will be deprecated in v1.0.0.",
             FutureWarning,
         )

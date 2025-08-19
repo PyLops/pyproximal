@@ -1,11 +1,11 @@
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Union
 
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
 from pyproximal.proximal.L1 import _current_sigma
+from pyproximal.ProxOperator import _check_tau
 from pyproximal.utils.typing import FloatCallableLike
 
 
@@ -32,9 +32,9 @@ def _l2(x: NDArray, alpha: float) -> NDArray:
 
 
 def _current_kappa(
-        kappa: FloatCallableLike, 
-        count: int,
-    ) -> Union[float, NDArray]:
+    kappa: FloatCallableLike,
+    count: int,
+) -> Union[float, NDArray]:
     if not callable(kappa):
         return kappa
     else:
@@ -77,11 +77,12 @@ class RelaxedMumfordShah(ProxOperator):
             Mumford-Shah functional: European Conference on Computer Vision, 127–141.
 
     """
+
     def __init__(
-            self, 
-            sigma: FloatCallableLike = 1.,
-            kappa: FloatCallableLike = 1.,
-            ) -> None:
+        self,
+        sigma: FloatCallableLike = 1.0,
+        kappa: FloatCallableLike = 1.0,
+    ) -> None:
         super().__init__(None, False)
         self.sigma = sigma
         self.kappa = kappa
@@ -93,11 +94,12 @@ class RelaxedMumfordShah(ProxOperator):
         return float(np.minimum(sigma * np.linalg.norm(x) ** 2, kappa))
 
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
-        """Increment counter
-        """
+        """Increment counter"""
+
         def wrapped(self, *args, **kwargs):
             self.count += 1
             return func(self, *args, **kwargs)
+
         return wrapped
 
     @_increment_count
@@ -106,5 +108,9 @@ class RelaxedMumfordShah(ProxOperator):
         sigma = _current_sigma(self.sigma, self.count)
         kappa = _current_sigma(self.kappa, self.count)
 
-        x = np.where(np.abs(x) <= np.sqrt(kappa / sigma * (1 + 2 * tau * sigma)), _l2(x, tau * sigma), x)
+        x = np.where(
+            np.abs(x) <= np.sqrt(kappa / sigma * (1 + 2 * tau * sigma)),
+            _l2(x, tau * sigma),
+            x,
+        )
         return x

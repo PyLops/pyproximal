@@ -1,8 +1,8 @@
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import _check_tau
 from pyproximal import ProxOperator
+from pyproximal.ProxOperator import _check_tau
 
 
 class L21(ProxOperator):
@@ -58,20 +58,21 @@ class L21(ProxOperator):
         in Optimization. 2013.
 
     """
-    def __init__(self, ndim: int, sigma: float = 1.) -> None:
+
+    def __init__(self, ndim: int, sigma: float = 1.0) -> None:
         super().__init__(None, False)
         self.ndim = ndim
         self.sigma = sigma
 
     def __call__(self, x: NDArray) -> float:
         x = x.reshape(self.ndim, len(x) // self.ndim)
-        f = self.sigma * np.sum(np.sqrt(np.sum(x ** 2, axis=0)))
+        f = self.sigma * np.sum(np.sqrt(np.sum(x**2, axis=0)))
         return float(f)
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:
         x = x.reshape(self.ndim, len(x) // self.ndim)
-        aux = np.sqrt(np.sum(x ** 2, axis=0))
+        aux = np.sqrt(np.sum(x**2, axis=0))
         aux = np.vstack([aux] * self.ndim).ravel()
         x = (1 - (tau * self.sigma) / np.maximum(aux, tau * self.sigma)) * x.ravel()
         return x
@@ -79,7 +80,7 @@ class L21(ProxOperator):
     @_check_tau
     def proxdual(self, x: NDArray, tau: float) -> NDArray:
         x = x.reshape(self.ndim, len(x) // self.ndim)
-        aux = np.sqrt(np.sum(x ** 2, axis=0))
+        aux = np.sqrt(np.sum(x**2, axis=0))
         aux = np.vstack([aux] * self.ndim).ravel()
         x = self.sigma * x.ravel() / np.maximum(aux, self.sigma)
         return x

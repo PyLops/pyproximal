@@ -45,7 +45,7 @@ servedoc:
 	$(PYTHON) -m http.server --directory docs/build/html/
 
 lint:
-	flake8 docs/ examples/ pyproximal/ pytests/ tutorials/
+	flake8 docs/source examples/ pyproximal/ pytests/ tutorials/
 
 typeannot:
 	mypy pyproximal/
