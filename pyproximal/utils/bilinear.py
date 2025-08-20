@@ -71,10 +71,6 @@ class BilinearOperator(ABC):
     def ly(self, y: NDArray) -> float:
         pass
 
-    @abstractmethod
-    def updatexy(self, xy: NDArray) -> None:
-        pass
-
     def updatex(self, x: NDArray) -> None:
         """Update x variable (to be used to update the internal variable x)"""
         self.x = x
