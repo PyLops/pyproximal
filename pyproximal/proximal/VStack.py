@@ -54,7 +54,8 @@ class VStack(ProxOperator):
         nn: Optional[list[ShapeLike]] = None,
         restr: Optional[list["LinearOperator"]] = None,
     ) -> None:
-        self.ops = ops
+        super().__init__(None, any(op.hasgrad for op in ops))
+        self.ops = opsgt
 
         if nn is not None:
             self.nn = nn
