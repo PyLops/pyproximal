@@ -379,7 +379,7 @@ def iPALM(
         else:
             yold = y.copy()
             y, taug = _backtracking(
-                [x, z], tauf, H, proxf, 1, beta=beta, niterback=niterback
+                [x, y], taug, H, proxf, 1, beta=beta, niterback=niterback
             )
         # update y parameter in H function
         H.updatey(y.copy())

@@ -22,13 +22,11 @@ class BilinearOperator(ABC):
       :math:`\mathbf{x},\mathbf{y}`: :math:`[\nabla_x H`, [\nabla_y H]`
     - ``lx``: Lipschitz constant of :math:`\nabla_y H`
     - ``ly``: Lipschitz constant of :math:`\nabla_x H`
-    - ``updatexy``: Update :math:`\mathbf{x}` and :math:`\mathbf{y}`
-      from a single vector :math:`\mathbf{xy}`
 
-    Two additional methods (``updatex`` and ``updatey``) are provided to
-    update the :math:`\mathbf{x}` and :math:`\mathbf{y}` internal
-    variables. It is user responsability to choose when to invoke such
-    methods (i.e., when to update the internal variables).
+    Three additional methods (``updatex``, ``updatey``, and ``updatexy``) are
+    provided to update either the :math:`\mathbf{x}` and :math:`\mathbf{y}`
+    internal variables (or both). It is user responsability to choose when to
+    invoke such methods (i.e., when to update the internal variables).
 
     Notes
     -----
@@ -84,6 +82,11 @@ class BilinearOperator(ABC):
     def updatey(self, y: NDArray) -> None:
         """Update y variable (to be used to update the internal variable y)"""
         self.y = y
+
+    def updatexy(self, x_and_y: NDArray) -> None:
+        """Update x and y variables (to be used to update both internal variables)"""
+        self.updatex(x_and_y[: self.sizex])
+        self.updatey(x_and_y[self.sizex :])
 
 
 class LowRankFactorizedMatrix(BilinearOperator):
@@ -151,7 +154,7 @@ class LowRankFactorizedMatrix(BilinearOperator):
     def __call__(self, x: NDArray, y: Optional[NDArray] = None) -> float:
         # x can be concatenated [x,y] or just x if y is provided
         if y is None:
-            x, y = x[: self.n * self.k], x[self.n * self.k :]
+            x, y = x[: self.sizex], x[self.sizex :]
         # store original self.x to restore after calculation,
         # as _matvecy uses self.x
         xold = self.x.copy()
@@ -251,11 +254,7 @@ class LowRankFactorizedMatrix(BilinearOperator):
         return g.ravel()
 
     def grad(self, x: NDArray) -> NDArray:
-        gx = self.gradx(x[: self.n * self.k])
-        gy = self.grady(x[self.n * self.k :])
+        gx = self.gradx(x[: self.sizex])
+        gy = self.grady(x[self.sizex :])
         g = np.hstack([gx, gy])
         return g
-
-    def updatexy(self, x: NDArray) -> None:
-        self.updatex(x[: self.n * self.k])
-        self.updatey(x[self.n * self.k :])
