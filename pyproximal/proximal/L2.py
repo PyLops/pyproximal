@@ -52,10 +52,13 @@ class L2(ProxOperator):
         .. versionadded:: 0.11.0
 
         Name of solver to use with non-explicit operators:
-        - ``legacy``: enforces the legacy behaviour where :py:func:`scipy.sparse.linalg.lsqr` is used with numpy data and :py:func:`pylops.optimization.solver.lsqr` is used with cupy data (both are applied to the normal equations);
-        - ``cg`` to use :py:func:`pylops.optimization.solver.cg` on the
+
+        - ``legacy``: enforces the legacy behaviour where :py:func:`scipy.sparse.linalg.lsqr` is
+          used with numpy data and :py:func:`pylops.optimization.basic.lsqr` is used with cupy data
+          (both are applied to the normal equations);
+        - ``cg`` to use :py:func:`pylops.optimization.basic.cg` on the
           normal equations;
-        - ``cgls`` to use :py:func:`pylops.optimization.solver.cgls` on the
+        - ``cgls`` to use :py:func:`pylops.optimization.basic.cgls` on the
           regularized system of equations;
     densesolver : :obj:`str`, optional
         Use ``numpy``, ``scipy``, or ``factorize`` when dealing with explicit
