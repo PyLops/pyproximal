@@ -42,42 +42,10 @@ def test_Euclidean(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
-def test_L2(par):
-    """L2 norm of Op*x-b and proximal/dual proximal"""
-    l2 = L2(
-        Op=Identity(par["nx"], dtype=par["dtype"]),
-        b=np.zeros(par["nx"], dtype=par["dtype"]),
-        sigma=par["sigma"],
-    )
-    # norm
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
-    assert l2(x) == (par["sigma"] / 2.0) * np.linalg.norm(x) ** 2
-
-    # prox
-    tau = 2.0
-    assert_array_almost_equal(l2.prox(x, tau), x / (1.0 + par["sigma"] * tau))
-
-
-@pytest.mark.parametrize("par", [(par1), (par2)])
-def test_L2_diff(par):
-    """L2 norm of difference (x-b) and proximal/dual proximal"""
-    b = np.ones(par["nx"], dtype=par["dtype"])
-    l2 = L2(b=b, sigma=par["sigma"])
-
-    # norm
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
-    assert l2(x) == (par["sigma"] / 2.0) * np.linalg.norm(x - b) ** 2
-
-    # prox
-    tau = 2.0
-    assert_array_almost_equal(
-        l2.prox(x, tau), (x + par["sigma"] * tau * b) / (1.0 + par["sigma"] * tau)
-    )
-
-
-@pytest.mark.parametrize("par", [(par1), (par2)])
 def test_L2_op(par):
-    """L2 norm of Op*x and proximal/dual proximal"""
+    """L2 norm of Op*x and proximal (since Op is a Diagonal
+    operator the denominator becomes 1 + sigma*tau*d[i]^2
+    for every i)"""
     b = np.zeros(par["nx"], dtype=par["dtype"])
     d = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     l2 = L2(Op=Diagonal(d, dtype=par["dtype"]), b=b, sigma=par["sigma"], niter=500)
@@ -94,8 +62,38 @@ def test_L2_op(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
+def test_L2_op_solver(par):
+    """L2 norm of Op*x-b and proximal, the first compared to close-form
+    solution and the second with different choices of solver."""
+    Op = MatrixMult(
+        np.random.normal(0, 1, (par["nx"], par["nx"])).astype(dtype=par["dtype"]),
+        dtype=par["dtype"],
+    )
+    b = np.ones(par["nx"], dtype=par["dtype"])
+    l2_leg = L2(Op=Op, b=b, sigma=par["sigma"], solver="legacy", niter=par["nx"])
+    l2_cg = L2(Op=Op, b=b, sigma=par["sigma"], solver="cg", niter=par["nx"])
+    l2_cgls = L2(Op=Op, b=b, sigma=par["sigma"], solver="cgls", niter=par["nx"])
+
+    # norm
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    assert l2_leg(x) == (par["sigma"] / 2.0) * np.linalg.norm(Op * x - b) ** 2
+
+    # prox
+    tau = 2.0
+    prox_leg = l2_leg.prox(x, tau)
+    prox_cg = l2_cg.prox(x, tau)
+    prox_cgls = l2_cgls.prox(x, tau)
+
+    assert_array_almost_equal(prox_leg, prox_cg, decimal=4)
+    assert_array_almost_equal(prox_leg, prox_cgls, decimal=4)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
 def test_L2_dense(par):
-    """L2 norm of Op*x with dense Op and proximal/dual proximal"""
+    """L2 norm of Op*x with dense Op and proximal
+    compared to closed-form solution (since Op is a Diagonal
+    operator the denominator becomes 1 + sigma*tau*d[i]^2 for
+    every i)"""
     for densesolver in ("numpy", "scipy", "factorize"):
         b = np.zeros(par["nx"], dtype=par["dtype"])
         d = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
@@ -110,11 +108,53 @@ def test_L2_dense(par):
         x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
         assert l2(x) == (par["sigma"] / 2.0) * np.linalg.norm(d * x) ** 2
 
-        # prox: since Op is a Diagonal operator the denominator becomes
-        # 1 + sigma*tau*d[i] for every i
+        # prox
         tau = 2.0
         den = 1.0 + par["sigma"] * tau * d**2
         assert_array_almost_equal(l2.prox(x, tau), x / den, decimal=4)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_L2_diff(par):
+    """L2 norm of difference (x-b) and proximal
+    compared to closed-form solution"""
+    b = np.ones(par["nx"], dtype=par["dtype"])
+    l2 = L2(b=b, sigma=par["sigma"])
+
+    # norm
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    assert l2(x) == (par["sigma"] / 2.0) * np.linalg.norm(x - b) ** 2
+
+    # prox
+    tau = 2.0
+    assert_array_almost_equal(
+        l2.prox(x, tau), (x + par["sigma"] * tau * b) / (1.0 + par["sigma"] * tau)
+    )
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_L2_x(par):
+    """L2 norm of x and proximal (implemented both directly and
+    with identity operator and zero b and compared to closed-form
+    solution)"""
+    l2 = L2(
+        Op=Identity(par["nx"], dtype=par["dtype"]),
+        b=np.zeros(par["nx"], dtype=par["dtype"]),
+        sigma=par["sigma"],
+    )
+    l2direct = L2(
+        sigma=par["sigma"],
+    )
+
+    # norm
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    assert l2(x) == (par["sigma"] / 2.0) * np.linalg.norm(x) ** 2
+    assert l2direct(x) == (par["sigma"] / 2.0) * np.linalg.norm(x) ** 2
+
+    # prox
+    tau = 2.0
+    assert_array_almost_equal(l2.prox(x, tau), x / (1.0 + par["sigma"] * tau))
+    assert_array_almost_equal(l2direct.prox(x, tau), x / (1.0 + par["sigma"] * tau))
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])

@@ -2,7 +2,8 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Union
 
 import numpy as np
 from pylops import Identity, MatrixMult
-from pylops.optimization.basic import lsqr
+from pylops.optimization.basic import cg, lsqr
+from pylops.optimization.leastsquares import regularized_inversion
 from pylops.utils.backend import get_array_module, get_module_name
 from pylops.utils.typing import NDArray, ShapeLike
 from scipy.linalg import cho_factor, cho_solve
@@ -47,6 +48,15 @@ class L2(ProxOperator):
     warm : :obj:`bool`, optional
         Warm start (``True``) or not (``False``). Uses estimate from previous
         call of ``prox`` method.
+    solver : :obj:`str`, optional
+        .. versionadded:: 0.11.0
+
+        Name of solver to use with non-explicit operators:
+        - ``legacy``: enforces the legacy behaviour where :py:func:`scipy.sparse.linalg.lsqr` is used with numpy data and :py:func:`pylops.optimization.solver.lsqr` is used with cupy data (both are applied to the normal equations);
+        - ``cg`` to use :py:func:`pylops.optimization.solver.cg` on the
+          normal equations;
+        - ``cgls`` to use :py:func:`pylops.optimization.solver.cgls` on the
+          regularized system of equations;
     densesolver : :obj:`str`, optional
         Use ``numpy``, ``scipy``, or ``factorize`` when dealing with explicit
         operators. The former two rely on dense solvers from either library,
@@ -55,10 +65,8 @@ class L2(ProxOperator):
         have changed. Choose ``densesolver=None`` when using PyLops versions
         earlier than v1.18.1 or v2.0.0
     **kwargs_solver : :obj:`dict`, optional
-        Dictionary containing extra arguments for
-        :py:func:`scipy.sparse.linalg.lsqr` solver when using
-        numpy data (or :py:func:`pylops.optimization.solver.lsqr` and
-        when using cupy data)
+        Dictionary containing extra arguments for the solver selected
+        via the ``solver`` parameter.
 
     Notes
     -----
@@ -78,8 +86,26 @@ class L2(ProxOperator):
     iterative solver is employed. In this case it is possible to provide a warm
     start via the ``x0`` input parameter.
 
-    When only ``b`` is provided, ``Op`` is assumed to be an Identity operator
-    and the proximal operator reduces to:
+    Note that alternatively the proximal operator can be computed solving the following
+    augumented system of equations (instead of its normal equations as shown above):
+
+    .. math::
+
+        \begin{bmatrix}
+                \sqrt{\tau \sigma} \mathbf{Op}  \\
+                \mathbf{I}
+            \end{bmatrix}
+            prox_{\tau f_\alpha}(\mathbf{x}) =
+            \begin{bmatrix}
+                \sqrt{\tau \sigma} \mathbf{b} \\
+                \mathbf{x} - \tau \alpha \mathbf{q}
+            \end{bmatrix}
+
+    The choice of the parameter ``solver`` determines which of the two
+    approaches is used.
+
+    Alternatively, when only ``b`` is provided, ``Op`` is assumed to be an
+    Identity operator and the proximal operator reduces to:
 
     .. math::
 
@@ -111,6 +137,7 @@ class L2(ProxOperator):
         niter: Union[int, Callable[[int], int]] = 10,
         x0: Optional[NDArray] = None,
         warm: bool = True,
+        solver: Optional[str] = "legacy",
         densesolver: Optional[str] = None,
         kwargs_solver: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -123,17 +150,33 @@ class L2(ProxOperator):
         self.niter = niter
         self.x0 = x0
         self.warm = warm
+        self.solver = solver
         self.densesolver = densesolver
         self.count = 0
         self.kwargs_solver = {} if kwargs_solver is None else kwargs_solver
 
+        # define whether the normal equations or the regularized system
+        # of equations are solved
+        if self.solver in ("legacy", "cg"):
+            self.normaleqs = True
+        elif self.solver == "cgls":
+            self.normaleqs = False
+        else:
+            raise ValueError(
+                f"Provided solver={self.solver}. "
+                "Available options are: 'legacy', 'cg', 'cgls'."
+            )
         # when using factorize, store the first tau*sigma=0 so that the
         # first time it will be recomputed (as tau cannot be 0)
         if self.densesolver == "factorize":
             self.tausigma = 0.0
 
         # create data term
-        if self.Op is not None and self.b is not None:
+        if (
+            self.Op is not None
+            and self.b is not None
+            and (self.Op.explicit or self.normaleqs)
+        ):
             self.OpTb = self.sigma * self.Op.H @ self.b
             # create A.T A upfront for explicit operators
             if self.Op.explicit:
@@ -170,9 +213,10 @@ class L2(ProxOperator):
 
         # solve proximal optimization
         if self.Op is not None and self.b is not None:
-            y = x + tau * self.OpTb
-            if self.q is not None:
-                y -= tau * self.alpha * self.q
+            if self.normaleqs or self.Op.explicit:
+                y = x + tau * self.OpTb
+                if self.q is not None:
+                    y -= tau * self.alpha * self.q
             if self.Op.explicit:
                 if self.densesolver != "factorize":
                     Op1 = MatrixMult(
@@ -192,18 +236,41 @@ class L2(ProxOperator):
                         ATA = np.eye(self.Op.shape[1]) + self.tausigma * self.ATA
                         self.cl = cho_factor(ATA)
                     x = cho_solve(self.cl, y)
-            else:
+            elif self.normaleqs:
                 Op1 = Identity(self.Op.shape[1], dtype=self.Op.dtype) + float(
                     tau * self.sigma
                 ) * (self.Op.H * self.Op)
-                if get_module_name(get_array_module(x)) == "numpy":
-                    x = sp_lsqr(
-                        Op1, y, iter_lim=niter, x0=self.x0, **self.kwargs_solver
-                    )[0]
-                else:
-                    x = lsqr(Op1, y, niter=niter, x0=self.x0, **self.kwargs_solver)[
+                if self.solver == "legacy":
+                    if get_module_name(get_array_module(x)) == "numpy":
+                        x = sp_lsqr(
+                            Op1, y, iter_lim=niter, x0=self.x0, **self.kwargs_solver
+                        )[0]
+                    else:
+                        x = lsqr(Op1, y, niter=niter, x0=self.x0, **self.kwargs_solver)[
+                            0
+                        ].ravel()
+                elif self.solver == "cg":
+                    x = cg(Op1, y, niter=niter, x0=self.x0, **self.kwargs_solver)[
                         0
                     ].ravel()
+            else:
+                y = x
+                if self.q is not None:
+                    y -= tau * self.alpha * self.q
+                x = regularized_inversion(
+                    np.sqrt(tau * self.sigma) * self.Op,
+                    np.sqrt(tau * self.sigma) * self.b,
+                    [
+                        Identity(self.Op.shape[1], dtype=self.Op.dtype),
+                    ],
+                    x0=self.x0,
+                    dataregs=[
+                        y,
+                    ],
+                    niter=niter,
+                    engine="pylops",
+                    **self.kwargs_solver,
+                )[0].ravel()
             if self.warm:
                 self.x0 = x
         elif self.b is not None:
