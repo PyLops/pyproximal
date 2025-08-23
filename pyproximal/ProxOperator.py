@@ -81,7 +81,7 @@ class ProxOperator(object):
         self.hasgrad = hasgrad
         self.sigmame = sigmame
 
-    def __call__(self, x: NDArray) -> bool | float:
+    def __call__(self, x: NDArray) -> bool | float | int:
         """Functional evaluation of the operator.
 
         Subclasses should implement this. Returns the
@@ -319,7 +319,7 @@ class _AdjointOperator(ProxOperator):
         self.f = f
         super().__init__(None, f.hasgrad)
 
-    def __call__(self, x: NDArray) -> bool | float:
+    def __call__(self, x: NDArray) -> bool | float | int:
         return self.f(x)
 
     @_check_tau
@@ -359,7 +359,7 @@ class _ChainOperator(ProxOperator):
         self.f, self.g = f, g
         super().__init__(None, f.hasgrad and g.hasgrad)
 
-    def __call__(self, x: NDArray) -> bool | float:
+    def __call__(self, x: NDArray) -> bool | float | int:
         return self.g(self.f(x))
 
     @_check_tau
@@ -379,7 +379,7 @@ class _PostcompositionOperator(ProxOperator):
         self.f, self.sigma = f, sigma
         super().__init__(None, f.hasgrad)
 
-    def __call__(self, x: NDArray) -> bool | float:
+    def __call__(self, x: NDArray) -> bool | float | int:
         return self.sigma * self.f(x)
 
     @_check_tau

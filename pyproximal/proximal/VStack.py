@@ -3,8 +3,7 @@ from typing import TYPE_CHECKING, Optional
 import numpy as np
 from pylops.utils.typing import NDArray, ShapeLike
 
-from pyproximal import ProxOperator
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 if TYPE_CHECKING:
     from pylops.linearoperator import LinearOperator

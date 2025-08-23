@@ -8,8 +8,8 @@ from pylops.optimization.leastsquares import regularized_inversion
 from pylops.utils.backend import to_numpy
 from pylops.utils.typing import NDArray
 
-from pyproximal import ProxOperator
 from pyproximal.proximal import L2
+from pyproximal.ProxOperator import ProxOperator
 from pyproximal.utils.bilinear import BilinearOperator
 
 if TYPE_CHECKING:

@@ -1,8 +1,7 @@
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal import ProxOperator
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class L21(ProxOperator):

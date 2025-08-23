@@ -1,9 +1,9 @@
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal import ProxOperator
-from pyproximal.proximal import L1, L2
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.proximal.L1 import L1
+from pyproximal.proximal.L2 import L2
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class Huber(ProxOperator):
@@ -54,7 +54,7 @@ class Huber(ProxOperator):
         mask = xabs > self.alpha
         h[~mask] = xabs[~mask] ** 2 / (2.0 * self.alpha)
         h[mask] = xabs[mask] - self.alpha / 2.0
-        return np.sum(h)
+        return float(np.sum(h))
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:

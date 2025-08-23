@@ -2,8 +2,7 @@ from typing import TYPE_CHECKING, Optional
 
 from pylops.utils.typing import NDArray
 
-from pyproximal import ProxOperator
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 if TYPE_CHECKING:
     from pylops.linearoperator import LinearOperator
@@ -76,11 +75,11 @@ class Orthogonal(ProxOperator):
         self.alpha = alpha
         self.b = b if b is not None else 0
 
-    def __call__(self, x: NDArray) -> float | bool:
+    def __call__(self, x: NDArray) -> bool | float | int:
         y = self.Q.matvec(x)
         y += self.b
         f = self.f(y)
-        return f  # type: ignore[no-any-return]
+        return f
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:

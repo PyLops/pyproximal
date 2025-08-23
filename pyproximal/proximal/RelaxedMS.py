@@ -2,10 +2,10 @@ from typing import Any, Callable, Union
 
 import numpy as np
 from pylops.utils.typing import NDArray
+from typing_extensions import Self
 
-from pyproximal import ProxOperator
 from pyproximal.proximal.L1 import _current_sigma
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 from pyproximal.utils.typing import FloatCallableLike
 
 
@@ -96,7 +96,7 @@ class RelaxedMumfordShah(ProxOperator):
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
         """Increment counter"""
 
-        def wrapped(self, *args, **kwargs):
+        def wrapped(self: Self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
 

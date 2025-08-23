@@ -1,8 +1,7 @@
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal import ProxOperator
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class Log(ProxOperator):
@@ -144,7 +143,7 @@ class Log1(ProxOperator):
 
     """
 
-    def __init__(self, sigma, delta=1e-10):
+    def __init__(self, sigma: float, delta: float = 1e-10) -> None:
         super().__init__(None, False)
         if delta < 0:
             raise ValueError('Variable "delta" must be positive.')

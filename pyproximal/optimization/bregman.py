@@ -66,7 +66,7 @@ def Bregman(
         Proximal operator of g function
     x0 : :obj:`numpy.ndarray`
         Initial vector
-    solver : :func:`pyprox.optimization.primal`
+    solver : :func:`pyproximal.optimization.primal`
         Solver used to solve the inner loop optimization problems
     A : :obj:`pylops.LinearOperator`, optional
         Linear operator of g

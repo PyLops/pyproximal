@@ -4,9 +4,8 @@ import numpy as np
 from pylops.optimization.cls_sparsity import _softthreshold
 from pylops.utils.typing import NDArray, ShapeLike
 
-from pyproximal import ProxOperator
-from pyproximal.projection import NuclearBallProj
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.projection.Nuclear import NuclearBallProj
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class Nuclear(ProxOperator):
@@ -108,7 +107,13 @@ class NuclearBall(ProxOperator):
 
     """
 
-    def __init__(self, dims, radius, maxiter=100, xtol=1e-5):
+    def __init__(
+        self,
+        dims: ShapeLike,
+        radius: float,
+        maxiter: int = 100,
+        xtol: float = 1e-5,
+    ) -> None:
         super().__init__(None, False)
         self.dims = dims
         self.radius = radius

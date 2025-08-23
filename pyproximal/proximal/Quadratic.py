@@ -5,8 +5,7 @@ from pylops import Identity, MatrixMult
 from pylops.utils.typing import NDArray
 from scipy.sparse.linalg import lsqr
 
-from pyproximal import ProxOperator
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 if TYPE_CHECKING:
     from pylops.linearoperator import LinearOperator
