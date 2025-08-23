@@ -208,18 +208,16 @@ class QuadraticEnvelopeCardIndicator(ProxOperator):
             x = x[idinv]
             x = x * theta
         else:
-            j = np.min(np.where(rnew <= rnew[self.r0])[0])
-            l = np.max(np.where(rnew >= rnew[self.r0 - 1])[0])
-            z = np.sort(rnew[j : l + 1])[::-1]
+            istart = np.min(np.where(rnew <= rnew[self.r0])[0])
+            iend = np.max(np.where(rnew >= rnew[self.r0 - 1])[0])
+            z = np.sort(rnew[istart : iend + 1])[::-1]
             z1 = z[0]
             for z2 in z[1:]:
                 s = (z1 + z2) / 2
-                temp = np.where(rnew <= s)[0]
-                j1 = np.min(temp)
-                temp = np.where(rnew >= s)[0]
-                l1 = np.max(temp)
-                sI = (rho * sum(rsort[j1 : l1 + 1])) / (
-                    (self.r0 - j1) * rho + (l1 + 1 - self.r0) * 1
+                istart1 = np.min(np.where(rnew <= s)[0])
+                iend1 = np.max(np.where(rnew >= s)[0])
+                sI = (rho * sum(rsort[istart1 : iend1 + 1])) / (
+                    (self.r0 - istart1) * rho + (iend1 + 1 - self.r0) * 1
                 )
                 if z2 <= sI <= z1:
                     x = np.concatenate(
