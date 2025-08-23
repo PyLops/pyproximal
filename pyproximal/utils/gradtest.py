@@ -4,7 +4,7 @@ import numpy as np
 from pylops.utils.backend import get_module
 from pylops.utils.typing import NDArray
 
-from pyproximal import ProxOperator
+from pyproximal.ProxOperator import ProxOperator
 from pyproximal.utils.bilinear import BilinearOperator
 
 

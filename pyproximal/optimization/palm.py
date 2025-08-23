@@ -158,20 +158,17 @@ def PALM(
         head = "   Itn      x[0]       y[0]        f         g         H         ck         dk"
         print(head)
 
-    backtrackingf, backtrackingg = False, False
     if gammaf is None:
-        backtrackingf = True
         tauf = 1.0
         ck = 0.0
     if gammag is None:
-        backtrackingg = True
         taug = 1.0
         dk = 0.0
 
     x, y = x0.copy(), y0.copy()
     for iiter in range(niter):
         # x step
-        if not backtrackingf:
+        if gammaf is not None:
             ck = gammaf * H.ly(y)
             x = x - (1.0 / ck) * H.gradx(x)
             if proxf is not None:
@@ -184,7 +181,7 @@ def PALM(
         H.updatex(x.copy())
 
         # y step
-        if not backtrackingg:
+        if gammag is not None:
             dk = gammag * H.lx(x)
             y = y - (1.0 / dk) * H.grady(y)
             if proxg is not None:
@@ -208,8 +205,8 @@ def PALM(
                     iiter + 1,
                     x[0],
                     y[0],
-                    pf if pf is not None else 0.0,
-                    pg if pg is not None else 0.0,
+                    pf,
+                    pg,
                     H(x, y),
                     ck,
                     dk,
@@ -339,13 +336,10 @@ def iPALM(
         head = "   Itn      x[0]       y[0]        f         g         H         ck         dk"
         print(head)
 
-    backtrackingf, backtrackingg = False, False
     if gammaf is None:
-        backtrackingf = True
         tauf = 1.0
         ck = 0.0
     if gammaf is None:
-        backtrackingg = True
         taug = 1.0
         dk = 0.0
 
@@ -354,7 +348,7 @@ def iPALM(
     for iiter in range(niter):
         # x step
         z = x + a[0] * (x - xold)
-        if not backtrackingf:
+        if gammaf is not None:
             ck = gammaf * H.ly(y)
             xold = x.copy()
             x = z - (1.0 / ck) * H.gradx(z)
@@ -370,7 +364,7 @@ def iPALM(
 
         # y step
         z = y + a[1] * (y - yold)
-        if not backtrackingg:
+        if gammag is not None:
             dk = gammag * H.lx(x)
             yold = y.copy()
             y = z - (1.0 / dk) * H.grady(z)
@@ -396,8 +390,8 @@ def iPALM(
                     iiter + 1,
                     x[0],
                     y[0],
-                    pf if pf is not None else 0.0,
-                    pg if pg is not None else 0.0,
+                    pf,
+                    pg,
                     H(x, y),
                     ck,
                     dk,

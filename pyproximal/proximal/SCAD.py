@@ -1,8 +1,7 @@
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal import ProxOperator
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class SCAD(ProxOperator):
@@ -60,7 +59,7 @@ class SCAD(ProxOperator):
         self.a = a
 
     def __call__(self, x: NDArray) -> float:
-        return np.sum(self.elementwise(x))
+        return float(np.sum(self.elementwise(x)))
 
     def elementwise(self, x: NDArray) -> NDArray:
         f = np.zeros_like(x)

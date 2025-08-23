@@ -4,8 +4,7 @@ import numpy as np
 from pylops.optimization.cls_sparsity import _hardthreshold
 from pylops.utils.typing import IntNDArray, NDArray, ShapeLike
 
-from pyproximal import ProxOperator
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class QuadraticEnvelopeCard(ProxOperator):
@@ -209,16 +208,16 @@ class QuadraticEnvelopeCardIndicator(ProxOperator):
             x = x[idinv]
             x = x * theta
         else:
-            j: int = np.min(np.where(rnew <= rnew[self.r0])[0])
-            l: int = np.max(np.where(rnew >= rnew[self.r0 - 1])[0])
+            j = np.min(np.where(rnew <= rnew[self.r0])[0])
+            l = np.max(np.where(rnew >= rnew[self.r0 - 1])[0])
             z = np.sort(rnew[j : l + 1])[::-1]
             z1 = z[0]
             for z2 in z[1:]:
                 s = (z1 + z2) / 2
                 temp = np.where(rnew <= s)[0]
-                j1: int = np.min(temp)
+                j1 = np.min(temp)
                 temp = np.where(rnew >= s)[0]
-                l1: int = np.max(temp)
+                l1 = np.max(temp)
                 sI = (rho * sum(rsort[j1 : l1 + 1])) / (
                     (self.r0 - j1) * rho + (l1 + 1 - self.r0) * 1
                 )

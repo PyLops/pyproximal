@@ -3,9 +3,8 @@ from typing import Union
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal import ProxOperator
 from pyproximal.projection import EuclideanBallProj
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class Euclidean(ProxOperator):
@@ -58,7 +57,7 @@ class Euclidean(ProxOperator):
 
     @_check_tau
     def proxdual(self, x: NDArray, tau: float) -> NDArray:
-        x = self.sigma * x / (max(np.linalg.norm(x), self.sigma))
+        x = self.sigma * x / (max(float(np.linalg.norm(x)), self.sigma))
         return x
 
     def grad(self, x: NDArray) -> NDArray:

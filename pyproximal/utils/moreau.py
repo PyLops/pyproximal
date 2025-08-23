@@ -1,11 +1,14 @@
+from typing import TYPE_CHECKING
+
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal import ProxOperator
+if TYPE_CHECKING:
+    from pyproximal.ProxOperator import ProxOperator
 
 
 def moreau(
-    prox: ProxOperator,
+    prox: "ProxOperator",
     x: NDArray,
     tau: float,
     tol: float = 1e-5,
@@ -20,7 +23,7 @@ def moreau(
 
     Parameters
     ----------
-    prox : :obj:`pyprox.ProxOperator`
+    prox : :obj:`pyproximal.ProxOperator`
         Proximal operator
     x : :obj:`np.ndarray`
         Vector
@@ -44,7 +47,7 @@ def moreau(
         \tau \prox_{\frac{1}{\tau} f^*} (\frac{\mathbf{x}}{\tau})
 
     This routine is used to evaluate if the prox and dualprox implementations
-    of a ``pyprox.ProxOperator`` satisfy such identity.
+    of a ``pyproximal.ProxOperator`` satisfy such identity.
 
     """
     # compute prox

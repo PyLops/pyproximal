@@ -4,9 +4,9 @@ from typing import Any, Callable, Union
 import numpy as np
 from pylops import FirstDerivative, Gradient
 from pylops.utils.typing import NDArray, ShapeLike
+from typing_extensions import Self
 
-from pyproximal import ProxOperator
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class TV(ProxOperator):
@@ -44,7 +44,7 @@ class TV(ProxOperator):
         sigma: float = 1.0,
         niter: Union[int, Callable[[int], int]] = 10,
         rtol: float = 1e-4,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         super().__init__(None, True)
         self.dims = dims
@@ -76,7 +76,7 @@ class TV(ProxOperator):
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
         """Increment counter"""
 
-        def wrapped(self, *args, **kwargs):
+        def wrapped(self: Self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
 

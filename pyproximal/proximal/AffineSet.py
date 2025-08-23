@@ -3,9 +3,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal import ProxOperator
-from pyproximal.projection import AffineSetProj
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.projection.AffineSet import AffineSetProj
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 if TYPE_CHECKING:
     from pylops.linearoperator import LinearOperator
@@ -32,6 +31,10 @@ class AffineSet(ProxOperator):
     details.
 
     """
+
+    # guarantee that Op is a LinearOperator as in
+    # ProxOperator it could be None
+    Op: "LinearOperator"
 
     def __init__(self, Op: "LinearOperator", b: NDArray, niter: int) -> None:
         super().__init__(Op, False)

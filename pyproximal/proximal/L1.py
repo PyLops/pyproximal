@@ -2,10 +2,10 @@ from typing import Any, Callable, Optional, Union
 
 import numpy as np
 from pylops.utils.typing import NDArray
+from typing_extensions import Self
 
-from pyproximal import ProxOperator
 from pyproximal.projection import BoxProj, L1BallProj
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 from pyproximal.utils.typing import FloatCallableLike
 
 
@@ -116,12 +116,12 @@ class L1(ProxOperator):
 
     def __call__(self, x: NDArray) -> float:
         sigma = _current_sigma(self.sigma, self.count)
-        return sigma * np.sum(np.abs(x))
+        return float(sigma * np.sum(np.abs(x)))
 
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
         """Increment counter"""
 
-        def wrapped(self, *args: Any, **kwargs: Any) -> Any:
+        def wrapped(self: Self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
 

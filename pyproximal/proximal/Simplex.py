@@ -1,13 +1,12 @@
 import logging
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 from pylops.utils.backend import get_array_module, to_cupy_conditional
 from pylops.utils.typing import NDArray, ShapeLike
 
-from pyproximal import ProxOperator
-from pyproximal.projection import SimplexProj
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.projection.Simplex import SimplexProj
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 try:
     from numba import jit
@@ -268,6 +267,7 @@ def Simplex(
     if engine not in ["numpy", "numba", "cuda"]:
         raise KeyError("engine must be numpy or numba or cuda")
 
+    s: Union[_Simplex, _Simplex_numba, _Simplex_cuda]
     if engine == "numba" and jit is not None:
         s = _Simplex_numba(
             n,

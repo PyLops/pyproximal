@@ -3,8 +3,7 @@ from typing import Tuple
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal import ProxOperator
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class Geman(ProxOperator):
@@ -58,7 +57,7 @@ class Geman(ProxOperator):
         self.gamma = gamma
 
     def __call__(self, x: NDArray) -> float:
-        return np.sum(self.elementwise(x))
+        return float(np.sum(self.elementwise(x)))
 
     def elementwise(self, x: NDArray) -> NDArray:
         return self.sigma * np.abs(x) / (np.abs(x) + self.gamma)

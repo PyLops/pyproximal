@@ -8,9 +8,9 @@ from pylops.utils.backend import get_array_module, get_module_name
 from pylops.utils.typing import NDArray, ShapeLike
 from scipy.linalg import cho_factor, cho_solve
 from scipy.sparse.linalg import lsqr as sp_lsqr
+from typing_extensions import Self
 
-from pyproximal import ProxOperator
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 if TYPE_CHECKING:
     from pylops.linearoperator import LinearOperator
@@ -199,7 +199,7 @@ class L2(ProxOperator):
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
         """Increment counter"""
 
-        def wrapped(self, *args, **kwargs):
+        def wrapped(self: Self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
 
@@ -310,11 +310,11 @@ class L2Convolve(ProxOperator):
 
     Parameters
     ----------
-    h : :obj:`np.ndarray`, optional
+    h : :obj:`np.ndarray`
         Kernel of convolution operator
-    b : :obj:`numpy.ndarray`, optional
+    b : :obj:`numpy.ndarray`
         Data vector
-    b : :obj:`int`, optional
+    nfft : :obj:`int`, optional
         Fourier transform number of samples
     sigma : :obj:`int`, optional
         Multiplicative coefficient of L2 norm
@@ -339,7 +339,7 @@ class L2Convolve(ProxOperator):
     def __init__(
         self,
         h: NDArray,
-        b: Optional[NDArray] = None,
+        b: NDArray,
         nfft: int = 2**10,
         sigma: float = 1.0,
         dims: Optional[ShapeLike] = None,

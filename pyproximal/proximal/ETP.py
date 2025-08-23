@@ -2,8 +2,7 @@ import numpy as np
 from pylops.utils.typing import NDArray
 from scipy.special import lambertw
 
-from pyproximal import ProxOperator
-from pyproximal.ProxOperator import _check_tau
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class ETP(ProxOperator):
@@ -58,8 +57,8 @@ class ETP(ProxOperator):
         self.sigma = sigma
         self.gamma = gamma
 
-    def __call__(self, x: NDArray) -> bool:
-        return np.sum(self.elementwise(x))
+    def __call__(self, x: NDArray) -> float:
+        return float(np.sum(self.elementwise(x)))
 
     def elementwise(self, x: NDArray) -> NDArray:
         return (
