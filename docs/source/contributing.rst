@@ -1,7 +1,7 @@
 .. _contributing:
 
 Contributing
-============
+############
 
 Contributions are welcome and greatly appreciated!
 
@@ -9,13 +9,13 @@ The best way to get in touch with the core developers and mantainers is to
 open new *Issues* directly from the
 `github repo <https://github.com/PyLops/pyproximal>`_.
 
-Types of Contributions
-----------------------
+Welcomed contributions
+**********************
 
-Report Bugs
-~~~~~~~~~~~
+Bug reports
+===========
 
-Report bugs at https://github.com/PyLops/pyproximal.
+Report bugs at https://github.com/PyLops/pyproximal/issues.
 
 If you are playing with the PyProximal library and find a bug, please report it including:
 
@@ -23,8 +23,8 @@ If you are playing with the PyProximal library and find a bug, please report it 
 * Any details about your Python environment.
 * Detailed steps to reproduce the bug.
 
-Propose New Operators or Features
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+New operators and features
+==========================
 
 Open an issue at https://github.com/PyLops/pyproximal/issues with tag *enhancement*.
 
@@ -33,46 +33,28 @@ If you are proposing a new operator or a new feature:
 * Explain in detail how it should work.
 * Keep the scope as narrow as possible, to make it easier to implement.
 
+Fix issues
+==========
 
-Implement Operators or Features
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+There is always a backlog of issues that need to be dealt with.
+Look through the `GitHub Issues <https://github.com/PyLops/pyproximal/issues>`_ for operator/feature requests or bugfixes.
 
-Look through the Git issues for operator or feature requests.
-Anything tagged with *enhancement* is open to whoever wants to implement it.
-
-
-Add Examples or improve Documentation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add examples or improve documentation
+=====================================
 
 Writing new operators is not the only way to get involved and contribute. Create examples with existing operators
 as well as improving the documentation of existing operators is as important as making new operators and very much
 encouraged.
 
 
-Getting Started to contribute
------------------------------
+Step-by-step instructions for contributing
+******************************************
 
 Ready to contribute?
 
-1. Fork the `PyProximal` repo.
+1. Follow all instructions in :ref:`DevInstall`.
 
-2. Clone your fork locally:
-
-.. code-block:: bash
-
-   >>  git clone https://github.com/your_name_here/pyproximal.git
-
-3. Follow the installation instructions for *developers* that you find in :ref:`installation` page.
-   Ensure that you are able to *pass all the tests before moving forward*.
-
-4. Add the main repository to the list of your remotes (this will be important to ensure you
-   pull the latest changes before tyring to merge your local changes):
-
-.. code-block:: bash
-
-   >>  git remote add upstream https://github.com/PyLops/pyproximal
-
-5. Create a branch for local development:
+2. Create a branch for local development, usually starting from the dev branch:
 
 .. code-block:: bash
 
@@ -80,14 +62,31 @@ Ready to contribute?
 
 Now you can make your changes locally.
 
-6. When you're done making changes, check that your code follows the guidelines for :ref:`addingoperator` and
-that the both old and new tests pass successfully:
+3. When you're done making changes, check that your code follows the guidelines for :ref:`addingoperator` and
+that both old and new tests pass successfully:
 
 .. code-block:: bash
 
    >>  make tests
 
-7. Commit your changes and push your branch to GitLab:
+4. Run flake8 to check the quality of your code:
+
+.. code-block:: bash
+
+   >> make lint
+
+Note that PyProximal does not enforce full compliance with flake8, rather this is used as a
+guideline and will also be run as part of our CI.
+Make sure to limit to a minimum flake8 warnings before making a PR.
+
+5. Update the docs
+
+.. code-block:: bash
+
+   >> make docupdate
+
+
+6. Commit your changes and push your branch to GitLab:
 
 .. code-block:: bash
 
@@ -96,15 +95,28 @@ that the both old and new tests pass successfully:
    >> git push origin name-of-your-branch
 
 Remember to add ``-u`` when pushing the branch for the first time.
+We recommend using `Conventional Commits <https://www.conventionalcommits.org/en/v1.0.0/#summary>`_ to
+format your commit messages, but this is not enforced.
 
-8. Submit a pull request through the GitHub website.
+7. Submit a pull request through the GitHub website.
 
 
 Pull Request Guidelines
------------------------
+***********************
 
 Before you submit a pull request, check that it meets these guidelines:
 
 1. The pull request should include new tests for all the core routines that have been developed.
 2. If the pull request adds functionality, the docs should be updated accordingly.
 3. Ensure that the updated code passes all tests.
+
+Project structure
+#################
+This repository is organized as follows:
+
+* **pyproximal**: Python library containing various proximal operators and solvers
+* **pytests**:    set of pytests
+* **testdata**:   sample datasets used in pytests and documentation
+* **docs**:       Sphinx documentation
+* **examples**:   set of python script examples for each proximal operator to be embedded in documentation using sphinx-gallery
+* **tutorials**:  set of python script tutorials to be embedded in documentation using sphinx-gallery

@@ -1,7 +1,7 @@
 PIP := $(shell command -v pip3 2> /dev/null || command which pip 2> /dev/null)
 PYTHON := $(shell command -v python3 2> /dev/null || command which python 2> /dev/null)
 
-.PHONY: install dev-install install_conda dev-install_conda tests doc docupdate
+.PHONY: install dev-install install_conda dev-install_conda tests doc docupdate servedoc lint typeannot
 
 pipcheck:
 ifndef PIP
@@ -24,10 +24,13 @@ dev-install:
 	$(PIP) install -r requirements-dev.txt && $(PIP) install -e .
 
 install_conda:
-	conda env create -f environment.yml && source activate pyproximal && pip install .
+	conda env create -f environment.yml && source ${CONDA_PREFIX}/etc/profile.d/conda.sh && conda activate pyproximal && pip install .
 
 dev-install_conda:
-	conda env create -f environment-dev.yml && source activate pyproximal && pip install -e .
+	conda env create -f environment-dev.yml && source ${CONDA_PREFIX}/etc/profile.d/conda.sh && conda activate pyproximal && pip install -e .
+
+dev-install_conda_arm:
+	conda env create -f environment-dev-arm.yml && source ${CONDA_PREFIX}/etc/profile.d/conda.sh && conda activate pyproximal && pip install -e .
 
 tests:
 	make pythoncheck

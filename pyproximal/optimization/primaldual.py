@@ -69,7 +69,7 @@ def PrimalDual(
     mu : :obj:`float` or :obj:`np.ndarray`
         Stepsize of subgradient of :math:`g^*`. This can be constant
         or function of iterations (in the latter cases provided as np.ndarray)
-    z0 : :obj:`numpy.ndarray`
+    y0 : :obj:`numpy.ndarray`
         Initial auxiliary vector
     z : :obj:`numpy.ndarray`, optional
         Additional vector
