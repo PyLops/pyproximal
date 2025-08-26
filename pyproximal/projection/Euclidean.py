@@ -4,7 +4,7 @@ import numpy as np
 from pylops.utils.typing import NDArray
 
 
-class EuclideanBallProj():
+class EuclideanBallProj:
     r"""Euclidean ball projection.
 
     Parameters
@@ -33,12 +33,13 @@ class EuclideanBallProj():
     indicator function :math:`\mathcal{I}_{\operatorname{Eucl}_{[c, r]}}`.
 
     """
+
     def __init__(self, center: Union[NDArray, float], radius: float):
         self.center = center
         self.radius = radius
 
     def __call__(self, x: NDArray) -> NDArray:
-        x = self.center +  \
-            self.radius / (max(float(np.linalg.norm(x - self.center)),
-                               self.radius)) * (x - self.center)
+        x = self.center + self.radius / (
+            max(float(np.linalg.norm(x - self.center)), self.radius)
+        ) * (x - self.center)
         return x

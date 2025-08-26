@@ -1,12 +1,28 @@
+__all__ = ["Report"]
+
 # scooby is a soft dependency for pyproximal
+from types import ModuleType
+from typing import Optional
+
 try:
     from scooby import Report as ScoobyReport
 except ImportError:
-    class ScoobyReport:
-        def __init__(self, additional, core, optional, ncol, text_width, sort):
-            print("\nNOTE: `pyproximal.Report` requires `scooby`. Install it via"
-                  "\n      `pip install scooby` or "
-                  "`conda install -c conda-forge scooby`.\n")
+
+    class ScoobyReport:  # type: ignore[no-redef]
+        def __init__(
+            self,
+            additional: Optional[list[str | ModuleType]],
+            core: list[str | ModuleType] | None,
+            optional: list[str | ModuleType] | None,
+            ncol: int,
+            text_width: int,
+            sort: bool,
+        ) -> None:
+            print(
+                "\nNOTE: `pyproximal.Report` requires `scooby`. Install it via"
+                "\n      `pip install scooby` or "
+                "`conda install -c conda-forge scooby`.\n"
+            )
 
 
 class Report(ScoobyReport):
@@ -58,14 +74,26 @@ class Report(ScoobyReport):
 
     """
 
-    def __init__(self, add_pckg=None, ncol=3, text_width=80, sort=False):
+    def __init__(
+        self,
+        add_pckg: Optional[list[str | ModuleType]] = None,
+        ncol: int = 3,
+        text_width: int = 80,
+        sort: bool = False,
+    ) -> None:
         """Initiate a scooby.Report instance."""
 
         # Mandatory packages.
-        core = ['numpy', 'scipy', 'pylops', 'pyproximal']
+        core: list[str | ModuleType] | None = ["numpy", "scipy", "pylops", "pyproximal"]
 
         # Optional packages.
-        optional = ['IPython', 'matplotlib', 'numba']
+        optional: list[str | ModuleType] | None = ["IPython", "matplotlib", "numba"]
 
-        super().__init__(additional=add_pckg, core=core, optional=optional,
-                         ncol=ncol, text_width=text_width, sort=sort)
+        super().__init__(
+            additional=add_pckg,
+            core=core,
+            optional=optional,
+            ncol=ncol,
+            text_width=text_width,
+            sort=sort,
+        )

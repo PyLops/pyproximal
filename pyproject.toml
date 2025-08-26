@@ -55,14 +55,11 @@ mypy_path = "pyproximal"
 strict = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 warn_unreachable = true
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
+allow_redefinition = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
 plugins = ["numpy.typing.mypy_plugin"]
 
 [[tool.mypy.overrides]]
-module = "pyproximal.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = ["numpy.*", "numba.*", "pylops.*", "scipy.*"]
+module = ["cupy.*", "numpy.*", "numba.*", "pylops.*", "scipy.*", "scooby.*", "pyproximal.*"]
 ignore_missing_imports = true

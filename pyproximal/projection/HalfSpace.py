@@ -2,7 +2,7 @@ import numpy as np
 from pylops.utils.typing import NDArray
 
 
-class HalfSpaceProj():
+class HalfSpaceProj:
     r"""Half space projection.
 
     Parameters

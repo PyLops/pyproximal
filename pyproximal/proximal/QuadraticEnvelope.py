@@ -1,12 +1,10 @@
-from typing import TYPE_CHECKING, Union
+from typing import Union
 
 import numpy as np
-
 from pylops.optimization.cls_sparsity import _hardthreshold
 from pylops.utils.typing import IntNDArray, NDArray, ShapeLike
 
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class QuadraticEnvelopeCard(ProxOperator):
@@ -176,12 +174,18 @@ class QuadraticEnvelopeCardIndicator(ProxOperator):
             return 0
         xs = np.sort(np.abs(x))[::-1]
         sums = np.cumsum(xs[::-1])
-        sums = sums[-self.r0:] / np.arange(1, self.r0 + 1)
+        sums = sums[-self.r0 :] / np.arange(1, self.r0 + 1)
         tmp = np.diff(sums) > 0
         k_star = int(np.argmax(tmp))
         if k_star == 0 and not tmp[k_star]:
             k_star = self.r0 - 1
-        return float(0.5 * ((k_star + 1) * sums[k_star] ** 2 - np.sum(xs[self.r0-k_star-1:] ** 2)))
+        return float(
+            0.5
+            * (
+                (k_star + 1) * sums[k_star] ** 2
+                - np.sum(xs[self.r0 - k_star - 1 :] ** 2)
+            )
+        )
 
     @_check_tau
     def prox(self, y: NDArray, tau: float) -> NDArray:
@@ -193,30 +197,35 @@ class QuadraticEnvelopeCardIndicator(ProxOperator):
 
         r = np.abs(y)
         theta = np.sign(y)
-        id = np.argsort(-r, kind='quicksort')
+        id = np.argsort(-r, kind="quicksort")
         rsort = r[id]
         idinv = np.zeros_like(id)
         idinv[id] = np.arange(r.size)
-        rnew = np.concatenate((rsort[:self.r0], rho * rsort[self.r0:]))
+        rnew = np.concatenate((rsort[: self.r0], rho * rsort[self.r0 :]))
 
         if rho * rsort[self.r0] < rsort[self.r0 - 1]:
             x = rnew
             x = x[idinv]
             x = x * theta
         else:
-            j: int = np.min(np.where(rnew <= rnew[self.r0])[0])
-            l: int = np.max(np.where(rnew >= rnew[self.r0 - 1])[0])
-            z = np.sort(rnew[j:l + 1])[::-1]
+            istart = np.min(np.where(rnew <= rnew[self.r0])[0])
+            iend = np.max(np.where(rnew >= rnew[self.r0 - 1])[0])
+            z = np.sort(rnew[istart : iend + 1])[::-1]
             z1 = z[0]
             for z2 in z[1:]:
                 s = (z1 + z2) / 2
-                temp = np.where(rnew <= s)[0]
-                j1: int = np.min(temp)
-                temp = np.where(rnew >= s)[0]
-                l1: int = np.max(temp)
-                sI = (rho * sum(rsort[j1:l1 + 1])) / ((self.r0 - j1) * rho + (l1 + 1 - self.r0) * 1)
+                istart1 = np.min(np.where(rnew <= s)[0])
+                iend1 = np.max(np.where(rnew >= s)[0])
+                sI = (rho * sum(rsort[istart1 : iend1 + 1])) / (
+                    (self.r0 - istart1) * rho + (iend1 + 1 - self.r0) * 1
+                )
                 if z2 <= sI <= z1:
-                    x = np.concatenate((np.maximum(rnew[:self.r0], sI), np.minimum(rnew[self.r0:], sI)))
+                    x = np.concatenate(
+                        (
+                            np.maximum(rnew[: self.r0], sI),
+                            np.minimum(rnew[self.r0 :], sI),
+                        )
+                    )
                     x = x[idinv]
                     x = x * theta
                     break
@@ -266,12 +275,7 @@ class QuadraticEnvelopeRankL2(ProxOperator):
 
     """
 
-    def __init__(
-            self,
-            dim: ShapeLike, 
-            r0: int, 
-            M: NDArray
-    ) -> None:
+    def __init__(self, dim: ShapeLike, r0: int, M: NDArray) -> None:
         super().__init__(None, False)
         self.dim = dim
         self.r0 = r0
@@ -282,7 +286,10 @@ class QuadraticEnvelopeRankL2(ProxOperator):
         X = x.reshape(self.dim)
         eigs = np.linalg.eigvalsh(X.T @ X)
         eigs[eigs < 0] = 0  # ensure all eigenvalues at positive
-        return float(np.sum(self.penalty(np.sqrt(eigs))) + 0.5 * np.linalg.norm(X - self.M, 'fro'))
+        return float(
+            np.sum(self.penalty(np.sqrt(eigs)))
+            + 0.5 * np.linalg.norm(X - self.M, "fro")
+        )
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:
@@ -292,16 +299,16 @@ class QuadraticEnvelopeRankL2(ProxOperator):
         Y = (self.M + rho * P) / (1 + rho)
         U, yk, Vh = np.linalg.svd(Y, full_matrices=False)
         n = yk.size
-        r = np.concatenate((yk[:self.r0], (1 + rho) * yk[self.r0:]))
-        ind = np.argsort(r, kind='quicksort')
+        r = np.concatenate((yk[: self.r0], (1 + rho) * yk[self.r0 :]))
+        ind = np.argsort(r, kind="quicksort")
         p = r[ind]
 
         a = (n - self.r0) / rho
-        b = (rho + 1) / rho * np.sum(yk[self.r0:])
+        b = (rho + 1) / rho * np.sum(yk[self.r0 :])
 
         # Base case
         zk = yk.copy()
-        zk[self.r0:] = (1 + rho) * yk[self.r0:]
+        zk[self.r0 :] = (1 + rho) * yk[self.r0 :]
 
         for k, ii in enumerate(ind):
 
@@ -319,7 +326,7 @@ class QuadraticEnvelopeRankL2(ProxOperator):
 
             if p[k] <= s <= p[k + 1]:
                 zk = np.maximum(s, yk)
-                zk[self.r0:] = np.minimum(s, (1 + rho) * yk[self.r0:])
+                zk[self.r0 :] = np.minimum(s, (1 + rho) * yk[self.r0 :])
                 break
 
         Z = np.dot(U * zk, Vh)

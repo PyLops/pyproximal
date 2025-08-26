@@ -1,9 +1,8 @@
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
-from pyproximal.projection import HalfSpaceProj
+from pyproximal.projection.HalfSpace import HalfSpaceProj
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class HalfSpace(ProxOperator):
@@ -34,7 +33,7 @@ class HalfSpace(ProxOperator):
         self.half_space = HalfSpaceProj(self.w, self.b)
 
     def __call__(self, x: NDArray) -> bool:
-        return all(np.dot(self.w, x) <= self.b)
+        return bool(np.dot(self.w, x) <= self.b)
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:

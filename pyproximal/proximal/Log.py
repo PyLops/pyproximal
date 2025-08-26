@@ -1,8 +1,7 @@
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class Log(ProxOperator):
@@ -12,7 +11,7 @@ class Log(ProxOperator):
 
     .. math::
 
-        \mathrm{Log}_{\sigma,\gamma}(\mathbf{x}) = 
+        \mathrm{Log}_{\sigma,\gamma}(\mathbf{x}) =
         \sum_i \frac{\sigma}{\log(\gamma + 1)}\log(\gamma|x_i| + 1)
 
     where :math:`{\sigma>0}`, :math:`{\gamma>0}`.
@@ -91,7 +90,7 @@ class Log(ProxOperator):
         k = tau * self.sigma / np.log(self.gamma + 1)
         out = np.zeros_like(x)
         b = self.gamma * np.abs(x) - 1
-        discriminant = b ** 2 - 4 * self.gamma * (k * self.gamma - np.abs(x))
+        discriminant = b**2 - 4 * self.gamma * (k * self.gamma - np.abs(x))
         idx = discriminant >= 0
         c = np.sqrt(discriminant[idx])
         # The stationary point (b[idx] - c) / (2 * self.gamma) is always a local maximum, and is therefore not checked
@@ -144,7 +143,7 @@ class Log1(ProxOperator):
 
     """
 
-    def __init__(self, sigma, delta=1e-10):
+    def __init__(self, sigma: float, delta: float = 1e-10) -> None:
         super().__init__(None, False)
         if delta < 0:
             raise ValueError('Variable "delta" must be positive.')
@@ -160,14 +159,29 @@ class Log1(ProxOperator):
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:
         tau1 = self.sigma * tau
-        thresh = np.sqrt(2*tau1) - self.delta
+        thresh = np.sqrt(2 * tau1) - self.delta
         x1 = np.zeros_like(x, dtype=x.dtype)
         if np.iscomplexobj(x):
-            x1[np.abs(x) > thresh] = 0.5 * np.exp(1j * np.angle(x[np.abs(x) > thresh])) * \
-                                     (np.abs(x[np.abs(x) > thresh]) - self.delta +
-                                      np.sqrt(np.abs(x[np.abs(x) > thresh] + self.delta) ** 2 - 2 * tau1))
+            x1[np.abs(x) > thresh] = (
+                0.5
+                * np.exp(1j * np.angle(x[np.abs(x) > thresh]))
+                * (
+                    np.abs(x[np.abs(x) > thresh])
+                    - self.delta
+                    + np.sqrt(
+                        np.abs(x[np.abs(x) > thresh] + self.delta) ** 2 - 2 * tau1
+                    )
+                )
+            )
         else:
-            x1[x > thresh] = 0.5 * (x[x > thresh] - self.delta + np.sqrt(np.abs(x[x > thresh] + self.delta) ** 2 - 2 * tau1))
-            x1[x < -thresh] = 0.5 * (x[x < -thresh] + self.delta - np.sqrt(np.abs(x[x < -thresh] - self.delta) ** 2 - 2 * tau1))
+            x1[x > thresh] = 0.5 * (
+                x[x > thresh]
+                - self.delta
+                + np.sqrt(np.abs(x[x > thresh] + self.delta) ** 2 - 2 * tau1)
+            )
+            x1[x < -thresh] = 0.5 * (
+                x[x < -thresh]
+                + self.delta
+                - np.sqrt(np.abs(x[x < -thresh] - self.delta) ** 2 - 2 * tau1)
+            )
         return x1
-

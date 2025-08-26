@@ -24,6 +24,7 @@ where :math:`\mathcal{H}` is the set of Hankel matrices.
         Journal of Computer Vision (IJCV), 120:194–214, 2016.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.linalg import hankel
@@ -32,8 +33,7 @@ from pyproximal.optimization.primal import ADMM
 from pyproximal.projection import HankelProj
 from pyproximal.proximal import Hankel, QuadraticEnvelopeRankL2
 
-
-plt.close('all')
+plt.close("all")
 np.random.seed(0)
 
 ###############################################################################
@@ -68,15 +68,15 @@ X0 = X_gt + np.random.normal(0, sigma, X_gt.shape)
 
 ###############################################################################
 # Now we compare the ground truth with the noisy input data
-fig, axs = plt.subplots(1, 2, figsize=(14, 7/3))
+fig, axs = plt.subplots(1, 2, figsize=(14, 7 / 3))
 axs[0].imshow(X_gt)
-axs[0].set_title('Ground truth Hankel matrix')
-axs[0].axis('equal')
-axs[0].axis('off')
+axs[0].set_title("Ground truth Hankel matrix")
+axs[0].axis("equal")
+axs[0].axis("off")
 axs[1].imshow(X0)
-axs[1].set_title('Noisy input matrix')
-axs[1].axis('equal')
-axs[1].axis('off')
+axs[1].set_title("Noisy input matrix")
+axs[1].axis("equal")
+axs[1].axis("off")
 plt.tight_layout()
 
 ###############################################################################
@@ -145,22 +145,22 @@ X_rec_quadenv = X_rec_quadenv.reshape(X0.shape)
 
 ###############################################################################
 # Let us compare the results
-fig, axs = plt.subplots(1, 3, figsize=(21, 7/3))
+fig, axs = plt.subplots(1, 3, figsize=(21, 7 / 3))
 axs[0].imshow(X_rec_hankel)
-axs[0].set_title('Recovery by projection onto set of Hankel matrices')
-axs[0].axis('equal')
-axs[0].axis('off')
-axs[0].axis('tight')
+axs[0].set_title("Recovery by projection onto set of Hankel matrices")
+axs[0].axis("equal")
+axs[0].axis("off")
+axs[0].axis("tight")
 axs[1].imshow(X_rec_lowrank)
-axs[1].set_title('Recovery by low-rank approximation')
-axs[1].axis('equal')
-axs[1].axis('off')
-axs[1].axis('tight')
+axs[1].set_title("Recovery by low-rank approximation")
+axs[1].axis("equal")
+axs[1].axis("off")
+axs[1].axis("tight")
 axs[2].imshow(X_rec_quadenv)
-axs[2].set_title('Recovery by quadratic envelope relaxation')
-axs[2].axis('off')
-axs[2].axis('equal')
-axs[2].axis('tight')
+axs[2].set_title("Recovery by quadratic envelope relaxation")
+axs[2].axis("off")
+axs[2].axis("equal")
+axs[2].axis("tight")
 plt.tight_layout()
 
 ###############################################################################
@@ -168,24 +168,24 @@ plt.tight_layout()
 # numbers. First, we consider the Frobenius norm error for the different
 # reconstructions
 metric = lambda X: np.linalg.norm(X_gt - X, "fro")
-print(f'Projection onto set of Hankel matrices:')
-print(f'Rec. error: {metric(X_rec_hankel):.4f}')
-print(f'Low-rank approximation:')
-print(f'Rec. error: {metric(X_rec_lowrank):.4f}')
-print(f'Quadratic envelope relaxation:')
-print(f'Rec. error: {metric(X_rec_quadenv):.4f}')
+print("Projection onto set of Hankel matrices:")
+print(f"Rec. error: {metric(X_rec_hankel):.4f}")
+print("Low-rank approximation:")
+print(f"Rec. error: {metric(X_rec_lowrank):.4f}")
+print("Quadratic envelope relaxation:")
+print(f"Rec. error: {metric(X_rec_quadenv):.4f}")
 
 ###############################################################################
 # Of course, we also know the sought rank, which gives us another useful metric,
 # namely the sum of the smallest singular values (which ought to vanish if the
 # reconstruction is correct)
 metric = lambda X: np.sum(np.linalg.svd(X, compute_uv=False)[r0:])
-print(f'Projection onto set of Hankel matrices:')
-print(f'Sum of sing. val. > r0: {metric(X_rec_hankel):.4f}')
-print(f'Low-rank approximation:')
-print(f'Sum of sing. val. > r0: {metric(X_rec_lowrank):.4e}')
-print(f'Quadratic envelope relaxation:')
-print(f'Sum of sing. val. > r0: {metric(X_rec_quadenv):.4e}')
+print("Projection onto set of Hankel matrices:")
+print(f"Sum of sing. val. > r0: {metric(X_rec_hankel):.4f}")
+print("Low-rank approximation:")
+print(f"Sum of sing. val. > r0: {metric(X_rec_lowrank):.4e}")
+print("Quadratic envelope relaxation:")
+print(f"Sum of sing. val. > r0: {metric(X_rec_quadenv):.4e}")
 
 ###############################################################################
 # In conclusion, by enforcing both constraints actively, i.e. the Hankel matrix

@@ -2,10 +2,10 @@ from typing import Any, Callable, Optional, Union
 
 import numpy as np
 from pylops.utils.typing import NDArray
+from typing_extensions import Self
 
-from pyproximal.ProxOperator import _check_tau
 from pyproximal.projection import BoxProj, L1BallProj
-from pyproximal import ProxOperator
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 from pyproximal.utils.typing import FloatCallableLike
 
 
@@ -30,17 +30,17 @@ def _softthreshold(x: NDArray, thresh: float) -> NDArray:
     if np.iscomplexobj(x):
         # https://stats.stackexchange.com/questions/357339/soft-thresholding-
         # for-the-lasso-with-complex-valued-data
-        x1 = np.maximum(np.abs(x) - thresh, 0.) * np.exp(1j * np.angle(x))
+        x1 = np.maximum(np.abs(x) - thresh, 0.0) * np.exp(1j * np.angle(x))
     else:
-        x1 = np.maximum(np.abs(x) - thresh, 0.) * np.sign(x)
+        x1 = np.maximum(np.abs(x) - thresh, 0.0) * np.sign(x)
 
     return x1
 
 
 def _current_sigma(
-        sigma: FloatCallableLike, 
-        count: int,
-    ) -> Union[float, NDArray]:
+    sigma: FloatCallableLike,
+    count: int,
+) -> Union[float, NDArray]:
     if not callable(sigma):
         return sigma
     else:
@@ -98,11 +98,12 @@ class L1(ProxOperator):
         Imaging and Vision, 40, 8pp. 120–145. 2011.
 
     """
+
     def __init__(
-            self, 
-            sigma: FloatCallableLike = 1.,
-            g: Optional[NDArray] = None,
-        ) -> None:
+        self,
+        sigma: FloatCallableLike = 1.0,
+        g: Optional[NDArray] = None,
+    ) -> None:
         super().__init__(None, False)
         self.sigma = sigma
         self.g = g
@@ -115,14 +116,15 @@ class L1(ProxOperator):
 
     def __call__(self, x: NDArray) -> float:
         sigma = _current_sigma(self.sigma, self.count)
-        return sigma * np.sum(np.abs(x))
+        return float(sigma * np.sum(np.abs(x)))
 
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
-        """Increment counter
-        """
-        def wrapped(self, *args: Any, **kwargs: Any) -> Any:
+        """Increment counter"""
+
+        def wrapped(self: Self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
+
         return wrapped
 
     @_increment_count
@@ -169,13 +171,14 @@ class L1Ball(ProxOperator):
     (see :class:`pyproximal.projection.L1BallProj` for details.
 
     """
+
     def __init__(
-            self, 
-            n: int, 
-            radius: float, 
-            maxiter: int = 100, 
-            xtol: float = 1e-5,
-        ) -> None:
+        self,
+        n: int,
+        radius: float,
+        maxiter: int = 100,
+        xtol: float = 1e-5,
+    ) -> None:
         super().__init__(None, False)
         self.n = n
         self.radius = radius
@@ -184,7 +187,7 @@ class L1Ball(ProxOperator):
         self.ball = L1BallProj(self.n, self.radius, self.maxiter, self.xtol)
 
     def __call__(self, x: NDArray, tol: float = 1e-4) -> bool:
-        return np.sum(np.abs(x)) - self.radius < tol
+        return bool(np.sum(np.abs(x)) - self.radius < tol)
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:

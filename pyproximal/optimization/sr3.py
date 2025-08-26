@@ -1,9 +1,24 @@
+from typing import TYPE_CHECKING, Optional
+
 import numpy as np
 import pylops
+from pylops.utils.typing import NDArray
 from scipy.sparse.linalg import lsqr as sp_lsqr
 
+if TYPE_CHECKING:
+    from pylops.linearoperator import LinearOperator
 
-def _lsqr(Op, data, iter_lim, z_old, x0, kappa, eps, Reg):
+
+def _lsqr(
+    Op: "LinearOperator",
+    data: NDArray,
+    iter_lim: int,
+    z_old: NDArray,
+    x0: NDArray,
+    kappa: float,
+    eps: float,
+    Reg: "LinearOperator",
+) -> NDArray:
     r"""LSQR
 
     This function uses LSQR to solve the inner iteration of SR3, given by
@@ -39,8 +54,8 @@ def _lsqr(Op, data, iter_lim, z_old, x0, kappa, eps, Reg):
 
     Returns
     -------
-        x: :obj:`numpy.ndarray`
-            Approximate solution
+    x: :obj:`numpy.ndarray`
+        Approximate solution
 
     """
     data -= Op.matvec(x0)
@@ -54,31 +69,40 @@ def _lsqr(Op, data, iter_lim, z_old, x0, kappa, eps, Reg):
     phi_bar = beta
     rho_bar = alpha
     for _ in range(iter_lim):
-        u = Op.matvec(v) - alpha*u
+        u = Op.matvec(v) - alpha * u
         beta = np.linalg.norm(u)
         u = u / beta
-        v = Op.rmatvec(u) - beta*v
+        v = Op.rmatvec(u) - beta * v
         alpha = np.linalg.norm(v)
         v = v / alpha
         rho = np.sqrt(rho_bar**2 + beta**2)
-        c = rho_bar/rho
-        s = beta/rho
-        theta = s*alpha
-        rho_bar = -c*alpha
-        phi = c*phi_bar
-        phi_bar = s*phi_bar
-        x += (phi/rho)*w
+        c = rho_bar / rho
+        s = beta / rho
+        theta = s * alpha
+        rho_bar = -c * alpha
+        phi = c * phi_bar
+        phi_bar = s * phi_bar
+        x += (phi / rho) * w
         temp = Reg.matvec(x)
-        z = np.sign(temp) * np.maximum(abs(temp) - eps/kappa, 0)
+        z = np.sign(temp) * np.maximum(abs(temp) - eps / kappa, 0)
         if np.linalg.norm(z - z_old) < 1e-6 * np.linalg.norm(z_old):
             return x
-        w = v - (theta/rho)*w
+        w = v - (theta / rho) * w
         z_old = z
     return x
 
 
-def SR3(Op, Reg, data, kappa, eps, x0=None, adaptive=True,
-        iter_lim_outer=int(1e2), iter_lim_inner=int(1e2)):
+def SR3(
+    Op: "LinearOperator",
+    Reg: "LinearOperator",
+    data: NDArray,
+    kappa: float,
+    eps: float,
+    x0: Optional[NDArray] = None,
+    adaptive: bool = True,
+    iter_lim_outer: int = 100,
+    iter_lim_inner: int = 100,
+) -> NDArray:
     r"""Sparse Relaxed Regularized Regression
 
     Applies the Sparse Relaxed Regularized Regression (SR3) algorithm to
@@ -145,24 +169,36 @@ def SR3(Op, Reg, data, kappa, eps, x0=None, adaptive=True,
     p = Reg.shape[0]
     v = np.zeros(p)
     w = v
-    eta = 1/kappa
+    eta = 1 / kappa
     theta = 1
     AL = pylops.VStack([Op, np.sqrt(kappa) * Reg])
     for _ in range(iter_lim_outer):
         # Compute the inner iteration
         if adaptive:
-            x = _lsqr(AL, np.concatenate((data, np.sqrt(kappa)*v)),
-                      iter_lim_inner, v, x, kappa, eps, Reg)
+            x = _lsqr(
+                AL,
+                np.concatenate((data, np.sqrt(kappa) * v)),
+                iter_lim_inner,
+                v,
+                x,
+                kappa,
+                eps,
+                Reg,
+            )
         else:
-            x = sp_lsqr(AL, np.concatenate((data, np.sqrt(kappa)*v)),
-                        iter_lim=iter_lim_inner, x0=x)[0]
+            x = sp_lsqr(
+                AL,
+                np.concatenate((data, np.sqrt(kappa) * v)),
+                iter_lim=iter_lim_inner,
+                x0=x,
+            )[0]
         # Compute the outer iteration
         w_old = w
         temp = Reg.matvec(x)
-        w = np.sign(temp) * np.maximum(abs(temp) - eta*eps, 0)
-        err1 = np.linalg.norm(v - w) / max(1, np.linalg.norm(w))
+        w = np.sign(temp) * np.maximum(abs(temp) - eta * eps, 0)
+        err1 = float(np.linalg.norm(v - w)) / max(1.0, float(np.linalg.norm(w)))
         if err1 < 1e-6:
             return x
-        theta = 2/(1 + np.sqrt(1+4/(theta**2)))
-        v = w + (1-theta)*(w - w_old)
+        theta = 2 / (1 + np.sqrt(1 + 4 / (theta**2)))
+        v = w + (1 - theta) * (w - w_old)
     return x

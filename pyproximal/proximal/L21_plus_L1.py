@@ -1,6 +1,7 @@
 import numpy as np
-from pyproximal import ProxOperator
-from pyproximal.ProxOperator import _check_tau
+from pylops.utils.typing import NDArray
+
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class L21_plus_L1(ProxOperator):
@@ -12,9 +13,9 @@ class L21_plus_L1(ProxOperator):
 
     Parameters
     ----------
-    sigma : :obj:`int`, optional
+    sigma : :obj:`float`, optional
         Multiplicative coefficient of :math:`L_{2,1} + L_1` mixed-norm
-    rho : :obj:`int`, optional
+    rho : :obj:`float`, optional
         Balancing between sparsity of :math:`L_1` and grouping of :math:`L_{2,1}`
 
     Notes
@@ -29,22 +30,25 @@ class L21_plus_L1(ProxOperator):
         Heidelberg, 2011.
     """
 
-    def __init__(self, sigma=1.0, rho=0.8):
+    def __init__(self, sigma: float = 1.0, rho: float = 0.8) -> None:
         super().__init__(None, False)
         self.sigma = sigma
         self.rho = rho
 
-    def __call__(self, x):
-        return self.rho * self.sigma * np.sum(np.abs(x)) + \
-               (1 - self.rho) * self.sigma * np.sum(np.sqrt(np.sum(x ** 2, axis=0)))
+    def __call__(self, x: NDArray) -> float:
+        return float(
+            self.rho * self.sigma * np.sum(np.abs(x))
+            + (1 - self.rho) * self.sigma * np.sum(np.sqrt(np.sum(x**2, axis=0)))
+        )
 
     @_check_tau
-    def prox(self, x, tau, axis=0):
+    def prox(self, x: NDArray, tau: float, axis: int = 0) -> NDArray:
         thresh = self.sigma * tau
         l1 = np.maximum(np.abs(x) - thresh * self.rho, 0)
         # Axis defines what dimension to perform grouping over
-        aux_l21 = np.sqrt(np.sum(np.maximum(
-            np.abs(x) - thresh * self.rho, 0) ** 2, axis=axis))
+        aux_l21 = np.sqrt(
+            np.sum(np.maximum(np.abs(x) - thresh * self.rho, 0) ** 2, axis=axis)
+        )
         l21 = np.maximum(1 - thresh * (1 - self.rho) / aux_l21, 0)
         x = np.nan_to_num(x / np.abs(x)) * l1 * l21
         return x

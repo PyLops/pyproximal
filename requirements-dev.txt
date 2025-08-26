@@ -13,9 +13,15 @@ setuptools_scm
 docutils<0.18
 Sphinx
 pooch
-sphinx-gallery
 pydata-sphinx-theme
+sphinx-gallery
+sphinxemoji
 numpydoc
 nbsphinx
 image
-sphinxemoji
+pre-commit
+autopep8
+isort
+black
+flake8
+mypy
