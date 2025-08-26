@@ -115,7 +115,9 @@ class L1(ProxOperator):
 
     def __call__(self, x: NDArray) -> float:
         sigma = _current_sigma(self.sigma, self.count)
-        return sigma * np.sum(np.abs(x))
+        if self.g is None:
+            return sigma * np.sum(np.abs(x))
+        return sigma * np.sum(np.abs(x - self.g))
 
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
         """Increment counter
