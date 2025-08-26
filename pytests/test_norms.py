@@ -174,13 +174,12 @@ def test_L1(par):
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_L1_diff(par):
     """L1 norm of difference and proximal/dual proximal"""
-    l1 = L1(
-        sigma=par["sigma"], g=np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
-    )
+    g = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    l1 = L1(sigma=par["sigma"], g=g)
 
     # norm
     x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
-    assert l1(x) == par["sigma"] * np.sum(np.abs(x))
+    assert l1(x) == par["sigma"] * np.sum(np.abs(x - g))
 
     # prox / dualprox
     tau = 2.0
