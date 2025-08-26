@@ -13,7 +13,7 @@ class HalfSpace(ProxOperator):
 
     Parameters
     ----------
-    w : :obj:`np.ndarray`
+    w : :obj:`numpy.ndarray`
         Coefficients of the half space
     b : :obj:`float`
         bias of the half space

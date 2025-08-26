@@ -7,7 +7,7 @@ class HalfSpaceProj:
 
     Parameters
     ----------
-    w : :obj:`np.ndarray`
+    w : :obj:`numpy.ndarray`
         Coefficients of the half space
     b : :obj:`float`
         bias of the half space
@@ -44,10 +44,10 @@ class HalfSpaceProj:
         self.w_norm_sq = np.dot(w, w)
 
     def __call__(self, x: NDArray) -> NDArray:
-        val = np.dot(self.w, x)
-        if val <= self.b:
+        w_x = np.dot(self.w, x)
+        if w_x <= self.b:
             return x
-        else:
-            factor = (val - self.b) / self.w_norm_sq
-            x_proj = x - factor * self.w
-            return x_proj
+
+        factor = (w_x - self.b) / self.w_norm_sq
+        x_proj = x - factor * self.w
+        return x_proj
