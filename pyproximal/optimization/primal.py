@@ -886,7 +886,7 @@ def HQS(
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
     z0 : :obj:`numpy.ndarray`, optional
-        Initial z vector (not required when ``gfirst=True``
+        Initial z vector (not required when ``gfirst=True``)
     gfirst : :obj:`bool`, optional
         Apply Proximal of operator ``g`` first (``True``) or Proximal of
         operator ``f`` first (``False``)
