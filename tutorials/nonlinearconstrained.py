@@ -128,7 +128,7 @@ for iiter in range(niters):
     x -= alpha * dfx
     y -= alpha * dfy
     steps.append((x, y))
-g
+
 x = np.arange(-1.5, 1.5, 0.15)
 y = np.arange(-0.5, 1.5, 0.15)
 nx, ny = len(x), len(y)
