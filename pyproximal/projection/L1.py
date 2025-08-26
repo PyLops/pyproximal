@@ -4,7 +4,7 @@ from pylops.utils.typing import NDArray
 from pyproximal.projection import SimplexProj
 
 
-class L1BallProj():
+class L1BallProj:
     r""":math:`L_1` ball projection.
 
     Parameters
@@ -36,13 +36,14 @@ class L1BallProj():
     indicator function :math:`\mathcal{I}_{L1_{r}}`.
 
     """
+
     def __init__(
-            self, 
-            n: int, 
-            radius: float, 
-            maxiter: int = 100, 
-            xtol: float = 1e-5,
-            ) -> None:
+        self,
+        n: int,
+        radius: float,
+        maxiter: int = 100,
+        xtol: float = 1e-5,
+    ) -> None:
         self.n = n
         self.radius = radius
         self.simplex = SimplexProj(n, radius, maxiter, xtol)
@@ -52,4 +53,3 @@ class L1BallProj():
             return np.exp(1j * np.angle(x)) * self.simplex(np.abs(x))
         else:
             return np.sign(x) * self.simplex(np.abs(x))
-

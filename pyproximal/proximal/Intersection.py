@@ -3,9 +3,8 @@ from typing import Union
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
-from pyproximal.projection import IntersectionProj
+from pyproximal.projection.Intersection import IntersectionProj
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class Intersection(ProxOperator):
@@ -34,13 +33,19 @@ class Intersection(ProxOperator):
     :class:`pyproximal.projection.IntersectionProj` for details.
 
     """
-    def __init__(self, k: int, n: int, sigma: Union[float, NDArray], 
-                 niter: int = 100, tol: float = 1e-5, call: bool = True,
-                 ) -> None:
+
+    def __init__(
+        self,
+        k: int,
+        n: int,
+        sigma: Union[float, NDArray],
+        niter: int = 100,
+        tol: float = 1e-5,
+        call: bool = True,
+    ) -> None:
         super().__init__(None, False)
         self.k, self.n = k, n
-        self.sigma = sigma if isinstance(sigma, np.ndarray) \
-            else sigma * np.ones((k, k))
+        self.sigma = sigma if isinstance(sigma, np.ndarray) else sigma * np.ones((k, k))
         self.call = call
         self.ic = IntersectionProj(k, n, sigma, niter=niter, tol=tol)
 

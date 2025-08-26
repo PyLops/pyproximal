@@ -96,4 +96,3 @@ jobs:
       pytest
     condition: succeededOrFailed()
     displayName: 'Run tests'
-

@@ -1,96 +1,98 @@
-import pytest
-
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 from pylops import Identity, MatrixMult, Restriction
 
 import pyproximal
+from pyproximal.proximal import (
+    L1,
+    L2,
+    Nonlinear,
+    Orthogonal,
+    Quadratic,
+    QuadraticEnvelopeCardIndicator,
+    QuadraticEnvelopeRankL2,
+    SingularValuePenalty,
+    VStack,
+)
 from pyproximal.utils import moreau
-from pyproximal.proximal import L1, L2, Nonlinear, Orthogonal, Quadratic, \
-    SingularValuePenalty, VStack, QuadraticEnvelopeCardIndicator, \
-    QuadraticEnvelopeRankL2
 
-par1 = {'nx': 10, 'ny': 10, 'sigma': 1., 'dtype': 'float32'}  # even float32
-par2 = {'nx': 11, 'ny': 14, 'sigma': 2., 'dtype': 'float64'}  # odd float64
+par1 = {"nx": 10, "ny": 10, "sigma": 1.0, "dtype": "float32"}  # even float32
+par2 = {"nx": 11, "ny": 14, "sigma": 2.0, "dtype": "float64"}  # odd float64
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Quadratic(par):
-    """Quadratic functional and proximal/dual proximal
-    """
+    """Quadratic functional and proximal/dual proximal"""
     np.random.seed(10)
-    A = np.random.normal(0, 1, (par['nx'], par['nx']))
+    A = np.random.normal(0, 1, (par["nx"], par["nx"]))
     A = A.T @ A
-    quad = Quadratic(Op=MatrixMult(A), b=np.ones(par['nx']), niter=500)
+    quad = Quadratic(Op=MatrixMult(A), b=np.ones(par["nx"]), niter=500)
 
     # prox / dualprox
-    tau = 2.
-    x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+    tau = 2.0
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     assert moreau(quad, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_DotProduct(par):
-    """Dot product functional and proximal/dual proximal
-    """
+    """Dot product functional and proximal/dual proximal"""
     np.random.seed(10)
-    quad = Quadratic(b=np.ones(par['nx']))
+    quad = Quadratic(b=np.ones(par["nx"]))
 
     # prox / dualprox
-    tau = 2.
-    x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+    tau = 2.0
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     assert moreau(quad, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Constant(par):
-    """Constant functional and proximal/dual proximal
-    """
+    """Constant functional and proximal/dual proximal"""
     np.random.seed(10)
-    quad = Quadratic(c=5.)
+    quad = Quadratic(c=5.0)
 
     # prox / dualprox
-    tau = 2.
-    x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+    tau = 2.0
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     assert moreau(quad, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_SemiOrthogonal(par):
-    """L1 functional with Semi-Orthogonal operator and proximal/dual proximal
-    """
+    """L1 functional with Semi-Orthogonal operator and proximal/dual proximal"""
     np.random.seed(10)
     l1 = L1()
-    orth = Orthogonal(l1, 2*Identity(par['nx']), b=np.arange(par['nx']),
-                      partial=True, alpha=4.)
+    orth = Orthogonal(
+        l1, 2 * Identity(par["nx"]), b=np.arange(par["nx"]), partial=True, alpha=4.0
+    )
 
     # prox / dualprox
-    tau = 2.
-    x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+    tau = 2.0
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     assert moreau(orth, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Orthogonal(par):
-    """L1 functional with Orthogonal operator and proximal/dual proximal
-    """
+    """L1 functional with Orthogonal operator and proximal/dual proximal"""
     np.random.seed(10)
     l1 = L1()
-    orth = Orthogonal(l1, Identity(par['nx']), b=np.arange(par['nx']))
+    orth = Orthogonal(l1, Identity(par["nx"]), b=np.arange(par["nx"]))
 
     # prox / dualprox
-    tau = 2.
-    x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+    tau = 2.0
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     assert moreau(orth, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_VStack_error(par):
-    """VStack operator error when input has wrong dimensions
-    """
+    """VStack operator error when input has wrong dimensions"""
     np.random.seed(10)
-    nxs = [par['nx'] // 4] * 4
-    nxs[-1] = par['nx'] - np.sum(nxs[:-1])
+    nxs = [par["nx"] // 4] * 4
+    nxs[-1] = par["nx"] - np.sum(nxs[:-1])
     l2 = L2()
     vstack = VStack([l2] * 4, nxs)
 
@@ -100,50 +102,57 @@ def test_VStack_error(par):
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_VStack(par):
-    """L2 functional with VStack operator of multiple L1s
-    """
+    """L2 functional with VStack operator of multiple L1s"""
     np.random.seed(10)
-    nxs = [par['nx'] // 4] * 4
-    nxs[-1] = par['nx'] - np.sum(nxs[:-1])
+    nxs = [par["nx"] // 4] * 4
+    nxs[-1] = par["nx"] - np.sum(nxs[:-1])
     l2 = L2()
     vstack = VStack([l2] * 4, nxs)
 
     # functional
-    x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     assert_array_almost_equal(l2(x), vstack(x), decimal=4)
 
     # gradient
     assert_array_almost_equal(l2.grad(x), vstack.grad(x), decimal=4)
 
     # prox / dualprox
-    tau = 2.
+    tau = 2.0
     assert_array_equal(l2.prox(x, tau), vstack.prox(x, tau))
 
     # moreau
     assert moreau(vstack, x, tau)
 
 
-@pytest.mark.parametrize("par", [(par1), ])
+@pytest.mark.parametrize(
+    "par",
+    [
+        (par1),
+    ],
+)
 def test_VStack_restriction(par):
-    """L2 functional with VStack operator of multiple L1s using restriction
-    """
+    """L2 functional with VStack operator of multiple L1s using restriction"""
     np.random.seed(10)
-    nxs = [par['nx'] // 2] * 2
-    nxs[-1] = par['nx'] - np.sum(nxs[:-1])
+    nxs = [par["nx"] // 2] * 2
+    nxs[-1] = par["nx"] - np.sum(nxs[:-1])
     l2 = L2()
-    vstack = VStack([l2] * 2,
-                    restr=[Restriction(par['nx'], np.arange(par['nx'] // 2)),
-                           Restriction(par['nx'], par['nx'] // 2 + np.arange(par['nx'] // 2))])
+    vstack = VStack(
+        [l2] * 2,
+        restr=[
+            Restriction(par["nx"], np.arange(par["nx"] // 2)),
+            Restriction(par["nx"], par["nx"] // 2 + np.arange(par["nx"] // 2)),
+        ],
+    )
 
     # functional
-    x = np.random.normal(0., 1., par['nx']).astype(par['dtype'])
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     assert_array_almost_equal(l2(x), vstack(x), decimal=4)
 
     # gradient
     assert_array_almost_equal(l2.grad(x), vstack.grad(x), decimal=4)
 
     # prox / dualprox
-    tau = 2.
+    tau = 2.0
     assert_array_equal(l2.prox(x, tau), vstack.prox(x, tau))
 
     # moreau
@@ -157,19 +166,18 @@ def test_Nonlinear():
     np.random.seed(10)
     with pytest.raises(TypeError):
         _ = Nonlinear(np.ones(10))
-    
+
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_SingularValuePenalty(par):
-    """Test SingularValuePenalty
-    """
+    """Test SingularValuePenalty"""
     np.random.seed(10)
-    f_mu = pyproximal.QuadraticEnvelopeCard(mu=par['sigma'])
-    penalty = SingularValuePenalty((par['nx'], 2 * par['nx']), f_mu)
+    f_mu = pyproximal.QuadraticEnvelopeCard(mu=par["sigma"])
+    penalty = SingularValuePenalty((par["nx"], 2 * par["nx"]), f_mu)
 
     # norm, cross-check with svd (use tolerance as two methods don't provide
     # the exact same eigenvalues)
-    X = np.random.uniform(0., 0.1, (par['nx'], 2 * par['nx'])).astype(par['dtype'])
+    X = np.random.uniform(0.0, 0.1, (par["nx"], 2 * par["nx"])).astype(par["dtype"])
     _, S, _ = np.linalg.svd(X)
     assert (penalty(X.ravel()) - f_mu(S)) < 1e-3
 
@@ -178,14 +186,15 @@ def test_SingularValuePenalty(par):
     assert moreau(penalty, X.ravel(), tau)
 
 
-@pytest.mark.parametrize("par,expected", [(par1, 94.89988856174841), (par2, 145.6421905545182)])
+@pytest.mark.parametrize(
+    "par,expected", [(par1, 94.89988856174841), (par2, 145.6421905545182)]
+)
 def test_QuadraticEnvelopeCardIndicator_case01(par, expected):
-    """QuadraticEnvelopeCardIndicator penalty and proximal/dual proximal
-    """
+    """QuadraticEnvelopeCardIndicator penalty and proximal/dual proximal"""
     np.random.seed(10)
     fr0 = QuadraticEnvelopeCardIndicator(4)
     # Quadratic envelope of the indicator function of the l0-penalty
-    x = np.random.normal(0., 10.0, par['nx']).astype(par['dtype'])
+    x = np.random.normal(0.0, 10.0, par["nx"]).astype(par["dtype"])
 
     # Check value
     assert fr0(x) == pytest.approx(expected)
@@ -196,8 +205,7 @@ def test_QuadraticEnvelopeCardIndicator_case01(par, expected):
 
 
 def test_QuadraticEnvelopeCardIndicator_case02():
-    """QuadraticEnvelopeCardIndicator penalty and proximal/dual proximal
-    """
+    """QuadraticEnvelopeCardIndicator penalty and proximal/dual proximal"""
     fr0 = QuadraticEnvelopeCardIndicator(5)
     # Quadratic envelope of the indicator function of the l0-penalty
     x = np.array([1, 1.5, 1.3, 4.1, 2.1, 1.6, 1.8, 1.8])
@@ -212,8 +220,7 @@ def test_QuadraticEnvelopeCardIndicator_case02():
 
 
 def test_QuadraticEnvelopeCardIndicator_case03():
-    """QuadraticEnvelopeCardIndicator penalty and proximal/dual proximal
-    """
+    """QuadraticEnvelopeCardIndicator penalty and proximal/dual proximal"""
     fr0 = QuadraticEnvelopeCardIndicator(4)
     # Quadratic envelope of the indicator function of the l0-penalty
     x = np.array([1, -1, 1, -0.1, 1])
@@ -227,12 +234,13 @@ def test_QuadraticEnvelopeCardIndicator_case03():
     np.testing.assert_array_almost_equal(fr0.prox(x, tau), expected)
 
 
-@pytest.mark.parametrize("par,expected", [(par1, 5.931525368112523), (par2, 14.146478354862971)])
+@pytest.mark.parametrize(
+    "par,expected", [(par1, 5.931525368112523), (par2, 14.146478354862971)]
+)
 def test_QuadraticEnvelopeRankL2(par, expected):
-    """QuadraticEnvelopeRankL2 penalty and proximal/dual proximal
-    """
+    """QuadraticEnvelopeRankL2 penalty and proximal/dual proximal"""
     np.random.seed(10)
-    dim = (par['nx'], par['ny'])
+    dim = (par["nx"], par["ny"])
 
     # Quadratic envelope of the indicator function of rank penalty
     r0 = 8
@@ -245,5 +253,3 @@ def test_QuadraticEnvelopeRankL2(par, expected):
     # Check proximal operator
     tau = 0.75
     assert moreau(f, X.ravel(), tau)
-
-

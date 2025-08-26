@@ -1,10 +1,8 @@
 from typing import TYPE_CHECKING, Optional
 
-import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 if TYPE_CHECKING:
     from pylops.linearoperator import LinearOperator
@@ -61,14 +59,15 @@ class Orthogonal(ProxOperator):
         Deblurring", SIAM J. Imaging Sciences, vol. 7, pp. 1724–1754. 2014.
 
     """
+
     def __init__(
-            self, 
-            f: ProxOperator, 
-            Q: "LinearOperator", 
-            partial: bool = False, 
-            b: Optional[NDArray] = None, 
-            alpha: float = 1.,
-            ) -> None:
+        self,
+        f: ProxOperator,
+        Q: "LinearOperator",
+        partial: bool = False,
+        b: Optional[NDArray] = None,
+        alpha: float = 1.0,
+    ) -> None:
         super().__init__(None, False)
         self.f = f
         self.Q = Q
@@ -76,20 +75,21 @@ class Orthogonal(ProxOperator):
         self.alpha = alpha
         self.b = b if b is not None else 0
 
-    def __call__(self, x: NDArray) -> float | bool:
+    def __call__(self, x: NDArray) -> bool | float | int:
         y = self.Q.matvec(x)
         y += self.b
         f = self.f(y)
-        return f  # type: ignore[no-any-return]
+        return f
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:
         y = self.Q.matvec(x)
         if self.partial:
-            z = (1. / self.alpha) * \
-                (self.alpha * x - self.Q.rmatvec(y) +
-                 self.Q.rmatvec(self.f.prox(y + self.b, self.alpha * tau) -
-                                self.b))
+            z = (1.0 / self.alpha) * (
+                self.alpha * x
+                - self.Q.rmatvec(y)
+                + self.Q.rmatvec(self.f.prox(y + self.b, self.alpha * tau) - self.b)
+            )
         else:
             y = y + self.b
             z = self.f.prox(y, tau)

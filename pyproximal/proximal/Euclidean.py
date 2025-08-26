@@ -3,9 +3,8 @@ from typing import Union
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
 from pyproximal.projection import EuclideanBallProj
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class Euclidean(ProxOperator):
@@ -41,7 +40,8 @@ class Euclidean(ProxOperator):
         \frac{\sigma \mathbf{x}}{\max\{\|\mathbf{x}\|_2, \sigma\}}
 
     """
-    def __init__(self, sigma: float = 1.) -> None:
+
+    def __init__(self, sigma: float = 1.0) -> None:
         super().__init__(None, True)
         self.sigma = sigma
 
@@ -50,12 +50,14 @@ class Euclidean(ProxOperator):
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:
-        x = (1. - (tau * self.sigma) / max(float(np.linalg.norm(x)), tau * self.sigma)) * x
+        x = (
+            1.0 - (tau * self.sigma) / max(float(np.linalg.norm(x)), tau * self.sigma)
+        ) * x
         return x
 
     @_check_tau
     def proxdual(self, x: NDArray, tau: float) -> NDArray:
-        x = self.sigma * x / (max(np.linalg.norm(x), self.sigma))
+        x = self.sigma * x / (max(float(np.linalg.norm(x)), self.sigma))
         return x
 
     def grad(self, x: NDArray) -> NDArray:
@@ -82,6 +84,7 @@ class EuclideanBall(ProxOperator):
     (see :class:`pyproximal.projection.EuclideanBallProj` for details.
 
     """
+
     def __init__(self, center: Union[NDArray, float], radius: float) -> None:
         super().__init__(None, False)
         self.center = center

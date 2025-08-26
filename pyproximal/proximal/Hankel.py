@@ -1,9 +1,8 @@
 import numpy as np
 from pylops.utils.typing import NDArray, ShapeLike
 
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
-from pyproximal.projection import HankelProj
+from pyproximal.projection.Hankel import HankelProj
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class Hankel(ProxOperator):
@@ -23,6 +22,7 @@ class Hankel(ProxOperator):
     details).
 
     """
+
     def __init__(self, dim: ShapeLike) -> None:
         super().__init__(None, False)
         self.dim = dim

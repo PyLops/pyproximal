@@ -1,8 +1,7 @@
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class SCAD(ProxOperator):
@@ -60,7 +59,7 @@ class SCAD(ProxOperator):
         self.a = a
 
     def __call__(self, x: NDArray) -> float:
-        return np.sum(self.elementwise(x))
+        return float(np.sum(self.elementwise(x)))
 
     def elementwise(self, x: NDArray) -> NDArray:
         f = np.zeros_like(x)
@@ -68,9 +67,11 @@ class SCAD(ProxOperator):
         ind = absx <= self.sigma
         f[ind] = self.sigma * absx[ind]
         ind = np.logical_and(self.sigma < absx, absx <= self.a * self.sigma)
-        f[ind] = (-x[ind] ** 2 + 2 * self.a * self.sigma * absx[ind] - self.sigma ** 2) / (2 * (self.a - 1))
+        f[ind] = (
+            -x[ind] ** 2 + 2 * self.a * self.sigma * absx[ind] - self.sigma**2
+        ) / (2 * (self.a - 1))
         ind = absx > self.a * self.sigma
-        f[ind] = (self.a + 1) * self.sigma ** 2 / 2
+        f[ind] = (self.a + 1) * self.sigma**2 / 2
         return f
 
     @_check_tau
@@ -81,5 +82,7 @@ class SCAD(ProxOperator):
         ind = absx <= first_threshold
         theta[ind] = np.sign(x[ind]) * np.maximum(0, absx[ind] - self.sigma * tau)
         ind = np.logical_and(first_threshold < absx, absx <= self.a * self.sigma)
-        theta[ind] = ((self.a - 1) * x[ind] - np.sign(x[ind]) * self.a * self.sigma * tau) / (self.a - 1 - tau)
+        theta[ind] = (
+            (self.a - 1) * x[ind] - np.sign(x[ind]) * self.a * self.sigma * tau
+        ) / (self.a - 1 - tau)
         return theta
