@@ -68,6 +68,8 @@ main github repo page) and install PyProximal from terminal using the command:
    >> make install
 
 
+.. _DevInstall:
+
 Step-by-step installation for developers
 ----------------------------------------
 Fork and clone the repository by executing the following in your terminal:
