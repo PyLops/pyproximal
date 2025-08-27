@@ -56,6 +56,10 @@ plt.close("all")
 # Let's start by defining the class for the nonlinear functional
 
 
+def callback(x, xhist):
+    xhist.append(x)
+
+
 def rosenbrock(x, y, a=1, b=10):
     f = (a - x) ** 2 + b * (y - x**2) ** 2
     return f
@@ -143,56 +147,57 @@ indic = (xygrid > lower) & (xygrid < upper)
 indic = indic[0].reshape(xbound.size, ybound.size) & indic[1].reshape(
     xbound.size, ybound.size
 )
-
+ind = pyproximal.proximal.Box(lower, upper)
 
 ###############################################################################
 # We now solve the constrained optimization using the Proximal gradient solver
 
-fnl = Rosebrock(niter=20, x0=np.zeros(2), warm=True)
-fnl.setup(1, 10, alpha=0.02)
-ind = pyproximal.proximal.Box(lower, upper)
-
-
-def callback(x):
-    xhist.append(x)
-
-
 x0 = np.array([0, 0])
+fnl = Rosebrock(niter=20, x0=x0)
+fnl.setup(1, 10, alpha=0.02)
+
 xhist = [
     x0,
 ]
 xinv_pg = pyproximal.optimization.primal.ProximalGradient(
-    fnl, ind, tau=0.001, x0=x0, epsg=1.0, niter=5000, show=True, callback=callback
+    fnl,
+    ind,
+    tau=0.001,
+    x0=x0,
+    epsg=1.0,
+    niter=5000,
+    show=True,
+    callback=lambda x: callback(x, xhist),
 )
 xhist_pg = np.array(xhist)
 
 ###############################################################################
-# And using the ADMM solver
+# Using the ADMM solver
 
-x0 = np.array([0, 0])
+x0 = np.array([0.0, 0.0])
+fnl = Rosebrock(niter=20, x0=x0, warm=True)
+fnl.setup(1, 10, alpha=0.02)
 
 xhist = [
     x0,
 ]
 xinv_admm = pyproximal.optimization.primal.ADMM(
-    fnl, ind, tau=1.0, x0=x0, niter=30, show=True, callback=callback
+    fnl, ind, tau=1.0, x0=x0, niter=30, show=True, callback=lambda x: callback(x, xhist)
 )
 xhist_admm = np.array(xhist)
 
 ###############################################################################
 # And using the Douglas-Rachford Splitting solver
 
-fnl = Rosebrock(niter=20, x0=np.zeros(2), warm=True)
+x0 = np.array([0.0, 0.0])
+fnl = Rosebrock(niter=20, x0=x0, warm=True)
 fnl.setup(1, 10, alpha=0.02)
-ind = pyproximal.proximal.Box(lower, upper)
-
-x0 = np.array([0, 0])
 
 xhist = [
     x0,
 ]
 xinv_dr = pyproximal.optimization.primal.DouglasRachfordSplitting(
-    fnl, ind, tau=1.0, x0=x0, niter=30, show=True, callback=callback
+    fnl, ind, tau=1.0, x0=x0, niter=30, show=True, callback=lambda x: callback(x, xhist)
 )
 xhist_dr = np.array(xhist)
 
@@ -224,32 +229,30 @@ class Rosebrock_lbfgs(Rosebrock):
         return sol
 
 
-fnl = Rosebrock_lbfgs(niter=20, x0=np.zeros(2), warm=True)
+x0 = np.array([0.0, 0.0])
+fnl = Rosebrock_lbfgs(niter=20, x0=x0, warm=True)
 fnl.setup(1, 10, alpha=0.02)
 
-x0 = np.array([0, 0])
 xhist = [
     x0,
 ]
 xinv_admm_lbfgs = pyproximal.optimization.primal.ADMM(
-    fnl, ind, tau=1.0, x0=x0, niter=30, show=True, callback=callback
+    fnl, ind, tau=1.0, x0=x0, niter=30, show=True, callback=lambda x: callback(x, xhist)
 )
 xhist_admm_lbfgs = np.array(xhist)
 
 ###############################################################################
 # And using the Douglas-Rachford Splitting solver
 
-fnl = Rosebrock_lbfgs(niter=20, x0=np.zeros(2), warm=True)
+x0 = np.array([0.0, 0.0])
+fnl = Rosebrock_lbfgs(niter=20, x0=x0, warm=True)
 fnl.setup(1, 10, alpha=0.02)
-ind = pyproximal.proximal.Box(lower, upper)
-
-x0 = np.array([0, 0])
 
 xhist = [
     x0,
 ]
 xinv_dr_lbfgs = pyproximal.optimization.primal.DouglasRachfordSplitting(
-    fnl, ind, tau=1.0, x0=x0, niter=30, show=True, callback=callback
+    fnl, ind, tau=1.0, x0=x0, niter=30, show=True, callback=lambda x: callback(x, xhist)
 )
 xhist_dr_lbfgs = np.array(xhist)
 
