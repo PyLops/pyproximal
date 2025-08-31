@@ -6,7 +6,7 @@ from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class HalfSpace(ProxOperator):
-    r"""Euclidean ball proximal operator.
+    r"""Half space proximal operator.
 
     Proximal operator of the half space: :math:`\operatorname{H}_{[w, b]} =
     \{ \mathbf{x}: \mathbf{w}^T \mathbf{x} \leq b \}`.
