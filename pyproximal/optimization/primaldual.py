@@ -5,6 +5,7 @@ import numpy as np
 from pylops.utils.backend import get_array_module, to_numpy
 from pylops.utils.typing import NDArray
 
+from pyproximal.optimization.primal import _x0z0_init
 from pyproximal.ProxOperator import ProxOperator
 
 if TYPE_CHECKING:
@@ -70,7 +71,7 @@ def PrimalDual(
         Stepsize of subgradient of :math:`g^*`. This can be constant
         or function of iterations (in the latter cases provided as np.ndarray)
     y0 : :obj:`numpy.ndarray`
-        Initial auxiliary vector
+        Initial auxiliary vector. If ``None``, initialized to ``A @ x0``.
     z : :obj:`numpy.ndarray`, optional
         Additional vector
     theta : :obj:`float`
@@ -132,7 +133,10 @@ def PrimalDual(
         Imaging and Vision, 40, 8pp. 120-145. 2011.
 
     """
-    ncp = get_array_module(x0)
+    # initialize variables
+    x, y = _x0z0_init(x0, y0, A, z0name="y0", Opname="A")
+    xhat = x.copy()
+    ncp = get_array_module(x)
 
     # check if tau and mu are scalars or arrays
     fixedtau = fixedmu = False
@@ -167,9 +171,7 @@ def PrimalDual(
         head = "   Itn       x[0]          f           g          z^x       J = f + g + z^x"
         print(head)
 
-    x = x0.copy()
-    xhat = x.copy()
-    y = y0.copy() if y0 is not None else ncp.zeros(A.shape[0], dtype=x.dtype)
+    # run iterations
     for iiter in range(niter):
         xold = x.copy()
         if gfirst:
