@@ -1268,7 +1268,9 @@ def ADMML2(
     """
     # initialize variables
     x, z = _x0z0_init(x0, z0, A, Opname="A")
-    u = z.copy()
+    ncp = get_array_module(x)
+    # TODO: Clarify what is the best choice for u
+    u = ncp.zeros_like(z)
 
     if show:
         tstart = time.time()
