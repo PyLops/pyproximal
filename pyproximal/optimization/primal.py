@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Un
 
 import numpy as np
 from pylops.optimization.leastsquares import regularized_inversion
-from pylops.utils.backend import to_numpy
+from pylops.utils.backend import get_array_module, to_numpy
 from pylops.utils.typing import NDArray
 
 from pyproximal.proximal import L2
@@ -48,6 +48,39 @@ def _backtracking(
         tau *= beta
         iiterback += 1
     return z, tau
+
+
+def _x0z0_init(x0, z0, Op=None, z0name="z0", Opname="Op"):
+    r"""Initialize x0 and z0
+
+    Initialize x0 and z0 using the following convention.
+
+    For ``Op=None``:
+    - if both are provided, they are simply returned;
+    - if only one is provided (the other is None), the one provided is also
+      copied to the other one.
+
+    For ``Op!=None``, ``x0`` must be provided, and:
+    - if both are provided, they are simply returned;
+    - if ``z0`` is not provided, set to ``Op @ x0``.
+
+    """
+    if x0 is None and z0 is None:
+        raise ValueError(
+            f"Both x0 or {z0name} are None, provide either of them or both"
+        )
+
+    if Op is None:
+        if x0 is None:
+            x0 = z0.copy()
+        elif z0 is None:
+            z0 = x0.copy()
+    else:
+        if x0 is None:
+            raise ValueError(f"x0 must be provided when {Opname} is also provided")
+        elif z0 is None:
+            z0 = Op @ x0
+    return x0, z0
 
 
 def ProximalPoint(
@@ -875,15 +908,15 @@ def HQS(
     proxg : :obj:`pyproximal.ProxOperator`
         Proximal operator of g function
     x0 : :obj:`numpy.ndarray`
-        Initial vector
-    tau : :obj:`float` or :obj:`numpy.ndarray`, optional
+        Initial vector (not required when ``gfirst=False``, can pass ``None``)
+    tau : :obj:`float` or :obj:`numpy.ndarray`
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
         the Lipschitz constant of :math:`\nabla f`. Finally note that
         :math:`\tau` can be chosen to be a vector of size ``niter`` such that
         different :math:`\tau` is used at different iterations (i.e., continuation
         strategy)
-    niter : :obj:`int`, optional
+    niter : :obj:`int`
         Number of iterations of iterative scheme
     z0 : :obj:`numpy.ndarray`, optional
         Initial z vector (not required when ``gfirst=True``)
@@ -904,6 +937,11 @@ def HQS(
         Inverted model
     z : :obj:`numpy.ndarray`
         Inverted second model
+
+    Raises
+    ------
+    ValueError
+        If both ``x0`` and ``z0`` are set to ``None``
 
     Notes
     -----
@@ -931,9 +969,13 @@ def HQS(
          4, 7, pp. 932-946, 1995.
 
     """
+    # initialize variables
+    x, z = _x0z0_init(x0, z0)
+    ncp = get_array_module(x)
+
     # check if tau is a vector
-    tau = np.asarray(tau, dtype=float)
-    if tau.size == 1.0:
+    tau = ncp.asarray(tau, dtype=float)
+    if tau.size == 1:
         tau_print = str(tau)
         tau = tau * np.ones(niter)
     else:
@@ -951,11 +993,7 @@ def HQS(
         head = "   Itn       x[0]          f           g       J = f + g"
         print(head)
 
-    x = x0.copy()
-    if z0 is not None:
-        z = z0.copy()
-    else:
-        z = np.zeros_like(x)
+    # run iterations
     for iiter in range(niter):
         if gfirst:
             z = proxg.prox(x, tau[iiter])
@@ -994,6 +1032,7 @@ def ADMM(
     x0: NDArray,
     tau: float,
     niter: int = 10,
+    z0: Optional[NDArray] = None,
     gfirst: bool = False,
     callback: Optional[Callable[..., None]] = None,
     callbackz: bool = False,
@@ -1036,13 +1075,15 @@ def ADMM(
     proxg : :obj:`pyproximal.ProxOperator`
         Proximal operator of g function
     x0 : :obj:`numpy.ndarray`
-        Initial vector
-    tau : :obj:`float`, optional
+        Initial vector (not required when ``gfirst=False``, can pass ``None``)
+    tau : :obj:`float`
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
         the Lipschitz constant of :math:`\nabla f`.
-    niter : :obj:`int`, optional
+    niter : :obj:`int`
         Number of iterations of iterative scheme
+    z0 : :obj:`numpy.ndarray`, optional
+        Initial z vector (not required when ``gfirst=True``)
     gfirst : :obj:`bool`, optional
         Apply Proximal of operator ``g`` first (``True``) or Proximal of
         operator ``f`` first (``False``)
@@ -1066,6 +1107,11 @@ def ADMM(
     ADMML2: ADMM with L2 misfit function
     LinearizedADMM: Linearized ADMM
 
+    Raises
+    ------
+    ValueError
+        If both ``x0`` and ``z0`` are set to ``None``
+
     Notes
     -----
     The ADMM algorithm can be expressed by the following recursion [1]_:
@@ -1087,6 +1133,12 @@ def ADMM(
         Learning, 3 (1), 1-122. https://doi.org/10.1561/2200000016.
 
     """
+    # initialize variables
+    x, z = _x0z0_init(x0, z0)
+    ncp = get_array_module(x)
+    # TODO: Clarify what is the best choice for u
+    u = ncp.zeros_like(x)
+
     if show:
         tstart = time.time()
         print(
@@ -1099,8 +1151,7 @@ def ADMM(
         head = "   Itn       x[0]          f           g       J = f + g"
         print(head)
 
-    x = x0.copy()
-    u = z = np.zeros_like(x)
+    # run iterations
     for iiter in range(niter):
         if gfirst:
             z = proxg.prox(x + u, tau)
@@ -1141,6 +1192,7 @@ def ADMML2(
     x0: NDArray,
     tau: float,
     niter: int = 10,
+    z0: Optional[NDArray] = None,
     gfirst: bool = False,
     callback: Optional[Callable[[NDArray], None]] = None,
     show: bool = False,
@@ -1171,11 +1223,13 @@ def ADMML2(
         Linear operator of regularization term
     x0 : :obj:`numpy.ndarray`
         Initial vector
-    tau : :obj:`float`, optional
+    tau : :obj:`float`
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau \in (0, 1/\lambda_{max}(\mathbf{A}^H\mathbf{A})]`.
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
+    z0 : :obj:`numpy.ndarray`
+        Initial auxiliary vector. If ``None``, initialized to ``A @ x0``.
     gfirst : :obj:`bool`, optional
         Apply Proximal of operator ``g`` first (``True``) or Proximal of
         operator ``f`` first (``False``)
@@ -1212,6 +1266,10 @@ def ADMML2(
         \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{Ax}^{k+1} - \mathbf{z}^{k+1}
 
     """
+    # initialize variables
+    x, z = _x0z0_init(x0, z0, A, Opname="A")
+    u = z.copy()
+
     if show:
         tstart = time.time()
         print(
@@ -1223,9 +1281,8 @@ def ADMML2(
         head = "   Itn       x[0]          f           g       J = f + g"
         print(head)
 
+    # run iterations
     sqrttau = 1.0 / sqrt(tau)
-    x = x0.copy()
-    u = z = np.zeros(A.shape[0], dtype=A.dtype)
     for iiter in range(niter):
         if gfirst:
             Ax = A @ x
@@ -1297,6 +1354,7 @@ def LinearizedADMM(
     tau: float,
     mu: float,
     niter: int = 10,
+    z0: Optional[NDArray] = None,
     callback: Optional[Callable[[NDArray], None]] = None,
     show: bool = False,
 ) -> Tuple[NDArray, NDArray]:
@@ -1333,6 +1391,8 @@ def LinearizedADMM(
         \tau/\lambda_{max}(\mathbf{A}^H\mathbf{A})]`.
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
+    z0 : :obj:`numpy.ndarray`
+        Initial auxiliary vector. If ``None``, initialized to ``A @ x0``.
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
@@ -1368,6 +1428,13 @@ def LinearizedADMM(
         in Optimization. 2013.
 
     """
+    # initialize variables
+    x, z = _x0z0_init(x0, z0, A, Opname="A")
+    Ax = A.matvec(x) if z0 is None else z
+    ncp = get_array_module(x)
+    # TODO: Clarify what is the best choice for u
+    u = ncp.zeros_like(z)
+
     if show:
         tstart = time.time()
         print(
@@ -1381,9 +1448,8 @@ def LinearizedADMM(
         )
         head = "   Itn       x[0]          f           g       J = f + g"
         print(head)
-    x = x0.copy()
-    Ax = A.matvec(x)
-    u = z = np.zeros_like(Ax)
+
+    # run iterations
     for iiter in range(niter):
         x = proxf.prox(x - mu / tau * A.rmatvec(Ax - z + u), mu)
         Ax = A.matvec(x)
