@@ -27,6 +27,7 @@ import pylops
 import pyproximal
 
 plt.close("all")
+np.random.seed(10)
 
 ###############################################################################
 # Let's start defining the terms of the quadratic functional

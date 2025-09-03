@@ -51,6 +51,7 @@ import scipy as sp
 import pyproximal
 
 plt.close("all")
+np.random.seed(10)
 
 ###############################################################################
 # Let's start by defining the class for the nonlinear functional
