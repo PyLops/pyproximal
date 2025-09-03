@@ -57,8 +57,8 @@ def _x0z0_init(x0, z0, Op=None, z0name="z0", Opname="Op"):
 
     For ``Op=None``:
     - if both are provided, they are simply returned;
-    - if only one is provided (the other is None), the one provided is also
-      copied to the other one.
+    - if only one is provided (the other is ``None``), the one provided
+      is copied to the other one.
 
     For ``Op!=None``, ``x0`` must be provided, and:
     - if both are provided, they are simply returned;
