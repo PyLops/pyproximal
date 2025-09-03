@@ -48,7 +48,7 @@ def test_ADMM_noinitial():
 
 
 def test_ADMML2_noinitial():
-    """Check that an error is raised if no initial x0
+    """Check that an error is raised if no initial value
     is provided to PrimalDual solver
     """
     with pytest.raises(ValueError):
@@ -57,8 +57,9 @@ def test_ADMML2_noinitial():
             Op=Identity(10),
             b=np.ones(10),
             A=Identity(10),
-            x0=None,
             tau=1.0,
+            x0=None,
+            z0=None,
         )
 
 
@@ -71,24 +72,10 @@ def test_LinearizedADMM_noinitial():
             proxf=L2(),
             proxg=L1(),
             A=Identity(10),
-            x0=None,
             tau=1.0,
             mu=1.0,
-        )
-
-
-def test_PrimalDual_noinitial():
-    """Check that an error is raised if no initial x0
-    is provided to PrimalDual solver
-    """
-    with pytest.raises(ValueError):
-        _ = PrimalDual(
-            proxf=L2(),
-            proxg=L1(),
-            A=Identity(10),
             x0=None,
-            tau=1.0,
-            mu=1.0,
+            z0=None,
         )
 
 
