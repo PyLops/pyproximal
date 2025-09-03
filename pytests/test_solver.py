@@ -12,7 +12,6 @@ from pyproximal.optimization.primal import (
     LinearizedADMM,
     ProximalGradient,
 )
-from pyproximal.optimization.primaldual import PrimalDual
 from pyproximal.proximal import L1, L2
 
 par1 = {"n": 8, "m": 10, "dtype": "float32"}  # float64
