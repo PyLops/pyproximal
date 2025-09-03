@@ -21,6 +21,7 @@ from skimage.data import camera
 import pyproximal
 
 plt.close("all")
+np.random.seed(10)
 
 
 def callback(x, f, g, K, cost, xtrue, err):

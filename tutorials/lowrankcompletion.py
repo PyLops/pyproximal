@@ -44,8 +44,8 @@ from scipy import datasets
 
 import pyproximal
 
-np.random.seed(0)
 plt.close("all")
+np.random.seed(0)
 
 ###############################################################################
 # Let's start by loading a sample image
