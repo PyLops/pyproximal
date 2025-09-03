@@ -29,6 +29,7 @@ from scipy import datasets
 import pyproximal
 
 plt.close("all")
+np.random.seed(10)
 
 ###############################################################################
 # Let's start by loading a sample image and adding some noise
