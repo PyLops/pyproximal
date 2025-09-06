@@ -35,6 +35,9 @@ def test_Box(par):
     tau = 2.0
     assert moreau(box, x, tau)
 
+    x_proj = box.prox(x, tau)
+    assert box(x_proj)
+
 
 @pytest.mark.parametrize(
     "par",
