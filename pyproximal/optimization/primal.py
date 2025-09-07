@@ -50,7 +50,13 @@ def _backtracking(
     return z, tau
 
 
-def _x0z0_init(x0, z0, Op=None, z0name="z0", Opname="Op"):
+def _x0z0_init(
+    x0: NDArray | None,
+    z0: NDArray | None,
+    Op: Optional["LinearOperator"] = None,
+    z0name: Optional[str] = "z0",
+    Opname: Optional[str] = "Op",
+) -> Tuple[NDArray, NDArray]:
     r"""Initialize x0 and z0
 
     Initialize x0 and z0 using the following convention.
@@ -64,6 +70,19 @@ def _x0z0_init(x0, z0, Op=None, z0name="z0", Opname="Op"):
     - if both are provided, they are simply returned;
     - if ``z0`` is not provided, set to ``Op @ x0``.
 
+    Parameters
+    ----------
+    x0 : :obj:`numpy.ndarray`
+        Initial vector
+    z0 : :obj:`numpy.ndarray`
+        Initial auxiliary vector
+    Op : :obj:`pylops.LinearOperator`, optional
+        Linear Operator to apply to ``x0``
+    z0name : :obj:`str`, optional
+        Name to display in error message instead of ``z0``
+    Opname : :obj:`str`, optional
+        Name to display in error message instead of ``Op``
+
     """
     if x0 is None and z0 is None:
         raise ValueError(
@@ -72,7 +91,7 @@ def _x0z0_init(x0, z0, Op=None, z0name="z0", Opname="Op"):
 
     if Op is None:
         if x0 is None:
-            x0 = z0.copy()
+            x0 = z0.copy()  # type: ignore[union-attr]
         elif z0 is None:
             z0 = x0.copy()
     else:
@@ -1136,7 +1155,6 @@ def ADMM(
     # initialize variables
     x, z = _x0z0_init(x0, z0)
     ncp = get_array_module(x)
-    # TODO: Clarify what is the best choice for u
     u = ncp.zeros_like(x)
 
     if show:
@@ -1249,6 +1267,11 @@ def ADMML2(
     z : :obj:`numpy.ndarray`
         Inverted second model
 
+    Raises
+    ------
+    ValueError
+        If both ``x0`` and ``z0`` are set to ``None`` or ``x0`` is set to None
+
     See Also
     --------
     ADMM: ADMM
@@ -1269,7 +1292,6 @@ def ADMML2(
     # initialize variables
     x, z = _x0z0_init(x0, z0, A, Opname="A")
     ncp = get_array_module(x)
-    # TODO: Clarify what is the best choice for u
     u = ncp.zeros_like(z)
 
     if show:
@@ -1408,6 +1430,11 @@ def LinearizedADMM(
     z : :obj:`numpy.ndarray`
         Inverted second model
 
+    Raises
+    ------
+    ValueError
+        If both ``x0`` and ``z0`` are set to ``None``
+
     See Also
     --------
     ADMM: ADMM
@@ -1434,7 +1461,6 @@ def LinearizedADMM(
     x, z = _x0z0_init(x0, z0, A, Opname="A")
     Ax = A.matvec(x) if z0 is None else z
     ncp = get_array_module(x)
-    # TODO: Clarify what is the best choice for u
     u = ncp.zeros_like(z)
 
     if show:
