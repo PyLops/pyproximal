@@ -70,7 +70,7 @@ def PrimalDual(
         Stepsize of subgradient of :math:`g^*`. This can be constant
         or function of iterations (in the latter cases provided as np.ndarray)
     y0 : :obj:`numpy.ndarray`
-        Initial auxiliary vector
+        Initial auxiliary vector. If ``None``, set to zero
     z : :obj:`numpy.ndarray`, optional
         Additional vector
     theta : :obj:`float`
@@ -167,9 +167,12 @@ def PrimalDual(
         head = "   Itn       x[0]          f           g          z^x       J = f + g + z^x"
         print(head)
 
+    # initialize variables
     x = x0.copy()
-    xhat = x.copy()
     y = y0.copy() if y0 is not None else ncp.zeros(A.shape[0], dtype=x.dtype)
+    xhat = x.copy()
+
+    # run iterations
     for iiter in range(niter):
         xold = x.copy()
         if gfirst:

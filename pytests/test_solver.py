@@ -1,18 +1,105 @@
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
-from pylops.basicoperators import MatrixMult
+from pylops.basicoperators import Identity, MatrixMult
 
 from pyproximal.optimization.primal import (
     ADMM,
+    ADMML2,
+    HQS,
     DouglasRachfordSplitting,
     GeneralizedProximalGradient,
+    LinearizedADMM,
     ProximalGradient,
 )
 from pyproximal.proximal import L1, L2
 
 par1 = {"n": 8, "m": 10, "dtype": "float32"}  # float64
 par2 = {"n": 8, "m": 10, "dtype": "float64"}  # float32
+
+
+def test_HQS_noinitial():
+    """Check that an error is raised if no initial value
+    is provided to HQS solver
+    """
+    with pytest.raises(ValueError):
+        _ = HQS(
+            proxf=L2(),
+            proxg=L1(),
+            tau=1.0,
+            x0=None,
+            z0=None,
+        )
+
+
+def test_ADMM_noinitial():
+    """Check that an error is raised if no initial value
+    is provided to ADMM solver
+    """
+    with pytest.raises(ValueError):
+        _ = ADMM(
+            proxf=L2(),
+            proxg=L1(),
+            tau=1.0,
+            x0=None,
+            z0=None,
+        )
+
+
+def test_ADMML2_noinitial():
+    """Check that an error is raised if no initial value
+    is provided to PrimalDual solver
+    """
+    with pytest.raises(ValueError):
+        # Both None
+        _ = ADMML2(
+            proxg=L1(),
+            Op=Identity(10),
+            b=np.ones(10),
+            A=Identity(10),
+            tau=1.0,
+            x0=None,
+            z0=None,
+        )
+    with pytest.raises(ValueError):
+        # x0 is None (and Op provided)
+        _ = ADMML2(
+            proxg=L1(),
+            Op=Identity(10),
+            b=np.ones(10),
+            A=Identity(10),
+            tau=1.0,
+            x0=None,
+            z0=np.ones(10),
+        )
+
+
+def test_LinearizedADMM_noinitial():
+    """Check that an error is raised if no initial x0
+    is provided to LinearizedADMM solver
+    """
+    with pytest.raises(ValueError):
+        # Both None
+        _ = LinearizedADMM(
+            proxf=L2(),
+            proxg=L1(),
+            A=Identity(10),
+            tau=1.0,
+            mu=1.0,
+            x0=None,
+            z0=None,
+        )
+    with pytest.raises(ValueError):
+        # x0 is None (and Op provided)
+        _ = LinearizedADMM(
+            proxf=L2(),
+            proxg=L1(),
+            A=Identity(10),
+            tau=1.0,
+            mu=1.0,
+            x0=None,
+            z0=np.ones(10),
+        )
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
