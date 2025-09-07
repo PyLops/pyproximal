@@ -51,6 +51,7 @@ def test_ADMML2_noinitial():
     is provided to PrimalDual solver
     """
     with pytest.raises(ValueError):
+        # Both None
         _ = ADMML2(
             proxg=L1(),
             Op=Identity(10),
@@ -60,6 +61,17 @@ def test_ADMML2_noinitial():
             x0=None,
             z0=None,
         )
+    with pytest.raises(ValueError):
+        # x0 is None (and Op provided)
+        _ = ADMML2(
+            proxg=L1(),
+            Op=Identity(10),
+            b=np.ones(10),
+            A=Identity(10),
+            tau=1.0,
+            x0=None,
+            z0=np.ones(10),
+        )
 
 
 def test_LinearizedADMM_noinitial():
@@ -67,6 +79,7 @@ def test_LinearizedADMM_noinitial():
     is provided to LinearizedADMM solver
     """
     with pytest.raises(ValueError):
+        # Both None
         _ = LinearizedADMM(
             proxf=L2(),
             proxg=L1(),
@@ -75,6 +88,17 @@ def test_LinearizedADMM_noinitial():
             mu=1.0,
             x0=None,
             z0=None,
+        )
+    with pytest.raises(ValueError):
+        # x0 is None (and Op provided)
+        _ = LinearizedADMM(
+            proxf=L2(),
+            proxg=L1(),
+            A=Identity(10),
+            tau=1.0,
+            mu=1.0,
+            x0=None,
+            z0=np.ones(10),
         )
 
 
