@@ -38,7 +38,7 @@ class Box(ProxOperator):
         self.box = BoxProj(self.lower, self.upper)
 
     def __call__(self, x: NDArray) -> bool:
-        return bool(np.all((x > self.lower) & (x < self.upper)))
+        return bool(np.all((x >= self.lower) & (x <= self.upper)))
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:

@@ -31,6 +31,11 @@ def test_Box(par):
     box = Box(-1, 1)
     x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
 
+    # evaluation
+    assert box(x) is False
+    xp = box.prox(x, 1.0)
+    assert box(xp) is True
+
     # prox / dualprox
     tau = 2.0
     assert moreau(box, x, tau)
