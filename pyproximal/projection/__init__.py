@@ -17,7 +17,7 @@ The subpackage projection contains a number of orthogonal projection:
     AffineSetProj	            Projection onto an Affine set
     HankelProj                  Projection onto the set of Hankel matrices
     HalfSpaceProj               Projection onto a Half Space
-
+    DykstrasProjection          Projection onto a union of given sets
 """
 
 from .Box import *
@@ -30,6 +30,7 @@ from .Intersection import *
 from .AffineSet import *
 from .Hankel import *
 from .HalfSpace import *
+from .DykstrasProjection import *
 
 __all__ = [
     "BoxProj",
@@ -45,4 +46,5 @@ __all__ = [
     "AffineSetProj",
     "HankelProj",
     "HalfSpaceProj",
+    "DykstrasProjection",
 ]
