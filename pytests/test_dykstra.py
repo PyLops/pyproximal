@@ -55,26 +55,16 @@ def test_dykstras_projection(par: Dict[str, Any]) -> None:
 
     projections : list[list[Callable[[Any], Any]]] = [
         # single projection
-        [eucl],
-        [box],
-        [half_space],
+        [eucl], [box], [half_space],
         # two projections
-        [eucl, box],
-        [box, eucl],
-        [half_space, eucl],
-        [eucl, half_space],
-        [box, half_space],
-        [half_space, box],
-        [eucl, eucl],
-        [box, box],
-        [half_space, half_space],
+        [eucl, box], [box, eucl],
+        [half_space, eucl], [eucl, half_space],
+        [box, half_space], [half_space, box],
+        [eucl, eucl], [box, box], [half_space, half_space],
         # three projections
-        [half_space, eucl, box],
-        [half_space, box, eucl],
-        [eucl, half_space, box],
-        [box, half_space, eucl],
-        [eucl, box, half_space],
-        [box, eucl, half_space],
+        [half_space, eucl, box], [half_space, box, eucl],
+        [eucl, half_space, box], [box, half_space, eucl],
+        [eucl, box, half_space], [box, eucl, half_space],
     ]
     for proj in projections:
 
