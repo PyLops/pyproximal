@@ -1,6 +1,6 @@
 from typing import List, Callable
-import numpy as np
 from pylops.utils.typing import NDArray
+from pylops.utils.backend import get_array_module
 
 
 class DykstrasProjection():
@@ -149,12 +149,12 @@ class DykstrasProjection():
 
         Parameters
         ----------
-        x : :obj:`numpy.ndarray`
+        x : :obj:`np.ndarray`
             A point
 
         Returns
         -------
-        :obj:`numpy.ndarray`
+        :obj:`np.ndarray`
             projection of x
 
         """
@@ -165,12 +165,12 @@ class DykstrasProjection():
 
         Parameters
         ----------
-        x : :obj:`numpy.ndarray`
+        x : :obj:`np.ndarray`
             A point
 
         Returns
         -------
-        :obj:`numpy.ndarray`
+        :obj:`np.ndarray`
             projection of x
 
         """
@@ -181,18 +181,20 @@ class DykstrasProjection():
 
         Parameters
         ----------
-        x : :obj:`numpy.ndarray`
+        x : :obj:`np.ndarray`
             A point
 
         Returns
         -------
-        :obj:`numpy.ndarray`
+        :obj:`np.ndarray`
             projection of x
 
         """
+        ncp = get_array_module(x0)
+
         x = x0.copy()
-        p = np.zeros_like(x)
-        q = np.zeros_like(x)
+        p = ncp.zeros_like(x)
+        q = ncp.zeros_like(x)
 
         for _ in range(self.max_iter):
             x_old = x.copy()
@@ -202,8 +204,8 @@ class DykstrasProjection():
             x = self.projections[1](y + q)
             q = y + q - x
 
-            if max(np.abs(x - x_old).max(),
-                   np.abs(y - x_old).max()) < self.tol:
+            if max(ncp.abs(x - x_old).max(),
+                   ncp.abs(y - x_old).max()) < self.tol:
                 break
         return x
 
@@ -212,30 +214,32 @@ class DykstrasProjection():
 
         Parameters
         ----------
-        x : :obj:`numpy.ndarray`
+        x : :obj:`np.ndarray`
             A point
 
         Returns
         -------
-        :obj:`numpy.ndarray`
+        :obj:`np.ndarray`
             projection of x
 
         """
+        ncp = get_array_module(x0)
+
         u = x0.copy()
         m = len(self.projections)
-        z = [np.zeros_like(u) for _ in range(m)]
+        z = [ncp.zeros_like(u) for _ in range(m)]
 
         for _ in range(self.max_iter):
             u_old = u.copy()
-            u_prev = np.array([u.copy() for _ in range(m)])
+            u_prev = ncp.array([u.copy() for _ in range(m)])
 
             for i in range(m):
                 u = self.projections[i](u_prev[i - 1] + z[i])
                 z[i] = z[i] + u_prev[i - 1] - u
                 u_prev[i] = u
 
-            if max(np.abs(u_old - u).max(),
-                   np.abs(u_prev - u).max()) < self.tol:
+            if max(ncp.abs(u_old - u).max(),
+                   ncp.abs(u_prev - u).max()) < self.tol:
                 break
 
         return u

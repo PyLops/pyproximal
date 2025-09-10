@@ -93,7 +93,16 @@ def test_dykstras_projection(par: Dict[str, Any]) -> None:
         assert moreau(d, x, tau)
 
         if len(proj) == 2:
-            d = DykstrasProjectionProx(proj, use_parallel=True)
+            d = DykstrasProjectionProx(
+                proj, tol=tol, max_iter=1000, use_parallel=True)
+
+            # evaluation
+            assert d(x) is False
+            xp = d.prox(x, 1.0)
+            assert d(xp) is True
+
+            # prox / dualprox
+            tau = 2.0
             assert moreau(d, x, tau)
 
 
@@ -102,8 +111,8 @@ def test_dykstra_like_prox_l1_l1(par: Dict[str, Any]) -> None:
     """Check Dykstra-like proximal algorithms for L1 + L1"""
 
     atol = 1e-6
-    rng = np.random.default_rng(10)
     tau = 1.0
+    rng = np.random.default_rng(10)
 
     x = rng.normal(0., 3.5, par['nx']).astype(par['dtype'])
     sigma_1 = rng.uniform(0.1, 1.0)
@@ -136,8 +145,8 @@ def test_dykstra_like_prox_l2_l2(par: Dict[str, Any]) -> None:
     """Check Dykstra-like proximal algorithms for L2 + L2"""
 
     atol = 1e-6
-    rng = np.random.default_rng(10)
     tau = 1.0
+    rng = np.random.default_rng(10)
 
     x = rng.normal(0., 3.5, par['nx']).astype(par['dtype'])
     sigma_1 = rng.uniform(0.1, 1.0)
@@ -170,9 +179,8 @@ def test_dykstra_like_prox_l21_l1(par: Dict[str, Any]) -> None:
     """Check Dykstra-like proximal algorithms for L21 + L1"""
 
     atol = 1e-5
-
-    rng = np.random.default_rng(10)
     tau = 1.0
+    rng = np.random.default_rng(10)
 
     x = rng.normal(0., 3.5, par['nx']).astype(par['dtype'])
     rho = rng.uniform(0.0, 1.0)
@@ -203,8 +211,8 @@ def test_dykstra_like_prox_l21_l1(par: Dict[str, Any]) -> None:
 def test_dykstra_like_prox_f1f2f3f4(par: Dict[str, Any]) -> None:
     """Check Dykstra-like proximal algorithms for f1+f2+f3+f4"""
 
-    rng = np.random.default_rng(10)
     tau = 1.0
+    rng = np.random.default_rng(10)
 
     x = rng.normal(0., 2.5, par['nx']).astype(par['dtype'])
     g = rng.normal(0., 2.5, par['nx']).astype(par['dtype'])
