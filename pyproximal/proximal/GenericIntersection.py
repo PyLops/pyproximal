@@ -4,21 +4,22 @@ import numpy as np
 from pylops.utils.typing import NDArray
 
 from pyproximal.ProxOperator import ProxOperator, _check_tau
-from pyproximal.projection import DykstrasProjection
+from pyproximal.projection import GenericIntersectionProj
 
 
-class DykstrasProjectionProx(ProxOperator):
+class GenericIntersectionProx(ProxOperator):
     r"""The proximal operator corresponding to the convex projection to the
     intersection of convex sets using Dykstra's algorithm.
 
     Parameters
     ----------
-    projections : :obj:`List[Callable[[np.ndarray], np.ndarray]]`
+    projections : :obj:`list`
         A list of projection functions :math:`P_1, \ldots, P_m`.
-    max_iter : :obj:`int`, optional, default=100
+    niter : :obj:`int`, optional, default=1000
         The maximum number of iterations.
     tol : :obj:`float`, optional, default=1e-6
-        Torrelance to stop the iteration.
+        Tolerance on change of the solution (used as stopping criterion).
+        If ``tol=0``, run until ``niter`` is reached.
     use_parallel : :obj:`bool`, optional, default=False
         If True, use the parallel version when $m=2$.
 
@@ -26,44 +27,11 @@ class DykstrasProjectionProx(ProxOperator):
     -----
     As the intersection of convex sets is an indicator function,
     the proximal operator corresponds to its convex projection
-    (see :class:`pyproximal.projection.DykstrasProjection` for details).
-
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from pyproximal.projection import (
-    ...         BoxProj,
-    ...         EuclideanBallProj,
-    ... )
-    >>> from pyproximal.proximal import DykstrasProjectionProx
-
-    >>> circle_1 = EuclideanBallProj(np.array([-2.5, 0.0]), 5)
-    >>> circle_2 = EuclideanBallProj(np.array([2.5, 0.0]), 5)
-    >>> circle_3 = EuclideanBallProj(np.array([0.0, 3.5]), 5)
-    >>> box = BoxProj(np.array([-5.0, -2.5]), np.array([5.0, 2.5]))
-
-    >>> projections = [circle_1, circle_2, circle_3, box]
-    >>> dykstra_prox = DykstrasProjectionProx(projections)
-
-    >>> rng = np.random.default_rng(10)
-    >>> x = rng.normal(0., 3.5, size=2)
-
-    >>> print("x            =", x)
-    x            = [-3.86168457 -2.53758624]
-    >>> dykstra_prox(x)  # x is outside
-    False
-
-    >>> xp = dykstra_prox.prox(x, 1.0)  # DykstrasProjection
-    >>> print("x projection =", xp)
-    x projection = [-2.42308423 -0.87363268]
-    >>> dykstra_prox(xp)  # x is inside
-    True
-
+    (see :class:`pyproximal.projection.GenericIntersectionProj` for details).
 
     See also
     --------
-    pyproximal.projection.DykstrasProjection :
+    pyproximal.projection.GenericIntersectionProj :
         The corresponding convex projection.
 
     """
@@ -71,7 +39,7 @@ class DykstrasProjectionProx(ProxOperator):
     def __init__(
         self,
         projections: List[Callable[[NDArray], NDArray]],
-        max_iter: int = 100,
+        niter: int = 1000,
         tol: float = 1e-6,
         use_parallel: bool = False,
     ) -> None:
@@ -84,10 +52,10 @@ class DykstrasProjectionProx(ProxOperator):
         # will hold even after the convergence of Dykstra's algorithm.
         self.tol = tol * 10
 
-        self.dykstras_projection = \
-            DykstrasProjection(
+        self.genetic_intersection = \
+            GenericIntersectionProj(
                 projections=self.projections,
-                max_iter=max_iter,
+                niter=niter,
                 tol=tol,
                 use_parallel=use_parallel,
             )
@@ -98,4 +66,4 @@ class DykstrasProjectionProx(ProxOperator):
 
     @_check_tau
     def prox(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
-        return self.dykstras_projection(x)
+        return self.genetic_intersection(x)

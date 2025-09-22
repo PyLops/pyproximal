@@ -6,14 +6,14 @@ import pytest
 from pyproximal.utils import moreau
 from pyproximal.projection import (
     BoxProj,
-    DykstrasProjection,
+    GenericIntersectionProj,
     EuclideanBallProj,
     HalfSpaceProj,
 )
 from pyproximal.proximal import (
     Box,
-    DykstraLikeProximal,
-    DykstrasProjectionProx,
+    Sum,
+    GenericIntersectionProx,
     L1,
     L2,
     L21_plus_L1,
@@ -28,8 +28,8 @@ par2prox = {"nx": 11, "ny": 14, "sigma": 2.0, "dtype": "float64"}  # odd float64
 
 
 @pytest.mark.parametrize("par", [(par1proj), (par2proj)])
-def test_dykstras_projection(par: Dict[str, Any]) -> None:
-    """DykstrasProjection and proximal/dual proximal of related indicator
+def test_GenericIntersectionProx(par: Dict[str, Any]) -> None:
+    """GenericIntersectionProx and proximal/dual proximal of related indicator
     """
 
     rng = np.random.default_rng(10)
@@ -71,7 +71,7 @@ def test_dykstras_projection(par: Dict[str, Any]) -> None:
         # different torelance for float32 and float64
         tol = float(np.finfo(par['dtype']).resolution) * 10.  # pylint: disable=no-member
 
-        d = DykstrasProjectionProx(proj, tol=tol, max_iter=1000)
+        d = GenericIntersectionProx(proj, tol=tol, niter=1000)
 
         # evaluation
         assert d(x) is False
@@ -83,8 +83,8 @@ def test_dykstras_projection(par: Dict[str, Any]) -> None:
         assert moreau(d, x, tau)
 
         if len(proj) == 2:
-            d = DykstrasProjectionProx(
-                proj, tol=tol, max_iter=1000, use_parallel=True)
+            d = GenericIntersectionProx(
+                proj, tol=tol, niter=1000, use_parallel=True)
 
             # evaluation
             assert d(x) is False
@@ -97,8 +97,8 @@ def test_dykstras_projection(par: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("par", [(par1prox), (par2prox)])
-def test_dykstra_like_prox_l1_l1(par: Dict[str, Any]) -> None:
-    """Check Dykstra-like proximal algorithms for L1 + L1"""
+def test_Sum_l1_l1(par: Dict[str, Any]) -> None:
+    """Check Sum for L1 + L1"""
 
     atol = 1e-6
     tau = 1.0
@@ -112,27 +112,27 @@ def test_dykstra_like_prox_l1_l1(par: Dict[str, Any]) -> None:
     l1_2 = L1(sigma=sigma_2)
     l1_l1 = L1(sigma=sigma_1 + sigma_2)
 
-    d = DykstraLikeProximal([l1_1, l1_2])
+    d = Sum([l1_1, l1_2])
     assert np.allclose(l1_l1(x), d(x), atol=atol)
     assert np.allclose(l1_l1.prox(x, tau), d.prox(x, tau), atol=atol)
     assert moreau(d, x, tau)
 
-    d = DykstraLikeProximal([l1_2, l1_1])
+    d = Sum([l1_2, l1_1])
     assert np.allclose(l1_l1(x), d(x), atol=atol)
     assert np.allclose(l1_l1.prox(x, tau), d.prox(x, tau), atol=atol)
     assert moreau(d, x, tau)
 
     weights = rng.uniform(0.25, 0.75, 2)
     weights /= weights.sum()
-    dp = DykstraLikeProximal([l1_1, l1_2], use_parallel=True, weights=weights)
+    dp = Sum([l1_1, l1_2], use_parallel=True, weights=weights)
     assert np.allclose(l1_l1(x), d(x), atol=atol)
     assert np.allclose(l1_l1.prox(x, tau), dp.prox(x, tau), atol=atol)
     assert moreau(dp, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1prox), (par2prox)])
-def test_dykstra_like_prox_l2_l2(par: Dict[str, Any]) -> None:
-    """Check Dykstra-like proximal algorithms for L2 + L2"""
+def test_Sum_l2_l2(par: Dict[str, Any]) -> None:
+    """Check Sum for L2 + L2"""
 
     atol = 1e-6
     tau = 1.0
@@ -146,27 +146,27 @@ def test_dykstra_like_prox_l2_l2(par: Dict[str, Any]) -> None:
     l2_2 = L2(sigma=sigma_2)
     l2_l2 = L2(sigma=sigma_1 + sigma_2)
 
-    d = DykstraLikeProximal([l2_1, l2_2])
+    d = Sum([l2_1, l2_2])
     assert np.allclose(l2_l2(x), d(x), atol=atol)
     assert np.allclose(l2_l2.prox(x, tau), d.prox(x, tau), atol=atol)
     assert moreau(d, x, tau)
 
-    d = DykstraLikeProximal([l2_2, l2_1])
+    d = Sum([l2_2, l2_1])
     assert np.allclose(l2_l2(x), d(x), atol=atol)
     assert np.allclose(l2_l2.prox(x, tau), d.prox(x, tau), atol=atol)
     assert moreau(d, x, tau)
 
     weights = rng.uniform(0.25, 0.75, 2)
     weights /= weights.sum()
-    dp = DykstraLikeProximal([l2_1, l2_2], use_parallel=True, weights=weights)
+    dp = Sum([l2_1, l2_2], use_parallel=True, weights=weights)
     assert np.allclose(l2_l2(x), d(x), atol=atol)
     assert np.allclose(l2_l2.prox(x, tau), dp.prox(x, tau), atol=atol)
     assert moreau(dp, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1prox), (par2prox)])
-def test_dykstra_like_prox_l21_l1(par: Dict[str, Any]) -> None:
-    """Check Dykstra-like proximal algorithms for L21 + L1"""
+def test_Sum_l21_l1(par: Dict[str, Any]) -> None:
+    """Check Sum for L21 + L1"""
 
     atol = 1e-5
     tau = 1.0
@@ -179,27 +179,27 @@ def test_dykstra_like_prox_l21_l1(par: Dict[str, Any]) -> None:
     l1 = L1(sigma=sigma * rho)
     l21 = L21(sigma=sigma * (1 - rho), ndim=par['nx'])
 
-    d = DykstraLikeProximal([l1, l21])
+    d = Sum([l1, l21])
     assert np.allclose(d(x), l21_l1(x), atol=atol)
     assert np.allclose(d.prox(x, tau), l21_l1.prox(x, tau), atol=atol)
     assert moreau(d, x, tau)
 
-    d = DykstraLikeProximal([l21, l1])
+    d = Sum([l21, l1])
     assert np.allclose(d(x), l21_l1(x), atol=atol)
     assert np.allclose(d.prox(x, tau), l21_l1.prox(x, tau), atol=atol)
     assert moreau(d, x, tau)
 
     weights = rng.uniform(0.1, 1.0, 2)
     weights /= weights.sum()
-    dp = DykstraLikeProximal([l21, l1], use_parallel=True, weights=weights)
+    dp = Sum([l21, l1], use_parallel=True, weights=weights)
     assert np.allclose(d(x), l21_l1(x), atol=atol)
     assert np.allclose(dp.prox(x, tau), l21_l1.prox(x, tau), atol=atol)
     assert moreau(dp, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1prox), (par2prox)])
-def test_dykstra_like_prox_f1f2f3f4(par: Dict[str, Any]) -> None:
-    """Check Dykstra-like proximal algorithms for f1+f2+f3+f4"""
+def test_Sum_f1f2f3f4(par: Dict[str, Any]) -> None:
+    """Check Sum for f1+f2+f3+f4"""
 
     tau = 1.0
     rng = np.random.default_rng(10)
@@ -220,13 +220,13 @@ def test_dykstra_like_prox_f1f2f3f4(par: Dict[str, Any]) -> None:
         [l1, l2, l1, l21],
         [l1, l2, l21, l21_l1],
     ]:
-        d = DykstraLikeProximal(prox_ops)
+        d = Sum(prox_ops)
         assert moreau(d, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1prox), (par2prox)])
-def test_dykstra_like_prox_numeric_projection(par: Dict[str, Any]) -> None:
-    """Check Dykstra-like proximal algorithms for numeric prox + indicator function"""
+def test_Sum_numeric_projection(par: Dict[str, Any]) -> None:
+    """Check Sum for numeric prox + indicator function"""
 
     rng = np.random.default_rng(10)
     tau = 1.0
@@ -245,7 +245,7 @@ def test_dykstra_like_prox_numeric_projection(par: Dict[str, Any]) -> None:
 
     # check: Moreau identity
     x = rng.normal(0., 2.5, par['nx']).astype(par['dtype'])
-    d = DykstraLikeProximal([l1, box1])
+    d = Sum([l1, box1])
     assert moreau(d, x, tau)
 
     # check: return numeric
@@ -263,12 +263,12 @@ def test_dykstra_like_prox_numeric_projection(par: Dict[str, Any]) -> None:
     assert isinstance(x_prox, bool) and not x_prox
 
     # check: return True
-    d_proj = DykstrasProjection([
+    d_proj = GenericIntersectionProj([
         lambda x: box1.prox(x, tau),
         lambda x: box2.prox(x, tau),
     ])
     x_proj = d_proj(x)  # x_proj is in the intersection
-    d = DykstraLikeProximal([box1, box2])
+    d = Sum([box1, box2])
     x_prox = d(x_proj)  # return True
     assert isinstance(x_prox, bool) and x_prox
     assert moreau(d, x, tau)

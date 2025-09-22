@@ -29,7 +29,7 @@ Orthogonal projections
     L1BallProj
     NuclearBallProj
     SimplexProj
-    DykstrasProjection
+    GenericIntersectionProj
 
 Proximal operators
 ------------------
@@ -84,8 +84,8 @@ Convex
     Quadratic
     Simplex
     TV
-    DykstrasProjectionProx
-    DykstraLikeProximal
+    GenericIntersectionProx
+    Sum
 
 
 Non-Convex
