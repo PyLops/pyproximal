@@ -11,16 +11,32 @@ suing the Dykstra-like proximal algorithm.
 
 """
 
-###############################################################################
-# Here is an example of a projection onto the intersection of convex sets
-# using :class:`pyproximal.projection.GenericIntersectionProj`.
-
 import numpy as np
+
+import matplotlib.pyplot as plt
+from matplotlib.patches import Circle, Rectangle
+from matplotlib.colors import to_rgba
+
+from pylops import MatrixMult
 from pyproximal.projection import (
     BoxProj,
     EuclideanBallProj,
     GenericIntersectionProj
 )
+from pyproximal.proximal import (
+    L1,
+    L2,
+    Box,
+    EuclideanBall,
+    Sum,
+    GenericIntersectionProx
+)
+
+rng = np.random.default_rng(10)
+
+###############################################################################
+# Here is an example of a projection onto the intersection of convex sets
+# using :class:`pyproximal.projection.GenericIntersectionProj`.
 
 circle_1 = EuclideanBallProj(np.array([-2.5, 0.0]), 5)
 circle_2 = EuclideanBallProj(np.array([2.5, 0.0]), 5)
@@ -30,8 +46,7 @@ box = BoxProj(np.array([-5.0, -2.5]), np.array([5.0, 2.5]))
 projections = [circle_1, circle_2, circle_3, box]
 dykstra_proj = GenericIntersectionProj(projections)
 
-rng = np.random.default_rng(10)
-x = rng.normal(0., 3.5, size=2)
+x = rng.normal(-5., 1.5, size=2)
 print("x            =", x)
 
 xp = dykstra_proj(x)
@@ -40,11 +55,6 @@ print("x projection =", xp)
 
 ###############################################################################
 # Let's see how x is projected to xp.
-
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.patches import Circle, Rectangle
-from matplotlib.colors import to_rgba
 
 fig, ax = plt.subplots(figsize=(6, 6))
 
@@ -68,15 +78,16 @@ ax.add_patch(Rectangle(
     edgecolor='k', linewidth=0.5, linestyle='-',
 ))
 
-ax.scatter(*x, marker='o', s=40, color='k', label="x")
-ax.scatter(*xp, marker='o', s=40, color='red', label="xp")
-ax.annotate('', xy=xp, xytext=x, arrowprops=dict(arrowstyle='->', color='k'))
+ax.scatter(x[0], x[1], s=40, c='k', marker='o', label="x")
+ax.scatter(xp[0], xp[1], s=40, c='red', marker='o', label="xp")
+ax.annotate('', xy=(xp[0], xp[1]), xytext=(x[0], x[1]),
+            arrowprops={"arrowstyle": '->', "color": 'k'})
 
 ax.set_aspect('equal', adjustable='box')
 ax.set_xlim(-10, 10)
 ax.set_ylim(-10, 10)
-ax.set_xlabel('x₁')
-ax.set_ylabel('x₂')
+ax.set_xlabel(r'$x_1$')
+ax.set_ylabel(r'$x_2$')
 ax.grid(alpha=0.2)
 ax.legend()
 
@@ -85,13 +96,6 @@ plt.show()
 ###############################################################################
 # Here is another example of the same projection onto the intersection of convex sets
 # using :class:`pyproximal.GenericIntersectionProx`.
-
-import numpy as np
-from pyproximal.projection import (
-    BoxProj,
-    EuclideanBallProj,
-)
-from pyproximal.proximal import GenericIntersectionProx
 
 # projection functions
 circle_1 = EuclideanBallProj(np.array([-2.5, 0.0]), 5)
@@ -102,7 +106,6 @@ box = BoxProj(np.array([-5.0, -2.5]), np.array([5.0, 2.5]))
 projections = [circle_1, circle_2, circle_3, box]
 dykstra_prox = GenericIntersectionProx(projections)
 
-rng = np.random.default_rng(10)
 x = rng.normal(0., 3.5, size=2)
 
 print("x            =", x)
@@ -117,13 +120,6 @@ print("Is x inside?", dykstra_prox(xp))  # xp is inside
 # Yet another example of the same projection onto the intersection of convex sets
 # using :class:`pyproximal.Sum` via the sum of indicator functions of the projections.
 
-import numpy as np
-from pyproximal.proximal import (
-    Box,
-    EuclideanBall,
-    Sum,
-)
-
 # indicator functions
 circle_1 = EuclideanBall(np.array([-2.5, 0.0]), 5)
 circle_2 = EuclideanBall(np.array([2.5, 0.0]), 5)
@@ -133,7 +129,6 @@ box = Box(np.array([-5.0, -2.5]), np.array([5.0, 2.5]))
 projections = [circle_1, circle_2, circle_3, box]
 dykstra_sum = Sum(projections)  # sum of indicator functions
 
-rng = np.random.default_rng(10)
 x = rng.normal(0., 3.5, size=2)
 
 print("x            =", x)
@@ -147,11 +142,6 @@ print("Is x inside?", dykstra_sum(xp))  # xp should be inside, but round-off err
 ###############################################################################
 # Here is an example of computing proximal operator of the sum of proximable functions
 # using :class:`pyproximal.Sum`.
-
-import numpy as np
-from pyproximal.proximal import L1, L2, Box, Sum
-from pylops import MatrixMult
-rng = np.random.default_rng(10)
 
 A = MatrixMult(rng.normal(0., 1., size=(3, 5)))
 b = rng.normal(0., 1., size=3)
