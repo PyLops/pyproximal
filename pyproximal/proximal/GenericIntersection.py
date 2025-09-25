@@ -1,10 +1,10 @@
-from typing import List, Callable, Any
+from typing import Any, Callable, List
 
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import ProxOperator, _check_tau
 from pyproximal.projection import GenericIntersectionProj
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class GenericIntersectionProx(ProxOperator):
@@ -52,18 +52,16 @@ class GenericIntersectionProx(ProxOperator):
         # will hold even after the convergence of Dykstra's algorithm.
         self.tol = tol * 10
 
-        self.genetic_intersection = \
-            GenericIntersectionProj(
-                projections=self.projections,
-                niter=niter,
-                tol=tol,
-                use_parallel=use_parallel,
-            )
+        self.generic_intersection = GenericIntersectionProj(
+            projections=self.projections,
+            niter=niter,
+            tol=tol,
+            use_parallel=use_parallel,
+        )
 
     def __call__(self, x: NDArray) -> bool:
-        return all(np.abs(x - proj(x)).max() < self.tol
-                   for proj in self.projections)
+        return all(np.abs(x - proj(x)).max() < self.tol for proj in self.projections)
 
     @_check_tau
     def prox(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
-        return self.genetic_intersection(x)
+        return self.generic_intersection(x)

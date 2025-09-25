@@ -1,27 +1,28 @@
-from typing import List, Callable
+from typing import Callable, List
+
 from pylops.utils.typing import NDArray
 
-from pyproximal.proximal._dykstra_core import (
+from pyproximal.proximal._Dykstra import (
+    _select_impl_by_arity,
     dykstra_two,
     parallel_dykstra_projection,
-    _select_impl_by_arity,
 )
 
 
-class GenericIntersectionProj():
-    r"""The convex projection to the intersection of convex sets
+class GenericIntersectionProj:
+    r"""Convex projection of the intersection of convex sets
     using Dykstra's algorithm.
 
     Parameters
     ----------
     projections : :obj:`list`
         A list of projection functions :math:`P_1, \ldots, P_m`.
-    niter : :obj:`int`, optional, default=1000
-        The maximum number of iterations.
-    tol : :obj:`float`, optional, default=1e-6
+    niter : :obj:`int`, optional
+        Maximum number of iterations.
+    tol : :obj:`float`, optional
         Tolerance on change of the solution (used as stopping criterion).
         If ``tol=0``, run until ``niter`` is reached.
-    use_parallel : :obj:`bool`, optional, default=False
+    use_parallel : :obj:`bool`, optional
         If True, use the parallel version when $m=2$.
 
     Notes
@@ -36,26 +37,26 @@ class GenericIntersectionProj():
     For :math:`m=2`, the projection :math:`P_C(\mathbf{x})` of :math:`\mathbf{x}` is computed
     by the Dykstra's algorithm [1]_, [2]_, [3]_:
 
-    * :math:`\mathbf{x}_0 = \mathbf{x}, \mathbf{p}_0 = \mathbf{q}_0 = 0`,
-    * for :math:`k = 1, 2, \ldots`
+    * :math:`\mathbf{x}^0 = \mathbf{x}, \mathbf{p}^0 = \mathbf{q}^0 = 0`,
+    * for :math:`k = 1, \ldots`
 
-      * :math:`y_k = P_1(\mathbf{x}_k + \mathbf{p}_k)`
-      * :math:`\mathbf{p}_{k+1} = \mathbf{x}_k + \mathbf{p}_k - y_k`
-      * :math:`\mathbf{x}_{k+1} = P_2(y_k + \mathbf{q}_k)`
-      * :math:`\mathbf{q}_{k+1} = y_k + \mathbf{q}_k - \mathbf{x}_{k+1}`
+      * :math:`\mathbf{y}^k = P_1(\mathbf{x}^k + \mathbf{p}^k)`
+      * :math:`\mathbf{p}^{k+1} = \mathbf{x}^k + \mathbf{p}^k - \mathbf{y}^k`
+      * :math:`\mathbf{x}^{k+1} = P_2(\mathbf{y}^k + \mathbf{q}^k)`
+      * :math:`\mathbf{q}^{k+1} = \mathbf{y}^k + \mathbf{q}^k - \mathbf{x}^{k+1}`
 
     For :math:`m \ge 2`, the projection :math:`P_C(\mathbf{x})` is computed
     by the parallel Dykstra's algorithm [5]_, [6]_. The following
     is taken from [4]_:
 
-    * :math:`\mathbf{u}_m^{(0)} = \mathbf{x}, \mathbf{z}_1^{(0)} = \cdots = \mathbf{z}_m^{(0)} = 0`,
-    * for :math:`k = 1, 2, \ldots`
+    * :math:`\mathbf{u}_m^0 = \mathbf{x}, \mathbf{z}_1^0 = \cdots = \mathbf{z}_m^0 = 0`,
+    * for :math:`k = 1, \ldots`
 
-      * :math:`\mathbf{u}_0^{(k)} = \mathbf{u}_m^{(k-1)}`
+      * :math:`\mathbf{u}_0^k = \mathbf{u}_m^{k-1}`
       * for :math:`i = 1, \ldots, m`
 
-        * :math:`\mathbf{u}_i^{(k)} = P_i(\mathbf{u}_{i-1}^{(k)} + \mathbf{z}_i^{(k-1)})`
-        * :math:`\mathbf{z}_i^{(k)} = \mathbf{z}_i^{(k-1)} + \mathbf{u}_{i-1}^{(k)} - \mathbf{u}_i^{(k)}`
+        * :math:`\mathbf{u}_i^k = P_i(\mathbf{u}_{i-1}^k + \mathbf{z}_i^{k-1})`
+        * :math:`\mathbf{z}_i^k = \mathbf{z}_i^{k-1} + \mathbf{u}_{i-1}^k - \mathbf{u}_i^k`
 
     Note the this is the proximal operator of the corresponding
     indicator function
@@ -118,39 +119,33 @@ class GenericIntersectionProj():
         )
 
     def __call__(self, x: NDArray) -> NDArray:
-        r"""compute projection :math:`P_C(\mathbf{x})` of :math:`\mathbf{x}`.
-        """
+        r"""compute projection :math:`P_C(\mathbf{x})` of :math:`\mathbf{x}`."""
         return self._proj(x)
 
     def _single_proj(self, x0: NDArray) -> NDArray:
-        r"""Compute projection :math:`P_C(\mathbf{x})` for :math:`m=1`.
-        """
+        r"""Compute projection :math:`P_C(\mathbf{x})` for :math:`m=1`."""
         if len(self.projections) != 1:
             raise ValueError("len(projections) should be 1")
 
         return self.projections[0](x0)
 
-    def _two_proj(
-        self, x0: NDArray
-    ) -> NDArray:
-        r"""Compute projection :math:`P_C(\mathbf{x})` for :math:`m=2`.
-        """
+    def _two_proj(self, x0: NDArray) -> NDArray:
+        r"""Compute projection :math:`P_C(\mathbf{x})` for :math:`m=2`."""
         if len(self.projections) != 2:
             raise ValueError("len(projections) should be 2")
 
         step1, step2 = self.projections
 
         return dykstra_two(
-            x0, step1, step2,
+            x0,
+            step1,
+            step2,
             niter=self.niter,
             tol=self.tol,
         )
 
-    def _more_proj(
-            self, x0: NDArray
-    ) -> NDArray:
-        r"""Compute projection :math:`P_C(x)` for :math:`m \ge 2`.
-        """
+    def _more_proj(self, x0: NDArray) -> NDArray:
+        r"""Compute projection :math:`P_C(x)` for :math:`m \ge 2`."""
         if len(self.projections) < 2:
             raise ValueError("len(projections) should be 2 or larger")
 

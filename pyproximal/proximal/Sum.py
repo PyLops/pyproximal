@@ -1,14 +1,14 @@
-from typing import List, Any, Callable
+from typing import Any, Callable, List
 
-from pylops.utils.typing import NDArray
 from pylops.utils.backend import get_array_module
+from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import ProxOperator, _check_tau
-from pyproximal.proximal._dykstra_core import (
+from pyproximal.proximal._Dykstra import (
+    _select_impl_by_arity,
     dykstra_two,
     parallel_dykstra_prox,
-    _select_impl_by_arity,
 )
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class Sum(ProxOperator):
@@ -19,7 +19,7 @@ class Sum(ProxOperator):
     ----------
     ops : :obj:`list`
         A list of proximable functions :math:`f_1, \ldots, f_m`.
-    weights : :obj:`np.ndarray` or :obj:`List[float]` or :obj:`None`, optional, default=None
+    weights : :obj:`np.ndarray` or :obj:`list` or :obj:`None`, optional, default=None
         Weights :math:`\sum_{i=1}^m w_i = 1, \ 0 < w_i < 1`,
         used when :math:`m > 2`, or :math:`m = 2` and ``use_parallel=True``.
         Defaults to None, which means :math:`w_1 = \cdots = w_m = \frac{1}{m}.`
@@ -41,7 +41,7 @@ class Sum(ProxOperator):
     :math:`f_i` and corresponding weights :math:`w_i` for :math:`i=1, \ldots, m`,
     this class computes the proximal operator of the sum of two functions
 
-    .. math:: \prox_{\tau \ f + g}
+    .. math:: \prox_{\tau (f + g)}
 
     using the Dykstra-like algorithm, or of the weighted sum of functions
 
@@ -49,31 +49,29 @@ class Sum(ProxOperator):
 
     using the parallel Dykstra-like algorithm.
 
-    For :math:`m=2`:
-    The proximal mapping :math:`\prox_{\tau f + g}(\mathbf{x})` of
+    For :math:`m=2`, the proximal mapping :math:`\prox_{\tau (f + g)}(\mathbf{x})` of
     :math:`\mathbf{x}` is computed by the Dykstra-like algorithm [1]_, [2]_:
 
-    * :math:`\mathbf{x}^{(0)} = \mathbf{x}, \mathbf{p}^{(0)} = \mathbf{q}^{(0)} = \mathbf{0}`
+    * :math:`\mathbf{x}^0 = \mathbf{x}, \mathbf{p}^0 = \mathbf{q}^0 = \mathbf{0}`
     * for :math:`k = 1, \ldots`
 
-      * :math:`\mathbf{y}^{(k)} = \prox_{\tau g}(\mathbf{x}^{(k)} + \mathbf{p}^{(k)})`
-      * :math:`\mathbf{p}^{(k+1)} = \mathbf{p}^{(k)} + \mathbf{x}^{(k)} - \mathbf{y}^{(k)}`
-      * :math:`\mathbf{x}^{(k+1)} = \prox_{\tau f}(\mathbf{y}^{(k)} + \mathbf{q}^{(k)})`
-      * :math:`\mathbf{q}^{(k+1)} = \mathbf{q}^{(k)} + \mathbf{y}^{(k)} - \mathbf{x}^{(k+1)}`
+      * :math:`\mathbf{y}^k = \prox_{\tau g}(\mathbf{x}^k + \mathbf{p}^k)`
+      * :math:`\mathbf{p}^{k+1} = \mathbf{p}^k + \mathbf{x}^k - \mathbf{y}^k`
+      * :math:`\mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{y}^k + \mathbf{q}^k)`
+      * :math:`\mathbf{q}^{k+1} = \mathbf{q}^k + \mathbf{y}^k - \mathbf{x}^{k+1}`
 
-    For :math:`m \ge 2`:
-    The proximal mapping :math:`\prox_{\tau \sum_{i=1}^m w_i f_i}(\mathbf{x})`
+    For :math:`m \ge 2`, the proximal mapping :math:`\prox_{\tau \sum_{i=1}^m w_i f_i}(\mathbf{x})`
     of :math:`\mathbf{x}` is computed by
     the parallel Dykstra-like algorithm [3]_, [4]_, [5]_,
     where :math:`\sum_{i=1}^m w_i = 1, \ 0 < w_i < 1`:
 
-    * :math:`\mathbf{x}^{(0)} = \mathbf{z}_{1}^{(0)} = \cdots = \mathbf{z}_{m}^{(0)} = \mathbf{x}`
+    * :math:`\mathbf{x}^0 = \mathbf{z}_1^0 = \cdots = \mathbf{z}_m^0 = \mathbf{x}`
     * for :math:`k = 1, \ldots`
 
-      * :math:`\mathbf{x}^{(k+1)} = \sum_{i=1}^{m} w_i \prox_{\tau_i f_i} (\mathbf{z}_{i}^{(k)})`
+      * :math:`\mathbf{x}^{k+1} = \sum_{i=1}^{m} w_i \prox_{\tau_i f_i} (\mathbf{z}_{i}^k)`
       * for :math:`i = 1, \ldots, m`
 
-        * :math:`\mathbf{z}_{i}^{(k+1)} = \mathbf{z}_{i}^{(k)} + \mathbf{x}^{(k+1)} - \prox_{\tau_i f_i} (\mathbf{z}_{i}^{(k)})`
+        * :math:`\mathbf{z}_{i}^{k+1} = \mathbf{z}_{i}^k + \mathbf{x}^{k+1} - \prox_{\tau_i f_i} (\mathbf{z}_{i}^k)`
 
     Note that :math:`\tau_i = \tau / w_i` if ``use_original_tau==False`` (default),
     otherwise :math:`\tau_i = \tau`.
@@ -126,7 +124,7 @@ class Sum(ProxOperator):
         self.use_original_tau = use_original_tau
 
         if weights is None:
-            self.w = [1. / len(self.ops)] * len(self.ops)
+            self.w = [1.0 / len(self.ops)] * len(self.ops)
         else:
             self.w = weights
 
@@ -176,45 +174,38 @@ class Sum(ProxOperator):
 
     @_check_tau
     def prox(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
-        r"""compute :math:`\prox_{\tau \ f}(\mathbf{x})`` of :math:`\mathbf{x}`.
-        """
+        r"""compute :math:`\prox_{\tau \ f}(\mathbf{x})`` of :math:`\mathbf{x}`."""
         return self._prox(x, tau)
 
-    def _single_prox(
-        self, x0: NDArray, tau: float
-    ) -> NDArray:
-        r"""Compute :math:`\prox_{\tau \ f}(\mathbf{x})` for :math:`m = 1`.
-        """
+    def _single_prox(self, x0: NDArray, tau: float) -> NDArray:
+        r"""Compute :math:`\prox_{\tau \ f}(\mathbf{x})` for :math:`m = 1`."""
         if len(self.ops) != 1:
             raise ValueError("len(ops) should be 1")
 
         return self.ops[0].prox(x0, tau)
 
-    def _two_prox(
-        self, x0: NDArray, tau: float
-    ) -> NDArray:
-        r"""Compute :math:`\prox_{\tau \ f + g}(\mathbf{x})` for :math:`m = 2`.
-        """
+    def _two_prox(self, x0: NDArray, tau: float) -> NDArray:
+        r"""Compute :math:`\prox_{\tau \ f + g}(\mathbf{x})` for :math:`m = 2`."""
         if len(self.ops) != 2:
             raise ValueError("len(ops) should be 2")
 
         def bind_tau(
-                prox: Callable[[NDArray, float], NDArray],
-                tau: float,
+            prox: Callable[[NDArray, float], NDArray],
+            tau: float,
         ) -> Callable[[NDArray], NDArray]:
             return lambda x: prox(x, tau)
 
         step1, step2 = [bind_tau(op.prox, tau) for op in self.ops]
 
         return dykstra_two(
-            x0, step1, step2,
+            x0,
+            step1,
+            step2,
             niter=self.niter,
             tol=self.tol,
         )
 
-    def _more_prox(
-        self, x0: NDArray, tau: float
-    ) -> NDArray:
+    def _more_prox(self, x0: NDArray, tau: float) -> NDArray:
         r"""Compute :math:`\prox_{\tau \ \sum_{i=1}^m w_i f_i}(\mathbf{x})`
         for :math:`m \ge 2`.
         """

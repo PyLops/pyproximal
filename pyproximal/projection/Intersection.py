@@ -15,7 +15,7 @@ class IntersectionProj:
         Number of vectors to be projected simultaneously
     sigma : :obj:`np.ndarray`
         Matrix of distances of size :math:`k \times k`
-    k : :obj:`int`, optional
+    niter : :obj:`int`, optional
         Number of iterations
     tol : :obj:`float`, optional
         Tolerance of update
