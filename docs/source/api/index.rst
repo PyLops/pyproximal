@@ -20,6 +20,7 @@ Orthogonal projections
     AffineSetProj
     BoxProj
     EuclideanBallProj
+    GenericIntersectionProj
     HankelProj
     HalfSpaceProj
     HyperPlaneBoxProj
@@ -29,7 +30,6 @@ Orthogonal projections
     L1BallProj
     NuclearBallProj
     SimplexProj
-    GenericIntersectionProj
 
 Proximal operators
 ------------------
@@ -66,6 +66,7 @@ Convex
     Box
     Euclidean
     EuclideanBall
+    GenericIntersectionProx
     HalfSpace
     Hankel
     Huber
@@ -83,9 +84,8 @@ Convex
     Orthogonal
     Quadratic
     Simplex
-    TV
-    GenericIntersectionProx
     Sum
+    TV
 
 
 Non-Convex
