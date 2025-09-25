@@ -1,14 +1,12 @@
-from typing import Callable, List, Any, Sequence, TypeVar
+from typing import Any, Callable, List, Sequence, TypeVar
 
-from pylops.utils.typing import NDArray
 from pylops.utils.backend import get_array_module
+from pylops.utils.typing import NDArray
 
 Proj = TypeVar("Proj", bound=Callable[[NDArray], NDArray])
 ProxOp = TypeVar("ProxOp", bound=Callable[[NDArray, float], NDArray])
 ProxOpOrProj = TypeVar(
-    "ProxOpOrProj",
-    Callable[[NDArray], NDArray],
-    Callable[[NDArray, float], NDArray]
+    "ProxOpOrProj", Callable[[NDArray], NDArray], Callable[[NDArray, float], NDArray]
 )
 
 
@@ -20,7 +18,7 @@ def _select_impl_by_arity(
     two: ProxOpOrProj,
     more: ProxOpOrProj,
 ) -> ProxOpOrProj:
-    """Choose implementation by ``len(items)`@ and ``use_parallel``."""
+    """Choose implementation by ``len(items)`` and ``use_parallel``."""
     if not items:
         raise ValueError("items must not be empty")
     if len(items) == 1:
@@ -38,8 +36,7 @@ def dykstra_two(
     niter: int,
     tol: float,
 ) -> NDArray:
-    r"""Compute Dykstra's algorithm for :math:`m=2`.
-    """
+    r"""Compute Dykstra's algorithm for :math:`m=2`."""
     ncp = get_array_module(x0)
 
     x = x0.copy()
@@ -54,8 +51,7 @@ def dykstra_two(
         x = step2(y + q)
         q = q + y - x
 
-        if max(ncp.abs(x - x_old).max(),
-               ncp.abs(y - x_old).max()) < tol:
+        if max(ncp.abs(x - x_old).max(), ncp.abs(y - x_old).max()) < tol:
             break
 
     return x
@@ -68,8 +64,7 @@ def parallel_dykstra_projection(
     niter: int,
     tol: float,
 ) -> NDArray:
-    r"""Compute Dykstra's projection algorithm for :math:`m \ge 2`.
-    """
+    r"""Compute Dykstra's projection algorithm for :math:`m \ge 2`."""
     ncp = get_array_module(x0)
 
     u = x0.copy()
@@ -85,8 +80,7 @@ def parallel_dykstra_projection(
             z[i] = z[i] + u_prev[i - 1] - u
             u_prev[i] = u
 
-        if max(ncp.abs(u_old - u).max(),
-               ncp.abs(u_prev - u).max()) < tol:
+        if max(ncp.abs(u_old - u).max(), ncp.abs(u_prev - u).max()) < tol:
             break
 
     return u
@@ -101,8 +95,7 @@ def parallel_dykstra_prox(
     niter: int,
     tol: float,
 ) -> NDArray:
-    r"""Compute Dykstra-like proximal algorithm for :math:`m \ge 2`.
-    """
+    r"""Compute Dykstra-like proximal algorithm for :math:`m \ge 2`."""
     ncp = get_array_module(x0)
 
     x = x0.copy()
