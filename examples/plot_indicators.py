@@ -1,6 +1,6 @@
 r"""
-Norms
-=====
+Indicators
+==========
 This example considers proximal operators of indicator functions, which can be
 computed via their orthogonal projections.
 

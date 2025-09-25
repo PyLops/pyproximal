@@ -125,7 +125,7 @@ class LowRankFactorizedMatrix(BilinearOperator):
         \mathbf{X}^H \mathbf{Op}^H(\mathbf{Op}
         (\mathbf{X}\mathbf{Y}) - \mathbf{d})
 
-    Note that in both cases, the currently stored :math`\mathbf{x}`/:math`\mathbf{y}` variable
+    Note that in both cases, the currently stored :math:`\mathbf{x}`/:math:`\mathbf{y}` variable
     is used for the second variable within parenthesis (after ;).
 
     """

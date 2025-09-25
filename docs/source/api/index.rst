@@ -20,6 +20,7 @@ Orthogonal projections
     AffineSetProj
     BoxProj
     EuclideanBallProj
+    GenericIntersectionProj
     HankelProj
     HalfSpaceProj
     HyperPlaneBoxProj
@@ -65,6 +66,7 @@ Convex
     Box
     Euclidean
     EuclideanBall
+    GenericIntersectionProx
     HalfSpace
     Hankel
     Huber
@@ -82,6 +84,7 @@ Convex
     Orthogonal
     Quadratic
     Simplex
+    Sum
     TV
 
 
