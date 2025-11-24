@@ -1,8 +1,10 @@
+from typing import Union
+
 import numpy as np
-from pyproximal.projection import HyperPlaneBoxProj
+from pylops.utils.typing import NDArray
 
 
-class EuclideanBallProj():
+class EuclideanBallProj:
     r"""Euclidean ball projection.
 
     Parameters
@@ -31,12 +33,13 @@ class EuclideanBallProj():
     indicator function :math:`\mathcal{I}_{\operatorname{Eucl}_{[c, r]}}`.
 
     """
-    def __init__(self, center, radius):
+
+    def __init__(self, center: Union[NDArray, float], radius: float):
         self.center = center
         self.radius = radius
 
-    def __call__(self, x):
-        x = self.center +  \
-            self.radius / (max(np.linalg.norm(x - self.center),
-                               self.radius)) * (x - self.center)
+    def __call__(self, x: NDArray) -> NDArray:
+        x = self.center + self.radius / (
+            max(float(np.linalg.norm(x - self.center)), self.radius)
+        ) * (x - self.center)
         return x

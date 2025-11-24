@@ -2,8 +2,9 @@
 import sys
 import os
 import datetime
-import sphinx_gallery
+
 from sphinx_gallery.sorting import ExampleTitleSortKey
+
 from pyproximal import __version__
 
 # Sphinx needs to be able to import the package to use autodoc and get the version number
@@ -37,13 +38,13 @@ intersphinx_mapping = {
     "pylops": ("https://pylops.readthedocs.io/en/latest/", None),
 }
 
-## Generate autodoc stubs with summaries from code
+# Generate autodoc stubs with summaries from code
 autosummary_generate = True
 
-## Include Python objects as they appear in source files
+# Include Python objects as they appear in source files
 autodoc_member_order = 'bysource'
 
-## Default flags used by autodoc directives
+# Default flags used by autodoc directives
 autodoc_default_flags = ['members']
 
 numpydoc_show_class_members = False
@@ -103,7 +104,7 @@ html_last_updated_fmt = '%b %d, %Y'
 html_title = 'PyProximal'
 html_short_title = 'PyProximal'
 html_logo = '_static/pyproximal.png'
-html_favicon = 'favicon.ico'
+html_favicon = "_static/favicon.ico"
 html_extra_path = []
 pygments_style = 'default'
 add_function_parentheses = False
@@ -114,13 +115,18 @@ html_show_copyright = True
 # Theme config
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
-    'logo_only': True,
-    'display_version': True,
+    "github_url": "https://github.com/PyLops/pyproximal",
+    # 'logo_only': True,
+    # 'display_version': True,
     "logo": {
-            "image_light": "pyproximal_b.png",
-            "image_dark": "pyproximal.png",
+        "image_light": "pyproximal_b.png",
+        "image_dark": "pyproximal.png",
     }
 }
+html_css_files = [
+    "css/custom.css",
+]
+
 html_context = {
     'menu_links_name': 'Repository',
     'menu_links': [

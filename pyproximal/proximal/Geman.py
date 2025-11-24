@@ -1,7 +1,9 @@
-import numpy as np
+from typing import Tuple
 
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
+import numpy as np
+from pylops.utils.typing import NDArray
+
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class Geman(ProxOperator):
@@ -45,7 +47,7 @@ class Geman(ProxOperator):
 
     """
 
-    def __init__(self, sigma, gamma=1.3):
+    def __init__(self, sigma: float, gamma: float = 1.3) -> None:
         super().__init__(None, False)
         if sigma < 0:
             raise ValueError('Variable "sigma" must be positive.')
@@ -54,30 +56,34 @@ class Geman(ProxOperator):
         self.sigma = sigma
         self.gamma = gamma
 
-    def __call__(self, x):
-        return np.sum(self.elementwise(x))
+    def __call__(self, x: NDArray) -> float:
+        return float(np.sum(self.elementwise(x)))
 
-    def elementwise(self, x):
+    def elementwise(self, x: NDArray) -> NDArray:
         return self.sigma * np.abs(x) / (np.abs(x) + self.gamma)
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         out = np.zeros_like(x)
         b = 2 * self.gamma - np.abs(x)
-        c = self.gamma ** 2 - 2 * self.gamma * np.abs(x)
-        d = self.gamma * self.sigma * tau - self.gamma ** 2 * np.abs(x)
+        c = self.gamma**2 - 2 * self.gamma * np.abs(x)
+        d = self.gamma * self.sigma * tau - self.gamma**2 * np.abs(x)
         idx, loc_mins = self._find_local_minima(b, c, d)
-        global_min_idx = tau * self.elementwise(loc_mins) + \
-            (loc_mins - np.abs(x[idx])) ** 2 / 2 < np.abs(x[idx]) ** 2 / 2
+        global_min_idx = (
+            tau * self.elementwise(loc_mins) + (loc_mins - np.abs(x[idx])) ** 2 / 2
+            < np.abs(x[idx]) ** 2 / 2
+        )
         idx[idx] = global_min_idx
         out[idx] = np.sign(x[idx]) * loc_mins[global_min_idx]
         return out
 
     @staticmethod
-    def _find_local_minima(b, c, d):
-        f = -(c - b ** 2.0 / 3.0) ** 3.0 / 27.0
-        g = (2.0 * b ** 3.0 - 9.0 * b * c + 27.0 * d) / 27.0
-        idx = g ** 2.0 / 4.0 - f <= 0
+    def _find_local_minima(
+        b: NDArray, c: NDArray, d: NDArray
+    ) -> Tuple[NDArray, NDArray]:
+        f = -((c - b**2.0 / 3.0) ** 3.0) / 27.0
+        g = (2.0 * b**3.0 - 9.0 * b * c + 27.0 * d) / 27.0
+        idx = g**2.0 / 4.0 - f <= 0
         sqrtf = np.sqrt(f[idx])
         k = np.arccos(-(g[idx] / (2 * sqrtf)))
         loc_mins = 2 * sqrtf ** (1 / 3.0) * np.cos(k / 3.0) - b[idx] / 3.0

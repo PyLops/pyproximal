@@ -24,9 +24,9 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
 dependencies = [
@@ -47,3 +47,19 @@ exclude = ["pytests"]
 
 [tool.setuptools_scm]
 version_file = "pyproximal/version.py"
+
+[tool.mypy]
+files = ["pyproximal", ]
+python_version = "3.10"
+mypy_path = "pyproximal"
+strict = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+warn_unreachable = true
+allow_redefinition = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+plugins = ["numpy.typing.mypy_plugin"]
+
+[[tool.mypy.overrides]]
+module = ["cupy.*", "numpy.*", "numba.*", "pylops.*", "scipy.*", "scooby.*", "pyproximal.*"]
+ignore_missing_imports = true

@@ -1,17 +1,35 @@
 Changelog
 =========
 
-# 0.10.0
+# 0.11.0
+* Added ``pyproximal.optimization.primal.DouglasRachfordSplitting``
+  solver
+* Added ``pyproximal.projection.GenericIntersectionProj`` and
+  ``pyproximal.proximal.GenericIntersectionProx`` operators
+* Added ``pyproximal.projection.HalfSpaceProj`` and
+  ``pyproximal.proximal.HalfSpace`` operators
+* Added ``pyproximal.proximal.L10Ball`` operator (as renaming of
+  ``pyproximal.proximal.L01Ball``)
+* Added ``pyproximal.projection.HalfSpaceProj`` and
+  ``pyproximal.proximal.HalfSpace`` operators
+* Added input parameters to allow a user to  provide an initial guess for the
+  auxiliary variables in all solvers
+* Added ``gfirst`` to ``pyproximal.optimization.primal.ADMML2``
+* Homogenize error/warning/info messages across the library by switching to
+  ``logging/warning``
+* Fixed backtracking of ``y`` in ``pyproximal.optimization.palm.iPALM``
+* Fixed implementation in ``__call__`` method of ``pyproximal.proximal.L0``
+* Fixed ``pyproximal.ProxOperator._PrecompositionOperator`` to be
+  able to handle CuPy arrays
 
+# 0.10.0
 * Added ``pyproximal.optimization.primal.AndersonProximalGradient`` solver
 * Added ``pyproximal.proximal.HuberCircular`` operator
 * Added `fungrad` method to ``pyproximal.proximal.Nonlinear``
-* Modified ``pyproximal.proximal.Huber`` operator as previously 
+* Modified ``pyproximal.proximal.Huber`` operator as previously
   erroneously implemented using the definition of Circular Huber norm
 
- 
 # 0.9.0
-
 * Added ``pyproximal.optimization.palm.iPALM`` solver
 * Added ``pyproximal.optimization.palm._backtracking`` method to be used when `gammaf=None` and/or `gammag=None`
 * Added ``pyproximal.utils.gradtest.gradtest_proximal`` and ``pyproximal.utils.gradtest.gradtest_bilinear`` methods
@@ -19,9 +37,7 @@ Changelog
   ``pyproximal.optimization.primal.ProximalGradient`` solvers
 * Modified ``pyproximal.ProxOperator.precomposition`` to allow `b` being also a vector
 
-
 # 0.8.0
-
 * Added ``pyproximal.projection.L01BallProj`` and ``pyproximal.proximal.L01Ball`` operators
 * Added ``eta`` to ``pyproximal.optimization.primal.ProximalGradient``
 * Added ``eta`` and ``weights`` to ``pyproximal.optimization.primal.GeneralizedProximalGradient``
@@ -29,16 +45,14 @@ Changelog
 * Switched from ``lsqr`` to ``cg`` in ``pyproximal.projection.AffineSetProj``
 
 # 0.7.0
-
 * Added ``pyproximal.proximal.RelaxedMumfordShah`` operator
-* Added cuda version to the proximal operator of ``pyproximal.proximal.Simplex`` 
+* Added cuda version to the proximal operator of ``pyproximal.proximal.Simplex``
 * Added bilinear update to ``pyproximal.optimization.primal.ProximalGradient``
 * Modified ``pyproximal.optimization.pnp.PlugAndPlay`` function signature to allow using any proximal solver of choice
 * Fixed print in ``pyproximal.optimization.primaldual.PrimalDual`` when using cupy arrays
 * Fixed ``pyproximal.utils.bilinear.LowRankFactorizedMatrix`` when ``n=m``
 
 # 0.6.0
-
 :vertical_traffic_light: :vertical_traffic_light: This is the first release supporting PyLops v2.
 :vertical_traffic_light: :vertical_traffic_light:
 
@@ -48,7 +62,6 @@ Changelog
 * Modified codebase to integrate with ``pylops`` v2.
 
 # 0.5.0
-
 :vertical_traffic_light: :vertical_traffic_light: This is the latest release supporting PyLops v1.
 :vertical_traffic_light: :vertical_traffic_light:
 
@@ -72,15 +85,15 @@ Changelog
 
 # 0.3.0
 * Added ``pyproximal.optimization.palm.PALM`` optimizer
-* Added ``callback`` to ``pyproximal.optimization.proximal.ProximalPoint`` 
+* Added ``callback`` to ``pyproximal.optimization.proximal.ProximalPoint``
   optimizer
-* Added ``pyproximal.utils.bilinear.BilinearOperator`` and 
+* Added ``pyproximal.utils.bilinear.BilinearOperator`` and
   ``pyproximal.utils.bilinear.LowRankFactorizedMatrix`` operators
 
 # 0.2.0
-* Added ``pyproximal.proximal.L0Ball``, ``pyproximal.proximal.L1Ball``, 
-  ``pyproximal.proximal.L21_plus_L1``, ``pyproximal.proximal.Nuclear``, 
-  ``pyproximal.proximal.NuclearBall``, and ``pyproximal.proximal.Nonlinear`` 
+* Added ``pyproximal.proximal.L0Ball``, ``pyproximal.proximal.L1Ball``,
+  ``pyproximal.proximal.L21_plus_L1``, ``pyproximal.proximal.Nuclear``,
+  ``pyproximal.proximal.NuclearBall``, and ``pyproximal.proximal.Nonlinear``
   operators
 * Added ``pyproximal.optimization.primal.TwIST`` solver
 * Added `acceleration` in
@@ -90,7 +103,7 @@ Changelog
 * Added `chain` method ``pyproximal.ProxOperator``
 * Fix ``pyproximal.proximal.Orthogonal`` by introducing `alpha`
   in the proximal evaluation
-  
+
 # 0.1.0
 * Added ``pyproximal.optimization.sr3.SR3`` solver
 * Added ``pyproximal.projection.AffineSetProj`` and
@@ -99,4 +112,3 @@ Changelog
 
 # 0.0.0
 * First official release.
-

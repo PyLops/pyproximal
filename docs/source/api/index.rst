@@ -20,11 +20,13 @@ Orthogonal projections
     AffineSetProj
     BoxProj
     EuclideanBallProj
+    GenericIntersectionProj
     HankelProj
+    HalfSpaceProj
     HyperPlaneBoxProj
     IntersectionProj
     L0BallProj
-    L01BallProj
+    L10BallProj
     L1BallProj
     NuclearBallProj
     SimplexProj
@@ -64,13 +66,15 @@ Convex
     Box
     Euclidean
     EuclideanBall
+    GenericIntersectionProx
+    HalfSpace
     Hankel
     Huber
     HuberCircular
     Intersection
     L0
     L0Ball
-    L01Ball
+    L10Ball
     L1
     L1Ball
     L2
@@ -80,6 +84,7 @@ Convex
     Orthogonal
     Quadratic
     Simplex
+    Sum
     TV
 
 
@@ -165,6 +170,7 @@ Primal
     ProximalGradient
     ProximalPoint
     TwIST
+    DouglasRachfordSplitting
 
 .. currentmodule:: pyproximal.optimization.palm
 

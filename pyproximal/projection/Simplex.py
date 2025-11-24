@@ -1,8 +1,10 @@
 import numpy as np
+from pylops.utils.typing import NDArray
+
 from pyproximal.projection import HyperPlaneBoxProj
 
 
-class SimplexProj():
+class SimplexProj:
     r"""Simplex projection.
 
     Parameters
@@ -30,12 +32,15 @@ class SimplexProj():
     details).
 
     """
-    def __init__(self, n, radius, maxiter=100, xtol=1e-5):
-        self.simplex = HyperPlaneBoxProj(np.ones(n), radius,
-                                         lower=0, upper=np.inf,
-                                         maxiter=maxiter, xtol=xtol)
 
-    def __call__(self, x):
+    def __init__(
+        self, n: int, radius: float, maxiter: int = 100, xtol: float = 1e-5
+    ) -> None:
+        self.simplex = HyperPlaneBoxProj(
+            np.ones(n), radius, lower=0, upper=np.inf, maxiter=maxiter, xtol=xtol
+        )
+
+    def __call__(self, x: NDArray) -> NDArray:
         """Apply Simplex projection
 
         Parameters

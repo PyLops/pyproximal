@@ -9,10 +9,6 @@
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.06326/status.svg)](https://doi.org/10.21105/joss.06326)
 
 
-:vertical_traffic_light: :vertical_traffic_light: This library is under early development.
-Expect things to constantly change until version v1.0.0. :vertical_traffic_light: :vertical_traffic_light:
-
-
 ## Objective
 This Python library provides all the needed building blocks for solving
 non-smooth convex optimization problems using the so-called **proximal algorithms**.
@@ -111,7 +107,7 @@ This repository is organized as follows:
 ## Getting started
 You need **Python 3.8 or greater**.
 
-*Note: Versions prior to v0.3.0 work also with Python 3.6 or greater, however they 
+*Note: Versions prior to v0.3.0 work also with Python 3.6 or greater, however they
 require scipy version to be lower than v1.8.0.*
 
 To get the most out of PyLops straight out of the box, we recommend `conda` to install PyLops:
@@ -189,7 +185,7 @@ When using PyProximal in scientific publications, please cite the following pape
 - Ravasi M, Örnhag M. V., Luiken N., Leblanc O. and Uruñuela E., 2024, *<b>PyProximal - scalable convex optimization in Python</b>*,
   Journal of Open Source Software, 9(95), 6326. doi: 10.21105/joss.06326 [(link)](https://joss.theoj.org/papers/10.21105/joss.06326)
 
- 
+
 
 ## Contributors
 * Matteo Ravasi, mrava87
@@ -197,3 +193,4 @@ When using PyProximal in scientific publications, please cite the following pape
 * Eneko Uruñuela, eurunuela
 * Marcus Valtonen Örnhag, marcusvaltonen
 * Olivier Leblanc, olivierleblanc
+* Toru Tamaki, tttamaki

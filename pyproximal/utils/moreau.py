@@ -1,8 +1,20 @@
+from typing import TYPE_CHECKING
+
 import numpy as np
-from pyproximal.ProxOperator import _check_tau
+from pylops.utils.typing import NDArray
+
+if TYPE_CHECKING:
+    from pyproximal.ProxOperator import ProxOperator
 
 
-def moreau(prox, x, tau, tol=1e-5, raiseerror=True, verb=False):
+def moreau(
+    prox: "ProxOperator",
+    x: NDArray,
+    tau: float,
+    tol: float = 1e-5,
+    raiseerror: bool = True,
+    verb: bool = False,
+) -> bool:
     r"""Moreau Identity.
 
     The Moreau identity defines a relation between the vector :math:`\mathbf{u}`,
@@ -11,7 +23,7 @@ def moreau(prox, x, tau, tol=1e-5, raiseerror=True, verb=False):
 
     Parameters
     ----------
-    prox : :obj:`pyprox.ProxOperator`
+    prox : :obj:`pyproximal.ProxOperator`
         Proximal operator
     x : :obj:`np.ndarray`
         Vector
@@ -35,22 +47,22 @@ def moreau(prox, x, tau, tol=1e-5, raiseerror=True, verb=False):
         \tau \prox_{\frac{1}{\tau} f^*} (\frac{\mathbf{x}}{\tau})
 
     This routine is used to evaluate if the prox and dualprox implementations
-    of a ``pyprox.ProxOperator`` satisfy such identity.
+    of a ``pyproximal.ProxOperator`` satisfy such identity.
 
     """
     # compute prox
     p = prox.prox(x, tau)
 
     # compute dualprox
-    pdual = tau * prox.proxdual(x / tau, 1. / tau)
+    pdual = tau * prox.proxdual(x / tau, 1.0 / tau)
 
     if verb:
-        print('x: ', x)
-        print('p + pdual: ', p + pdual)
-        print('error: ', x - (p + pdual))
+        print("x: ", x)
+        print("p + pdual: ", p + pdual)
+        print("error: ", x - (p + pdual))
     if np.allclose(x, p + pdual, atol=tol):
         return True
     else:
         if raiseerror:
-            raise ValueError('Moreau identity not verified')
+            raise ValueError("Moreau identity not verified")
         return False

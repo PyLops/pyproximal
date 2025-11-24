@@ -1,8 +1,10 @@
 import numpy as np
+from pylops.utils.typing import NDArray
+
 from pyproximal.projection import L1BallProj
 
 
-class NuclearBallProj():
+class NuclearBallProj:
     r"""Nuclear ball projection
 
     Parameters
@@ -35,12 +37,15 @@ class NuclearBallProj():
     is the SVD decomposition of :math:`\mathbf{X}`.
 
     """
-    def __init__(self, n, radius, maxiter=100, xtol=1e-5):
+
+    def __init__(
+        self, n: int, radius: float, maxiter: int = 100, xtol: float = 1e-5
+    ) -> None:
         self.n = n
         self.radius = radius
         self.l1ball = L1BallProj(n, radius, maxiter, xtol)
 
-    def __call__(self, X):
+    def __call__(self, X: NDArray) -> NDArray:
         U, S, Vh = np.linalg.svd(X, full_matrices=False)
         S = self.l1ball(S)
         return U @ np.diag(S) @ Vh

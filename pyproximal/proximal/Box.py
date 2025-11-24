@@ -1,7 +1,10 @@
+from typing import Union
+
 import numpy as np
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
-from pyproximal.projection import BoxProj
+from pylops.utils.typing import NDArray
+
+from pyproximal.projection.Box import BoxProj
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class Box(ProxOperator):
@@ -23,15 +26,20 @@ class Box(ProxOperator):
     details.
 
     """
-    def __init__(self, lower=-np.inf, upper=np.inf):
+
+    def __init__(
+        self,
+        lower: Union[float, NDArray] = -np.inf,
+        upper: Union[float, NDArray] = np.inf,
+    ) -> None:
         super().__init__(None, False)
         self.lower = lower
         self.upper = upper
-        self.box = BoxProj(self.lower , self.upper)
+        self.box = BoxProj(self.lower, self.upper)
 
-    def __call__(self, x):
-        return np.all((x > self.lower) & (x < self.upper)).astype(x.dtype)
+    def __call__(self, x: NDArray) -> bool:
+        return bool(np.all((x >= self.lower) & (x <= self.upper)))
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         return self.box(x)

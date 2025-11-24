@@ -1,10 +1,12 @@
-import numpy as np
-
 from copy import deepcopy
-from scipy.sparse.linalg import lsqr
+from typing import Any, Callable, Union
+
+import numpy as np
 from pylops import FirstDerivative, Gradient
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
+from pylops.utils.typing import NDArray, ShapeLike
+from typing_extensions import Self
+
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class TV(ProxOperator):
@@ -18,7 +20,7 @@ class TV(ProxOperator):
     dims : :obj:`tuple`
         Number of samples for each dimension
         (``None`` if only one dimension is available)
-    sigma : :obj:`int`, optional
+    sigma : :obj:`float`, optional
         Multiplicative coefficient of TV norm
     niter : :obj:`int` or :obj:`func`, optional
         Number of iterations of iterative scheme used to compute the proximal.
@@ -30,12 +32,20 @@ class TV(ProxOperator):
 
     Notes
     -----
-    The proximal algorithm is implemented following [1].
+    The proximal algorithm is implemented following [1]_.
 
     .. [1] Beck, A. and Teboulle, M., "Fast gradient-based algorithms for constrained total
            variation image denoising and deblurring problems", 2009.
     """
-    def __init__(self, dims, sigma=1., niter=10, rtol=1e-4, **kwargs):
+
+    def __init__(
+        self,
+        dims: ShapeLike,
+        sigma: float = 1.0,
+        niter: Union[int, Callable[[int], int]] = 10,
+        rtol: float = 1e-4,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(None, True)
         self.dims = dims
         self.ndim = len(dims)
@@ -45,34 +55,36 @@ class TV(ProxOperator):
         self.rtol = rtol
         self.kwargs = kwargs
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         x = x.reshape(self.dims)
         if self.ndim == 1:
-            derivOp = FirstDerivative(dims=self.dims[0], axis=0, edge=False,
-                                      dtype=x.dtype, kind="forward")
+            derivOp = FirstDerivative(
+                dims=self.dims[0], axis=0, edge=False, dtype=x.dtype, kind="forward"
+            )
             dx = derivOp @ x
             y = np.sum(np.abs(dx), axis=0)
         elif self.ndim >= 2:
             y = 0
             gradOp = Gradient(self.dims, edge=False, dtype=x.dtype, kind="forward")
             grads = gradOp.matvec(x.ravel())
-            grads = grads.reshape((self.ndim, ) + self.dims)
+            grads = grads.reshape((self.ndim,) + self.dims)
             for g in grads:
                 y += np.power(abs(g), 2)
             y = np.sqrt(y)
-        return self.sigma * np.sum(y)
+        return float(self.sigma * np.sum(y))
 
-    def _increment_count(func):
-        """Increment counter
-        """
-        def wrapped(self, *args, **kwargs):
+    def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
+        """Increment counter"""
+
+        def wrapped(self: Self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
+
         return wrapped
 
     @_increment_count
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         # define current number of iterations
         if isinstance(self.niter, int):
             niter = self.niter
@@ -87,22 +99,23 @@ class TV(ProxOperator):
         x = x.reshape(self.dims)
         sol = x
         if self.ndim == 1:
-            derivOp = FirstDerivative(dims=self.dims[0], axis=0, edge=False,
-                                      dtype=x.dtype, kind="forward")
-        else: 
+            derivOp = FirstDerivative(
+                dims=self.dims[0], axis=0, edge=False, dtype=x.dtype, kind="forward"
+            )
+        else:
             gradOp = Gradient(x.shape, edge=False, dtype=x.dtype, kind="forward")
 
         if self.ndim == 1:
             r = derivOp @ (x * 0)
             rr = deepcopy(r)
         elif self.ndim == 2:
-            r, s = gradOp.matvec( (x * 0).ravel()).reshape((self.ndim, ) + x.shape)
+            r, s = gradOp.matvec((x * 0).ravel()).reshape((self.ndim,) + x.shape)
             rr, ss = deepcopy(r), deepcopy(s)
         elif self.ndim == 3:
-            r, s, k = gradOp.matvec( (x*0).ravel()).reshape((self.ndim, ) + x.shape)
+            r, s, k = gradOp.matvec((x * 0).ravel()).reshape((self.ndim,) + x.shape)
             rr, ss, kk = deepcopy(r), deepcopy(s), deepcopy(k)
         elif self.ndim == 4:
-            r, s, k, u = gradOp.matvec( (x*0).ravel()).reshape((self.ndim, ) + x.shape)
+            r, s, k, u = gradOp.matvec((x * 0).ravel()).reshape((self.ndim,) + x.shape)
             rr, ss, kk, uu = deepcopy(r), deepcopy(s), deepcopy(k), deepcopy(u)
 
         if self.ndim >= 1:
@@ -114,29 +127,29 @@ class TV(ProxOperator):
         if self.ndim >= 4:
             mold = u
 
-        told, prev_obj = 1., 0.
+        told, prev_obj = 1.0, 0.0
 
         # Initialization for weights
         if self.ndim >= 1:
             try:
                 wx = self.kwargs["wx"]
             except (KeyError, TypeError):
-                wx = 1.
+                wx = 1.0
         if self.ndim >= 2:
             try:
                 wy = self.kwargs["wy"]
             except (KeyError, TypeError):
-                wy = 1.
+                wy = 1.0
         if self.ndim >= 3:
             try:
                 wz = self.kwargs["wz"]
             except (KeyError, TypeError):
-                wz = 1.
+                wz = 1.0
         if self.ndim >= 4:
             try:
                 wt = self.kwargs["wt"]
             except (KeyError, TypeError):
-                wt = 1.
+                wt = 1.0
 
         if self.ndim == 1:
             mt = wx
@@ -175,30 +188,122 @@ class TV(ProxOperator):
                 raise ValueError("Need to input at least one value")
 
             if self.ndim >= 1:
-                div = np.concatenate((np.expand_dims(rr[0, ], axis=0),
-                                      rr[1:-1, ] - rr[:-2, ],
-                                      -np.expand_dims(rr[-2, ], axis=0)),
-                                     axis=0)
+                div = np.concatenate(
+                    (
+                        np.expand_dims(
+                            rr[0,],
+                            axis=0,
+                        ),
+                        rr[1:-1,] - rr[:-2,],
+                        -np.expand_dims(
+                            rr[-2,],
+                            axis=0,
+                        ),
+                    ),
+                    axis=0,
+                )
             if self.ndim >= 2:
-                div += np.concatenate((np.expand_dims(ss[:, 0, ], axis=1),
-                                       ss[:, 1:-1, ] - ss[:, :-2, ],
-                                       -np.expand_dims(ss[:, -2, ], axis=1)),
-                                      axis=1)
+                div += np.concatenate(
+                    (
+                        np.expand_dims(
+                            ss[
+                                :,
+                                0,
+                            ],
+                            axis=1,
+                        ),
+                        ss[
+                            :,
+                            1:-1,
+                        ]
+                        - ss[
+                            :,
+                            :-2,
+                        ],
+                        -np.expand_dims(
+                            ss[
+                                :,
+                                -2,
+                            ],
+                            axis=1,
+                        ),
+                    ),
+                    axis=1,
+                )
             if self.ndim >= 3:
-                div += np.concatenate((np.expand_dims(kk[:, :, 0, ], axis=2),
-                                       kk[:, :, 1:-1, ] - kk[:, :, :-2, ],
-                                       -np.expand_dims(kk[:, :, -2, ], axis=2)),
-                                      axis=2)
+                div += np.concatenate(
+                    (
+                        np.expand_dims(
+                            kk[
+                                :,
+                                :,
+                                0,
+                            ],
+                            axis=2,
+                        ),
+                        kk[
+                            :,
+                            :,
+                            1:-1,
+                        ]
+                        - kk[
+                            :,
+                            :,
+                            :-2,
+                        ],
+                        -np.expand_dims(
+                            kk[
+                                :,
+                                :,
+                                -2,
+                            ],
+                            axis=2,
+                        ),
+                    ),
+                    axis=2,
+                )
             if self.ndim >= 4:
-                div += np.concatenate((np.expand_dims(uu[:, :, :, 0, ], axis=3),
-                                       uu[:, :, :, 1:-1, ] - uu[:, :, :, :-2, ],
-                                       -np.expand_dims(uu[:, :, :, -2, ], axis=3)),
-                                      axis=3)
+                div += np.concatenate(
+                    (
+                        np.expand_dims(
+                            uu[
+                                :,
+                                :,
+                                :,
+                                0,
+                            ],
+                            axis=3,
+                        ),
+                        uu[
+                            :,
+                            :,
+                            :,
+                            1:-1,
+                        ]
+                        - uu[
+                            :,
+                            :,
+                            :,
+                            :-2,
+                        ],
+                        -np.expand_dims(
+                            uu[
+                                :,
+                                :,
+                                :,
+                                -2,
+                            ],
+                            axis=3,
+                        ),
+                    ),
+                    axis=3,
+                )
             sol = x - gamma * div
 
             #  Objective function value
-            obj = 0.5 * np.power(np.linalg.norm(x[:] - sol[:]), 2) + \
-                  gamma * np.sum(self.__call__(sol), axis=0)
+            obj = 0.5 * np.power(np.linalg.norm(x[:] - sol[:]), 2) + gamma * np.sum(
+                self.__call__(sol), axis=0
+            )
             if obj > 1e-10:
                 rel_obj = np.abs(obj - prev_obj) / obj
             else:
@@ -212,35 +317,48 @@ class TV(ProxOperator):
             #  Update divergence vectors and project
             if self.ndim == 1:
                 dx = derivOp @ sol
-                r -= 1. / (4 * gamma * mt**2) * dx
+                r -= 1.0 / (4 * gamma * mt**2) * dx
                 weights = np.maximum(1, np.abs(r))
             elif self.ndim == 2:
-                dx, dy = gradOp.matvec(sol.ravel()).reshape((self.ndim, ) + x.shape)
-                r -= (1. / (8. * gamma * mt**2.)) * dx
-                s -= (1. / (8. * gamma * mt**2.)) * dy
-                weights = np.maximum(1, np.sqrt(np.power(np.abs(r), 2) +
-                                                np.power(np.abs(s), 2)))
+                dx, dy = gradOp.matvec(sol.ravel()).reshape((self.ndim,) + x.shape)
+                r -= (1.0 / (8.0 * gamma * mt**2.0)) * dx
+                s -= (1.0 / (8.0 * gamma * mt**2.0)) * dy
+                weights = np.maximum(
+                    1, np.sqrt(np.power(np.abs(r), 2) + np.power(np.abs(s), 2))
+                )
             elif self.ndim == 3:
-                dx, dy, dz = gradOp.matvec(sol.ravel()).reshape((self.ndim, ) + x.shape)
-                r -= 1. / (12. * gamma * mt**2) * dx
-                s -= 1. / (12. * gamma * mt**2) * dy
-                k -= 1. / (12. * gamma * mt**2) * dz
-                weights = np.maximum(1, np.sqrt(np.power(np.abs(r), 2) +
-                                                np.power(np.abs(s), 2) +
-                                                np.power(np.abs(k), 2)))
+                dx, dy, dz = gradOp.matvec(sol.ravel()).reshape((self.ndim,) + x.shape)
+                r -= 1.0 / (12.0 * gamma * mt**2) * dx
+                s -= 1.0 / (12.0 * gamma * mt**2) * dy
+                k -= 1.0 / (12.0 * gamma * mt**2) * dz
+                weights = np.maximum(
+                    1,
+                    np.sqrt(
+                        np.power(np.abs(r), 2)
+                        + np.power(np.abs(s), 2)
+                        + np.power(np.abs(k), 2)
+                    ),
+                )
             elif self.ndim == 4:
-                dx, dy, dz, dt = gradOp.matvec(sol.ravel()).reshape((self.ndim, ) + x.shape)
-                r -= 1. / (16 * gamma * mt**2) * dx
-                s -= 1. / (16 * gamma * mt**2) * dy
-                k -= 1. / (16 * gamma * mt**2) * dz
-                u -= 1. / (16 * gamma * mt**2) * dt
-                weights = np.maximum(1, np.sqrt(np.power(np.abs(r), 2) +
-                                                np.power(np.abs(s), 2) +
-                                                np.power(np.abs(k), 2) +
-                                                np.power(np.abs(u), 2)))
+                dx, dy, dz, dt = gradOp.matvec(sol.ravel()).reshape(
+                    (self.ndim,) + x.shape
+                )
+                r -= 1.0 / (16 * gamma * mt**2) * dx
+                s -= 1.0 / (16 * gamma * mt**2) * dy
+                k -= 1.0 / (16 * gamma * mt**2) * dz
+                u -= 1.0 / (16 * gamma * mt**2) * dt
+                weights = np.maximum(
+                    1,
+                    np.sqrt(
+                        np.power(np.abs(r), 2)
+                        + np.power(np.abs(s), 2)
+                        + np.power(np.abs(k), 2)
+                        + np.power(np.abs(u), 2)
+                    ),
+                )
 
             # FISTA update
-            t = (1 + np.sqrt(4 * told**2)) / 2.
+            t = (1 + np.sqrt(4 * told**2)) / 2.0
 
             if self.ndim >= 1:
                 p = r / weights

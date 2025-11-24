@@ -12,7 +12,8 @@ The subpackage proximal contains a number of proximal operators:
     Nonlinear	                    Nonlinear function
     L0                              L0 Norm
     L0Ball                          L0 Ball
-    L01pBall                        L0,1 Ball
+    L01Ball                         L1,0 Ball (deprecated)
+    L10Ball                         L1,0 Ball (deprecated)
     L1	                            L1 Norm
     L1Ball                          L1 Ball
     Euclidean	                    Euclidean Norm
@@ -39,7 +40,9 @@ The subpackage proximal contains a number of proximal operators:
     QuadraticEnvelopeCardIndicator  The quadratic envelope of the indicator function of the cardinality function
     Hankel                          Hankel indicator
     QuadraticEnvelopeRankL2         The quadratic envelope of the rank function with an L2 misfit term
-
+    HalfSpace                       Half space indicator
+    GenericIntersectionProx         Indicator of projection onto a union of given sets
+    Sum                             Proximal operator of the sum of proximable functions
 """
 
 from .Box import *
@@ -67,11 +70,49 @@ from .Geman import *
 from .QuadraticEnvelope import *
 from .SingularValuePenalty import *
 from .Hankel import *
+from .HalfSpace import *
+from .GenericIntersection import *
+from .Sum import *
 
-__all__ = ['Box', 'Simplex', 'Intersection', 'AffineSet', 'Quadratic',
-           'Euclidean', 'EuclideanBall', 'L0', 'L0Ball', 'L01Ball', 'L1', 'L1Ball', 'L2',
-           'L2Convolve', 'L21', 'L21_plus_L1', 'Huber', 'HuberCircular', 'TV', 'RelaxedMumfordShah',
-           'Nuclear', 'NuclearBall', 'Orthogonal', 'VStack', 'Nonlinear', 'SCAD',
-           'Log', 'Log1', 'ETP', 'Geman', 'QuadraticEnvelopeCard', 'SingularValuePenalty',
-           'QuadraticEnvelopeCardIndicator', 'QuadraticEnvelopeRankL2',
-           'Hankel']
+
+__all__ = [
+    "Box",
+    "Simplex",
+    "Intersection",
+    "AffineSet",
+    "Quadratic",
+    "Euclidean",
+    "EuclideanBall",
+    "L0",
+    "L0Ball",
+    "L01Ball",
+    "L10Ball",
+    "L1",
+    "L1Ball",
+    "L2",
+    "L2Convolve",
+    "L21",
+    "L21_plus_L1",
+    "Huber",
+    "HuberCircular",
+    "TV",
+    "RelaxedMumfordShah",
+    "Nuclear",
+    "NuclearBall",
+    "Orthogonal",
+    "VStack",
+    "Nonlinear",
+    "SCAD",
+    "Log",
+    "Log1",
+    "ETP",
+    "Geman",
+    "QuadraticEnvelopeCard",
+    "SingularValuePenalty",
+    "QuadraticEnvelopeCardIndicator",
+    "QuadraticEnvelopeRankL2",
+    "Hankel",
+    "HalfSpace",
+    "GenericIntersectionProx",
+    "Sum",
+]

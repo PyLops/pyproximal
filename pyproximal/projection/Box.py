@@ -1,8 +1,11 @@
+from typing import Union
+
 import numpy as np
+from pylops.utils.typing import NDArray
 from scipy.optimize import bisect
 
 
-class BoxProj():
+class BoxProj:
     r"""Box orthogonal projection.
 
     Parameters
@@ -35,16 +38,21 @@ class BoxProj():
     indicator function :math:`\mathcal{I}_{\operatorname{Box}_{[l, u]}}`.
 
     """
-    def __init__(self, lower=-np.inf, upper=np.inf):
+
+    def __init__(
+        self,
+        lower: Union[float, NDArray] = -np.inf,
+        upper: Union[float, NDArray] = np.inf,
+    ) -> None:
         self.lower = lower
         self.upper = upper
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> NDArray:
         x = np.minimum(np.maximum(x, self.lower), self.upper)
         return x
 
 
-class HyperPlaneBoxProj():
+class HyperPlaneBoxProj:
     r"""Orthogonal projection of the intersection between a Hyperplane and a
     Box.
 
@@ -94,8 +102,16 @@ class HyperPlaneBoxProj():
         \mu \mathbf{c}) - b
 
     """
-    def __init__(self, coeffs, scalar, lower=-np.inf, upper=np.inf,
-                 maxiter=100, xtol=1e-5):
+
+    def __init__(
+        self,
+        coeffs: NDArray,
+        scalar: float,
+        lower: Union[float, NDArray] = -np.inf,
+        upper: Union[float, NDArray] = np.inf,
+        maxiter: int = 100,
+        xtol: float = 1e-5,
+    ) -> None:
         self.coeffs = coeffs.ravel()
         self.scalar = scalar
         self.lower = lower
@@ -104,7 +120,7 @@ class HyperPlaneBoxProj():
         self.xtol = xtol
         self.box = BoxProj(lower, upper)
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> NDArray:
         """Apply HyperPlaneBoxProj projection
 
         Parameters
@@ -113,9 +129,11 @@ class HyperPlaneBoxProj():
             Vector
 
         """
-        def fun(mu, x):
-            return np.dot(self.coeffs, self.box(x - mu * self.coeffs)) - \
-                   self.scalar
+
+        def fun(mu: float, x: NDArray) -> float:
+            return (
+                float(np.dot(self.coeffs, self.box(x - mu * self.coeffs))) - self.scalar
+            )
 
         xshape = x.shape
         x = x.ravel()
@@ -131,8 +149,13 @@ class HyperPlaneBoxProj():
             bisect_upper *= 2
 
         # find optimal mu
-        mu = bisect(lambda mu: fun(mu, x), bisect_lower, bisect_upper,
-                    maxiter=self.maxiter, xtol=self.xtol)
+        mu = bisect(
+            lambda mu: fun(mu, x),
+            bisect_lower,
+            bisect_upper,
+            maxiter=self.maxiter,
+            xtol=self.xtol,
+        )
 
         # compute projection
         y = self.box(x - mu * self.coeffs)

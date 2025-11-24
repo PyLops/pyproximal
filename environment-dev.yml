@@ -4,9 +4,9 @@ channels:
   - conda-forge
   - numba
 dependencies:
-  - python>=3.8.12
+  - python>=3.11.0
   - numpy>=1.21.0
-  - scipy>=1.11.0
+  - scipy>=1.14.0
   - pylops>=2.0.0
   - scikit-image
   - matplotlib
@@ -16,13 +16,20 @@ dependencies:
   - numpydoc
   - numba
   - icc_rt
+  - pre-commit
+  - autopep8
+  - isort
+  - black
   - pip:
-    - bm4d<4.2.4 # temporary fix as GLIBC_2.32 not found by readthedocs
-    - bm3d<4.0.2 # temporary fix as GLIBC_2.32 not found by readthedocs
+    - bm4d
+    - bm3d
     - pytest-runner
     - setuptools_scm
+    - pooch
     - pydata-sphinx-theme
     - sphinx-gallery
     - nbsphinx
-    - image
     - sphinxemoji
+    - image
+    - flake8
+    - mypy

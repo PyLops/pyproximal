@@ -1,7 +1,10 @@
+from typing import Union
+
 import numpy as np
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
+from pylops.utils.typing import NDArray
+
 from pyproximal.projection import EuclideanBallProj
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class Euclidean(ProxOperator):
@@ -37,24 +40,27 @@ class Euclidean(ProxOperator):
         \frac{\sigma \mathbf{x}}{\max\{\|\mathbf{x}\|_2, \sigma\}}
 
     """
-    def __init__(self, sigma=1.):
+
+    def __init__(self, sigma: float = 1.0) -> None:
         super().__init__(None, True)
         self.sigma = sigma
 
-    def __call__(self, x):
-        return self.sigma * np.linalg.norm(x)
+    def __call__(self, x: NDArray) -> float:
+        return float(self.sigma * np.linalg.norm(x))
 
     @_check_tau
-    def prox(self, x, tau):
-        x = (1. - (tau * self.sigma) / max(np.linalg.norm(x), tau * self.sigma)) * x
+    def prox(self, x: NDArray, tau: float) -> NDArray:
+        x = (
+            1.0 - (tau * self.sigma) / max(float(np.linalg.norm(x)), tau * self.sigma)
+        ) * x
         return x
 
     @_check_tau
-    def proxdual(self, x, tau):
-        x = self.sigma * x / (max(np.linalg.norm(x), self.sigma))
+    def proxdual(self, x: NDArray, tau: float) -> NDArray:
+        x = self.sigma * x / (max(float(np.linalg.norm(x)), self.sigma))
         return x
 
-    def grad(self, x):
+    def grad(self, x: NDArray) -> NDArray:
         return self.sigma * x / np.linalg.norm(x)
 
 
@@ -78,15 +84,16 @@ class EuclideanBall(ProxOperator):
     (see :class:`pyproximal.projection.EuclideanBallProj` for details.
 
     """
-    def __init__(self, center, radius):
+
+    def __init__(self, center: Union[NDArray, float], radius: float) -> None:
         super().__init__(None, False)
         self.center = center
         self.radius = radius
         self.ball = EuclideanBallProj(self.center, self.radius)
 
-    def __call__(self, x):
-        return np.linalg.norm(x - self.center) <= self.radius
+    def __call__(self, x: NDArray) -> bool:
+        return bool(np.linalg.norm(x - self.center) <= self.radius)
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         return self.ball(x)

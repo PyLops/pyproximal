@@ -1,0 +1,53 @@
+import numpy as np
+from pylops.utils.typing import NDArray
+
+
+class HalfSpaceProj:
+    r"""Half space projection.
+
+    Parameters
+    ----------
+    w : :obj:`numpy.ndarray`
+        Coefficients of the half space
+    b : :obj:`float`
+        bias of the half space
+
+    Notes
+    -----
+    Given an half space defined as:
+
+    .. math::
+
+        \operatorname{H}_{[w, b]}
+        = \{ \mathbf{x}: \mathbf{w}^T \mathbf{x} \leq b \}
+
+    its orthogonal projection is:
+
+    .. math::
+
+        P_{\operatorname{H}_{[w, b]}} (\mathbf{x}) =
+        \begin{cases}
+        \mathbf{x},
+            & \mathbf{w}^T \mathbf{x} \leq b \\
+        \mathbf{x} - \frac{\mathbf{w}^T \mathbf{x} - b}{||\mathbf{w}||^2} \mathbf{w},
+            & \text{otherwise}
+        \end{cases}
+
+    Note the this is the proximal operator of the corresponding
+    indicator function :math:`\mathcal{I}_{\operatorname{H}_{[w, b]}}`.
+
+    """
+
+    def __init__(self, w: NDArray, b: float) -> None:
+        self.w = w
+        self.b = b
+        self.w_norm_sq = np.dot(w, w)
+
+    def __call__(self, x: NDArray) -> NDArray:
+        w_x = np.dot(self.w, x)
+        if w_x <= self.b:
+            return x
+
+        factor = (w_x - self.b) / self.w_norm_sq
+        x_proj = x - factor * self.w
+        return x_proj

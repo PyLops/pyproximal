@@ -1,7 +1,7 @@
 import numpy as np
+from pylops.utils.typing import NDArray, ShapeLike
 
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class SingularValuePenalty(ProxOperator):
@@ -40,19 +40,19 @@ class SingularValuePenalty(ProxOperator):
     true for their particular choice of ``penalty``.
     """
 
-    def __init__(self, dim, penalty):
+    def __init__(self, dim: ShapeLike, penalty: ProxOperator) -> None:
         super().__init__(None, False)
         self.dim = dim
         self.penalty = penalty
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         X = x.reshape(self.dim)
         eigs = np.linalg.eigvalsh(X.T @ X)
         eigs[eigs < 0] = 0  # ensure all eigenvalues at positive
-        return np.sum(self.penalty(np.sqrt(eigs)))
+        return float(np.sum(self.penalty(np.sqrt(eigs))))
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         X = x.reshape(self.dim)
         U, S, Vh = np.linalg.svd(X, full_matrices=False)
         X = np.dot(U * self.penalty.prox(S, tau), Vh)

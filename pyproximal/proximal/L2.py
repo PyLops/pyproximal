@@ -1,12 +1,19 @@
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Union
+
 import numpy as np
+from pylops import Identity, MatrixMult
+from pylops.optimization.basic import cg, lsqr
+from pylops.optimization.leastsquares import regularized_inversion
+from pylops.utils.backend import get_array_module, get_module_name
+from pylops.utils.typing import NDArray, ShapeLike
 from scipy.linalg import cho_factor, cho_solve
 from scipy.sparse.linalg import lsqr as sp_lsqr
-from pylops import MatrixMult, Identity
-from pylops.optimization.basic import lsqr
-from pylops.utils.backend import get_array_module, get_module_name
+from typing_extensions import Self
 
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
+from pyproximal.ProxOperator import ProxOperator, _check_tau
+
+if TYPE_CHECKING:
+    from pylops.linearoperator import LinearOperator
 
 
 class L2(ProxOperator):
@@ -41,6 +48,18 @@ class L2(ProxOperator):
     warm : :obj:`bool`, optional
         Warm start (``True``) or not (``False``). Uses estimate from previous
         call of ``prox`` method.
+    solver : :obj:`str`, optional
+        .. versionadded:: 0.11.0
+
+        Name of solver to use with non-explicit operators:
+
+        - ``legacy``: enforces the legacy behaviour where :py:func:`scipy.sparse.linalg.lsqr` is
+          used with numpy data and :py:func:`pylops.optimization.basic.lsqr` is used with cupy data
+          (both are applied to the normal equations);
+        - ``cg`` to use :py:func:`pylops.optimization.basic.cg` on the
+          normal equations;
+        - ``cgls`` to use :py:func:`pylops.optimization.basic.cgls` on the
+          regularized system of equations;
     densesolver : :obj:`str`, optional
         Use ``numpy``, ``scipy``, or ``factorize`` when dealing with explicit
         operators. The former two rely on dense solvers from either library,
@@ -49,10 +68,8 @@ class L2(ProxOperator):
         have changed. Choose ``densesolver=None`` when using PyLops versions
         earlier than v1.18.1 or v2.0.0
     **kwargs_solver : :obj:`dict`, optional
-        Dictionary containing extra arguments for
-        :py:func:`scipy.sparse.linalg.lsqr` solver when using
-        numpy data (or :py:func:`pylops.optimization.solver.lsqr` and
-        when using cupy data)
+        Dictionary containing extra arguments for the solver selected
+        via the ``solver`` parameter.
 
     Notes
     -----
@@ -72,8 +89,26 @@ class L2(ProxOperator):
     iterative solver is employed. In this case it is possible to provide a warm
     start via the ``x0`` input parameter.
 
-    When only ``b`` is provided, ``Op`` is assumed to be an Identity operator
-    and the proximal operator reduces to:
+    Note that alternatively the proximal operator can be computed solving the following
+    augumented system of equations (instead of its normal equations as shown above):
+
+    .. math::
+
+        \begin{bmatrix}
+                \sqrt{\tau \sigma} \mathbf{Op}  \\
+                \mathbf{I}
+            \end{bmatrix}
+            prox_{\tau f_\alpha}(\mathbf{x}) =
+            \begin{bmatrix}
+                \sqrt{\tau \sigma} \mathbf{b} \\
+                \mathbf{x} - \tau \alpha \mathbf{q}
+            \end{bmatrix}
+
+    The choice of the parameter ``solver`` determines which of the two
+    approaches is used.
+
+    Alternatively, when only ``b`` is provided, ``Op`` is assumed to be an
+    Identity operator and the proximal operator reduces to:
 
     .. math::
 
@@ -93,9 +128,22 @@ class L2(ProxOperator):
     iterations are used alongside a proximal solver.
 
     """
-    def __init__(self, Op=None, b=None, q=None, sigma=1., alpha=1.,
-                 qgrad=True, niter=10, x0=None, warm=True,
-                 densesolver=None, kwargs_solver=None):
+
+    def __init__(
+        self,
+        Op: Optional["LinearOperator"] = None,
+        b: Optional[NDArray] = None,
+        q: Optional[NDArray] = None,
+        sigma: float = 1.0,
+        alpha: float = 1.0,
+        qgrad: bool = True,
+        niter: Union[int, Callable[[int], int]] = 10,
+        x0: Optional[NDArray] = None,
+        warm: bool = True,
+        solver: Optional[str] = "legacy",
+        densesolver: Optional[str] = None,
+        kwargs_solver: Optional[Dict[str, Any]] = None,
+    ) -> None:
         super().__init__(Op, True)
         self.b = b
         self.q = q
@@ -105,44 +153,61 @@ class L2(ProxOperator):
         self.niter = niter
         self.x0 = x0
         self.warm = warm
+        self.solver = solver
         self.densesolver = densesolver
         self.count = 0
         self.kwargs_solver = {} if kwargs_solver is None else kwargs_solver
 
+        # define whether the normal equations or the regularized system
+        # of equations are solved
+        if self.solver in ("legacy", "cg"):
+            self.normaleqs = True
+        elif self.solver == "cgls":
+            self.normaleqs = False
+        else:
+            raise ValueError(
+                f"Provided solver={self.solver}. "
+                "Available options are: 'legacy', 'cg', 'cgls'."
+            )
         # when using factorize, store the first tau*sigma=0 so that the
         # first time it will be recomputed (as tau cannot be 0)
-        if self.densesolver == 'factorize':
-            self.tausigma = 0
+        if self.densesolver == "factorize":
+            self.tausigma = 0.0
 
         # create data term
-        if self.Op is not None and self.b is not None:
+        if (
+            self.Op is not None
+            and self.b is not None
+            and (self.Op.explicit or self.normaleqs)
+        ):
             self.OpTb = self.sigma * self.Op.H @ self.b
             # create A.T A upfront for explicit operators
             if self.Op.explicit:
                 self.ATA = np.conj(self.Op.A.T) @ self.Op.A
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         if self.Op is not None and self.b is not None:
-            f = (self.sigma / 2.) * (np.linalg.norm(self.Op * x - self.b) ** 2)
+            f = (self.sigma / 2.0) * (np.linalg.norm(self.Op * x - self.b) ** 2)
         elif self.b is not None:
-            f = (self.sigma / 2.) * (np.linalg.norm(x - self.b) ** 2)
+            f = (self.sigma / 2.0) * (np.linalg.norm(x - self.b) ** 2)
         else:
-            f = (self.sigma / 2.) * (np.linalg.norm(x) ** 2)
+            f = (self.sigma / 2.0) * (np.linalg.norm(x) ** 2)
         if self.q is not None:
             f += self.alpha * np.dot(self.q, x)
-        return f
+        return float(f)
 
-    def _increment_count(func):
-        """Increment counter
-        """
-        def wrapped(self, *args, **kwargs):
+    def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
+        """Increment counter"""
+
+        def wrapped(self: Self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
+
         return wrapped
 
     @_increment_count
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         # define current number of iterations
         if isinstance(self.niter, int):
             niter = self.niter
@@ -151,16 +216,19 @@ class L2(ProxOperator):
 
         # solve proximal optimization
         if self.Op is not None and self.b is not None:
-            y = x + tau * self.OpTb
-            if self.q is not None:
-                y -= tau * self.alpha * self.q
+            if self.normaleqs or self.Op.explicit:
+                y = x + tau * self.OpTb
+                if self.q is not None:
+                    y -= tau * self.alpha * self.q
             if self.Op.explicit:
-                if self.densesolver != 'factorize':
-                    Op1 = MatrixMult(np.eye(self.Op.shape[1]) +
-                                     tau * self.sigma * self.ATA)
+                if self.densesolver != "factorize":
+                    Op1 = MatrixMult(
+                        np.eye(self.Op.shape[1]) + tau * self.sigma * self.ATA
+                    )
                     if self.densesolver is None:
-                        # to allow backward compatibility with PyLops versions earlier
-                        # than v1.18.1 and v2.0.0
+                        # to allow backward compatibility with
+                        # PyLops versions earlier than v1.18.1
+                        # and v2.0.0
                         x = Op1.div(y)
                     else:
                         x = Op1.div(y, densesolver=self.densesolver)
@@ -168,34 +236,59 @@ class L2(ProxOperator):
                     if self.tausigma != tau * self.sigma:
                         # recompute factorization
                         self.tausigma = tau * self.sigma
-                        ATA = np.eye(self.Op.shape[1]) + \
-                              self.tausigma * self.ATA
+                        ATA = np.eye(self.Op.shape[1]) + self.tausigma * self.ATA
                         self.cl = cho_factor(ATA)
                     x = cho_solve(self.cl, y)
+            elif self.normaleqs:
+                Op1 = Identity(self.Op.shape[1], dtype=self.Op.dtype) + float(
+                    tau * self.sigma
+                ) * (self.Op.H * self.Op)
+                if self.solver == "legacy":
+                    if get_module_name(get_array_module(x)) == "numpy":
+                        x = sp_lsqr(
+                            Op1, y, iter_lim=niter, x0=self.x0, **self.kwargs_solver
+                        )[0]
+                    else:
+                        x = lsqr(Op1, y, niter=niter, x0=self.x0, **self.kwargs_solver)[
+                            0
+                        ].ravel()
+                elif self.solver == "cg":
+                    x = cg(Op1, y, niter=niter, x0=self.x0, **self.kwargs_solver)[
+                        0
+                    ].ravel()
             else:
-                Op1 = Identity(self.Op.shape[1], dtype=self.Op.dtype) + \
-                      float(tau * self.sigma) * (self.Op.H * self.Op)
-                if get_module_name(get_array_module(x)) == 'numpy':
-                    x = sp_lsqr(Op1, y, iter_lim=niter, x0=self.x0,
-                                **self.kwargs_solver)[0]
-                else:
-                    x = lsqr(Op1, y, niter=niter, x0=self.x0,
-                             **self.kwargs_solver)[0].ravel()
+                y = x
+                if self.q is not None:
+                    y -= tau * self.alpha * self.q
+                x = regularized_inversion(
+                    np.sqrt(tau * self.sigma) * self.Op,
+                    np.sqrt(tau * self.sigma) * self.b,
+                    [
+                        Identity(self.Op.shape[1], dtype=self.Op.dtype),
+                    ],
+                    x0=self.x0,
+                    dataregs=[
+                        y,
+                    ],
+                    niter=niter,
+                    engine="pylops",
+                    **self.kwargs_solver,
+                )[0].ravel()
             if self.warm:
                 self.x0 = x
         elif self.b is not None:
             num = x + tau * self.sigma * self.b
             if self.q is not None:
                 num -= tau * self.alpha * self.q
-            x = num / (1. + tau * self.sigma)
+            x = num / (1.0 + tau * self.sigma)
         else:
             num = x
             if self.q is not None:
                 num -= tau * self.alpha * self.q
-            x = num / (1. + tau * self.sigma)
+            x = num / (1.0 + tau * self.sigma)
         return x
 
-    def grad(self, x):
+    def grad(self, x: NDArray) -> NDArray:
         if self.Op is not None and self.b is not None:
             g = self.sigma * self.Op.H @ (self.Op @ x - self.b)
         elif self.b is not None:
@@ -217,11 +310,11 @@ class L2Convolve(ProxOperator):
 
     Parameters
     ----------
-    h : :obj:`np.ndarray`, optional
+    h : :obj:`np.ndarray`
         Kernel of convolution operator
-    b : :obj:`numpy.ndarray`, optional
+    b : :obj:`numpy.ndarray`
         Data vector
-    b : :obj:`int`, optional
+    nfft : :obj:`int`, optional
         Fourier transform number of samples
     sigma : :obj:`int`, optional
         Multiplicative coefficient of L2 norm
@@ -242,7 +335,16 @@ class L2Convolve(ProxOperator):
         {1 + \tau\sigma F(\mathbf{h})^* F(\mathbf{h})} \right)
 
     """
-    def __init__(self, h, b=None, nfft=2**10, sigma=1., dims=None, dir=None):
+
+    def __init__(
+        self,
+        h: NDArray,
+        b: NDArray,
+        nfft: int = 2**10,
+        sigma: float = 1.0,
+        dims: Optional[ShapeLike] = None,
+        dir: Optional[int] = None,
+    ) -> None:
         super().__init__(None, True)
         self.nfft = nfft
         self.sigma = sigma
@@ -256,46 +358,47 @@ class L2Convolve(ProxOperator):
         # expand dimensions of filters
         if self.dims is not None:
             self.bf = self.bf.reshape(self.dims)
-            self.dimsf = list(dims).copy()
-            self.dimsf[dir] = nfft
+            self.dimsf = list(self.dims).copy()
+            self.dimsf[self.dir] = nfft
 
-            ndims = len(dims)
-            for _ in range(dir - 1):
+            ndims = len(self.dims)
+            for _ in range(self.dir - 1):
                 self.hf = np.expand_dims(self.hf, axis=0)
-            for _ in range(ndims - dir - 1):
+            for _ in range(ndims - self.dir - 1):
                 self.hf = np.expand_dims(self.hf, axis=-1)
 
         # precompute terms for prox
         self.hbf = np.conj(self.hf) * self.bf
         self.h2f = np.abs(self.hf) ** 2
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         if self.dims is not None:
             x = x.reshape(self.dims)
         xf = np.fft.fft(x, self.nfft, axis=self.dir)
-        f = (self.sigma / 2.) * np.linalg.norm(np.fft.ifft(self.bf - self.hf * xf,
-                                                           axis=self.dir)) ** 2
-        return f
+        f = (self.sigma / 2.0) * np.linalg.norm(
+            np.fft.ifft(self.bf - self.hf * xf, axis=self.dir)
+        ) ** 2
+        return float(f)
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         if self.dims is not None:
             x = x.reshape(self.dims)
         xf = np.fft.fft(x, self.nfft, axis=self.dir)
-        yf = (xf + self.sigma * tau * self.hbf) / \
-             (1. + self.sigma * tau * self.h2f)
+        yf = (xf + self.sigma * tau * self.hbf) / (1.0 + self.sigma * tau * self.h2f)
         y = np.fft.ifft(yf, axis=self.dir)
         if self.dims is None:
-            y = y[:len(x)]
+            y = y[: len(x)]
         else:
             y = np.take(y, range(self.dims[self.dir]), axis=self.dir).ravel()
         return y.ravel()
 
-    def grad(self, x):
+    def grad(self, x: NDArray) -> NDArray:
         if self.dims is not None:
             x = x.reshape(self.dims)
         xf = np.fft.fft(x, self.nfft, axis=self.dir)
 
-        f = self.sigma * np.fft.ifft(np.conj(self.hf) * (self.hf * xf - self.bf),
-                                     axis=self.dir)
+        f = self.sigma * np.fft.ifft(
+            np.conj(self.hf) * (self.hf * xf - self.bf), axis=self.dir
+        )
         return f.ravel()

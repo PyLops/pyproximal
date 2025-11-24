@@ -8,14 +8,16 @@ The subpackage projection contains a number of orthogonal projection:
     HyperPlaneBoxProj	        Projection onto an intersection beween a HyperPlane and a Box
     SimplexProj	                Projection onto a Simplex
     L0Proj	                    Projection onto an L0 Ball
-    L01Proj	                    Projection onto an L0,1 Ball
+    L01Proj	                    Projection onto an L1,0 Ball (deprecated)
+    L10Proj	                    Projection onto an L1,0 Ball
     L1Proj	                    Projection onto an L1 Ball
     EuclideanBallProj	        Projection onto an Euclidean Ball
     NuclearBallProj	            Projection onto a Nuclear Ball
     IntersectionProj	        Projection onto an Intersection of sets
     AffineSetProj	            Projection onto an Affine set
     HankelProj                  Projection onto the set of Hankel matrices
-
+    HalfSpaceProj               Projection onto a Half Space
+    GenericIntersectionProj     Projection onto a union of given sets
 """
 
 from .Box import *
@@ -27,8 +29,22 @@ from .Nuclear import *
 from .Intersection import *
 from .AffineSet import *
 from .Hankel import *
+from .HalfSpace import *
+from .GenericIntersection import *
 
-
-__all__ = ['BoxProj', 'HyperPlaneBoxProj', 'SimplexProj', 'L0BallProj',
-           'L01BallProj', 'L1BallProj', 'EuclideanBallProj', 'NuclearBallProj',
-           'IntersectionProj', 'AffineSetProj', 'HankelProj']
+__all__ = [
+    "BoxProj",
+    "HyperPlaneBoxProj",
+    "SimplexProj",
+    "L0BallProj",
+    "L01BallProj",
+    "L10BallProj",
+    "L1BallProj",
+    "EuclideanBallProj",
+    "NuclearBallProj",
+    "IntersectionProj",
+    "AffineSetProj",
+    "HankelProj",
+    "HalfSpaceProj",
+    "GenericIntersectionProj",
+]

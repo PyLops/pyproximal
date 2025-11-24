@@ -102,6 +102,7 @@ subclassing the :py:class:`pyproximal.ProxOperator` class and by implementing
 
    installation.rst
    tutorials/index.rst
+   gallery/index.rst
 
 .. toctree::
    :maxdepth: 2

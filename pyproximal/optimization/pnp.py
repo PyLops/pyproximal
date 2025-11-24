@@ -1,7 +1,9 @@
-import time
-from pyproximal.ProxOperator import _check_tau
-from pyproximal import ProxOperator
+from typing import Any, Callable, Dict, Tuple, Union
+
+from pylops.utils.typing import NDArray, ShapeLike
+
 from pyproximal.optimization.primal import ADMM
+from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
 class _Denoise(ProxOperator):
@@ -12,28 +14,41 @@ class _Denoise(ProxOperator):
     denoiser : :obj:`func`
         Denoiser (must be a function with two inputs, the first is the signal
         to be denoised, the second is the `tau` constant of the y-update in
-        the PnP optimization
+        the PnP optimization)
     dims : :obj:`tuple`
         Dimensions used to reshape the vector ``x`` in the ``prox`` method
         prior to calling the ``denoiser``
 
     """
-    def __init__(self, denoiser, dims):
+
+    def __init__(
+        self,
+        denoiser: Callable[[NDArray, float], NDArray],
+        dims: ShapeLike,
+    ) -> None:
         super().__init__(None, False)
         self.denoiser = denoiser
         self.dims = dims
 
-    def __call__(self, x):
-        return 0.
+    def __call__(self, x: NDArray) -> float:
+        # A PnP regularizer is not a function, so return 0.
+        return 0.0
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         x = x.reshape(self.dims)
         xden = self.denoiser(x, tau)
         return xden.ravel()
 
 
-def PlugAndPlay(proxf, denoiser, dims, x0, solver=ADMM, **kwargs_solver):
+def PlugAndPlay(
+    proxf: ProxOperator,
+    denoiser: Callable[[NDArray, float], NDArray],
+    dims: ShapeLike,
+    x0: NDArray,
+    solver: Callable[..., NDArray] = ADMM,
+    **kwargs_solver: Dict[str, Any],
+) -> Union[NDArray, Tuple[NDArray, ...]]:
     r"""Plug-and-Play Priors with any proximal algorithm of choice
 
     Solves the following minimization problem using any proximal a

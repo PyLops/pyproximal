@@ -3,6 +3,31 @@
 Changelog
 =========
 
+Version 0.11.0
+--------------
+*Released on: 24/11/2025*
+
+* Added :py:class:`pyproximal.optimization.primal.DouglasRachfordSplitting`
+  solver
+* Added  :py:class:`pyproximal.projection.GenericIntersectionProj` and
+  :py:class:`pyproximal.GenericIntersectionProx` operators
+* Added :py:class:`pyproximal.projection.HalfSpaceProj` and
+  :py:class:`pyproximal.HalfSpace` operators
+* Added :py:class:`pyproximal.L10Ball` operator (as renaming of  
+  :py:class:`pyproximal.L01Ball`)
+* Added :py:class:`pyproximal.projection.HalfSpaceProj` and
+  :py:class:`pyproximal.HalfSpace` operators
+* Added input parameters to allow a user to  provide an initial guess for the 
+  auxiliary variables in all solvers
+* Added ``gfirst`` to :py:class:`pyproximal.optimization.primal.ADMML2`
+* Homogenize error/warning/info messages across the library by switching to
+  ``logging/warning``
+* Fixed backtracking of ``y`` in :py:class:`pyproximal.optimization.palm.iPALM`
+* Fixed implementation in ``__call__`` method of :py:class:`pyproximal.L0`
+* Fixed :py:class:`pyproximal.ProxOperator._PrecompositionOperator` to be
+  able to handle CuPy arrays
+
+
 Version 0.10.0
 --------------
 *Released on: 11/12/2024*

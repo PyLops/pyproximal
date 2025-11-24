@@ -1,11 +1,15 @@
+from typing import Any, Callable, Optional, Union
+
 import numpy as np
+from pylops.utils.typing import NDArray
+from typing_extensions import Self
 
-from pyproximal.ProxOperator import _check_tau
 from pyproximal.projection import BoxProj, L1BallProj
-from pyproximal import ProxOperator
+from pyproximal.ProxOperator import ProxOperator, _check_tau
+from pyproximal.utils.typing import FloatCallableLike
 
 
-def _softthreshold(x, thresh):
+def _softthreshold(x: NDArray, thresh: float) -> NDArray:
     r"""Soft thresholding.
 
     Applies soft thresholding to vector ``x - g``.
@@ -26,14 +30,17 @@ def _softthreshold(x, thresh):
     if np.iscomplexobj(x):
         # https://stats.stackexchange.com/questions/357339/soft-thresholding-
         # for-the-lasso-with-complex-valued-data
-        x1 = np.maximum(np.abs(x) - thresh, 0.) * np.exp(1j * np.angle(x))
+        x1 = np.maximum(np.abs(x) - thresh, 0.0) * np.exp(1j * np.angle(x))
     else:
-        x1 = np.maximum(np.abs(x) - thresh, 0.) * np.sign(x)
+        x1 = np.maximum(np.abs(x) - thresh, 0.0) * np.sign(x)
 
     return x1
 
 
-def _current_sigma(sigma, count):
+def _current_sigma(
+    sigma: FloatCallableLike,
+    count: int,
+) -> Union[float, NDArray]:
     if not callable(sigma):
         return sigma
     else:
@@ -48,7 +55,7 @@ class L1(ProxOperator):
 
     Parameters
     ----------
-    sigma : :obj:`float` or :obj:`list` or :obj:`np.ndarray` or :obj:`func`, optional
+    sigma : :obj:`float` or :obj:`np.ndarray` or :obj:`func`, optional
         Multiplicative coefficient of L1 norm. This can be a constant number, a list
         of values (for multidimensional inputs, acting on the second dimension) or
         a function that is called passing a counter which keeps track of how many
@@ -86,12 +93,17 @@ class L1(ProxOperator):
         \sigma,  & x_i > \sigma\\
         \end{cases}
 
-    .. [1] Chambolle, and A., Pock, "A first-order primal-dual algorithm for
+    .. [1] Chambolle, and A., Pock, "A first-order primal-dual algorithm for
         convex problems with applications to imaging", Journal of Mathematical
         Imaging and Vision, 40, 8pp. 120–145. 2011.
 
     """
-    def __init__(self, sigma=1., g=None):
+
+    def __init__(
+        self,
+        sigma: FloatCallableLike = 1.0,
+        g: Optional[NDArray] = None,
+    ) -> None:
         super().__init__(None, False)
         self.sigma = sigma
         self.g = g
@@ -102,21 +114,24 @@ class L1(ProxOperator):
             self.box = BoxProj(-sigma(0), sigma(0))
         self.count = 0
 
-    def __call__(self, x):
+    def __call__(self, x: NDArray) -> float:
         sigma = _current_sigma(self.sigma, self.count)
-        return sigma * np.sum(np.abs(x))
+        if self.g is None:
+            return float(sigma * np.sum(np.abs(x)))
+        return float(sigma * np.sum(np.abs(x - self.g)))
 
-    def _increment_count(func):
-        """Increment counter
-        """
-        def wrapped(self, *args, **kwargs):
+    def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
+        """Increment counter"""
+
+        def wrapped(self: Self, *args: Any, **kwargs: Any) -> Any:
             self.count += 1
             return func(self, *args, **kwargs)
+
         return wrapped
 
     @_increment_count
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         sigma = _current_sigma(self.sigma, self.count)
         if self.g is None:
             x = _softthreshold(x, tau * sigma)
@@ -126,7 +141,7 @@ class L1(ProxOperator):
         return x
 
     @_check_tau
-    def proxdual(self, x, tau):
+    def proxdual(self, x: NDArray, tau: float) -> NDArray:
         if not isinstance(self.gdual, np.ndarray):
             x = self.box(x)
         else:
@@ -158,7 +173,14 @@ class L1Ball(ProxOperator):
     (see :class:`pyproximal.projection.L1BallProj` for details.
 
     """
-    def __init__(self, n, radius, maxiter=100, xtol=1e-5):
+
+    def __init__(
+        self,
+        n: int,
+        radius: float,
+        maxiter: int = 100,
+        xtol: float = 1e-5,
+    ) -> None:
         super().__init__(None, False)
         self.n = n
         self.radius = radius
@@ -166,9 +188,9 @@ class L1Ball(ProxOperator):
         self.xtol = xtol
         self.ball = L1BallProj(self.n, self.radius, self.maxiter, self.xtol)
 
-    def __call__(self, x, tol=1e-4):
-        return np.sum(np.abs(x)) - self.radius < tol
+    def __call__(self, x: NDArray, tol: float = 1e-4) -> bool:
+        return bool(np.sum(np.abs(x)) - self.radius < tol)
 
     @_check_tau
-    def prox(self, x, tau):
+    def prox(self, x: NDArray, tau: float) -> NDArray:
         return self.ball(x)
