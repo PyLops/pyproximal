@@ -6,3 +6,4 @@ dependencies:
   - numpy>=1.21.0
   - scipy>=1.14.0
   - pylops>=2.0.0
+  - typing_extensions
