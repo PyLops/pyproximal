@@ -3,6 +3,12 @@
 Changelog
 =========
 
+Version 0.11.1
+--------------
+*Released on: 25/11/2025*
+
+* Added ``typing_extensions`` to dependencies
+
 Version 0.11.0
 --------------
 *Released on: 24/11/2025*
