@@ -1,6 +1,9 @@
 Changelog
 =========
 
+# 0.11.1
+* Added ``typing_extensions`` to dependencies
+
 # 0.11.0
 * Added ``pyproximal.optimization.primal.DouglasRachfordSplitting``
   solver
