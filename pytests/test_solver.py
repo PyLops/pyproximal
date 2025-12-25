@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
@@ -11,6 +13,8 @@ from pyproximal.optimization.primal import (
     GeneralizedProximalGradient,
     LinearizedADMM,
     ProximalGradient,
+    PPXA,
+    ConsensusADMM,
 )
 from pyproximal.proximal import L1, L2
 
@@ -224,3 +228,220 @@ def test_ADMM_DRS(par):
 
     assert_array_almost_equal(xadmm, xdrs_g, decimal=2)
     assert_array_almost_equal(xadmm, xdrs_f, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_PPXA_with_ADMM(par: Dict[str, Any]) -> None:
+    """Check equivalency of PPXA and ADMM
+    when using a single regularization term
+    """
+    np.random.seed(0)
+
+    n, m = par["n"], par["m"]
+
+    # Define sparse model
+    x = np.zeros(m)
+    x[2], x[4] = 1, 0.5
+
+    # Random mixing matrix
+    R = np.random.normal(0.0, 1.0, (n, m))
+    Rop = MatrixMult(R)
+
+    y = Rop @ x
+
+    l2 = L2(Op=Rop, b=y, niter=50, warm=False)
+    l1 = L1(sigma=5e-1)
+
+    # Step size
+    L = (Rop.H * Rop).eigs(1).real.item()
+    tau = 0.5 / L
+
+    xadmm, _ = ADMM(
+        l2, l1, x0=np.zeros(m), tau=tau, niter=15000, show=True)
+    xppxa = PPXA(
+        [l2, l1], x0=np.zeros(m), tau=tau, niter=15000, show=True, tol=1e-7)
+
+    assert_array_almost_equal(xadmm, xppxa, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_PPXA_with_GPG(par: Dict[str, Any]) -> None:
+    """Check equivalency of PPXA and GeneralizedProximalGradient
+    """
+    np.random.seed(0)
+
+    n, m = par["n"], par["m"]
+
+    # Define sparse model
+    x = np.zeros(m)
+    x[2], x[4] = 1, 0.5
+
+    g = np.zeros_like(x)
+    g[1], g[2] = 1, 0.5
+
+    # Random mixing matrices
+    R1 = np.random.normal(0.0, 1.0, (n, m))
+    Rop1 = MatrixMult(R1)
+    y1 = Rop1 @ x
+
+    R2 = np.random.normal(0.0, 1.0, (n, m))
+    Rop2 = MatrixMult(R2)
+    y2 = Rop2 @ x
+
+    l2_1 = L2(Op=Rop1, b=y1, niter=50, warm=False)
+    l2_2 = L2(Op=Rop2, b=y2, niter=50, warm=False)
+    l1_1 = L1(sigma=5e-1)
+    l1_2 = L1(sigma=2.5e-1, g=g)
+
+    # Step size
+    L = (Rop1.H * Rop1).eigs(1).real.item()
+    tau = 0.5 / L
+
+    xgpg = GeneralizedProximalGradient(
+        [l2_1, l2_2],
+        [l1_1, l1_2],
+        x0=np.zeros(m), tau=tau, niter=150, show=True)
+    xppxa = PPXA(
+        [l2_1, l2_2, l1_1, l1_2],
+        x0=np.zeros(m), tau=tau, niter=15000, show=True, tol=1e-7)
+
+    assert_array_almost_equal(xgpg, xppxa, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_ConsensusADMM_with_ADMM(par: Dict[str, Any]) -> None:
+    """Check equivalency of ConsensusADMM and ADMM
+    when two proximable functions
+    """
+    np.random.seed(0)
+
+    n, m = par["n"], par["m"]
+
+    # Define sparse model
+    x = np.zeros(m)
+    x[2], x[4] = 1, 0.5
+
+    # Random mixing matrix
+    R = np.random.normal(0.0, 1.0, (n, m))
+    Rop = MatrixMult(R)
+
+    y = Rop @ x
+
+    l2 = L2(Op=Rop, b=y, niter=50, warm=False)
+    l1 = L1(sigma=5e-1)
+
+    # Step size
+    L = (Rop.H * Rop).eigs(1).real.item()
+    tau = 0.5 / L
+
+    xadmm, _ = ADMM(
+        l2, l1, x0=np.zeros(m), tau=tau, niter=15000, show=True)
+    xcadmm = ConsensusADMM(
+        [l2, l1], x0=np.zeros(m), tau=tau, niter=15000, show=True, tol=1e-7)
+
+    assert_array_almost_equal(xadmm, xcadmm, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_ConsensusADMM_with_ADMM_for_Lasso(par: Dict[str, Any]) -> None:
+    """Check equivalency of ConsensusADMM and ADMM
+    when more than two proximable functions for lasso
+    """
+    m = par["m"]
+    lmd = 1e-2
+    niter = 15000
+    n_l2_ops = 3
+
+    np.random.seed(0)
+
+    # Define sparse model
+    x_true = np.zeros(m)
+    nnz = np.random.randint(3, m // 2)
+    support = np.random.choice(m, size=nnz, replace=False)
+    x_true[support] = np.random.normal(0.0, 1.0, size=len(support))
+
+    # Random mixing matrix
+    R_list, y_list = [], []
+    for ni in np.random.randint(3, 10, size=n_l2_ops):
+        R = np.random.normal(0.0, 1.0, size=(ni, m))
+        R_list.append(R)
+        y_list.append(R @ x_true)
+
+    # 1/2||R1||_2^2, 1/2||R2||_2^2, 1/2||R3||_2^2
+    l2_ops = [
+        L2(Op=MatrixMult(Ri), b=yi, niter=50, warm=False)
+        for Ri, yi in zip(R_list, y_list)
+    ]
+
+    # 1/2 || [R1; R2; R3] ||_2^2
+    Rop_stack = MatrixMult(np.vstack(R_list))
+    y_stack = np.concatenate(y_list)
+    l2_stack = L2(Op=Rop_stack, b=y_stack, niter=50, warm=False)
+
+    # ||x||_1
+    l1_op = L1(sigma=lmd)
+
+    # Step size
+    L = (Rop_stack.H * Rop_stack).eigs(1).real.item()
+    tau = 0.5 / L
+
+    # 1/2||R1||_2^2 + 1/2||R2||_2^2 + 1/2||R3||_2^2 + ||x||_1
+    x_cons = ConsensusADMM(
+        prox_ops=[*l2_ops, l1_op],
+        x0=np.zeros(m),
+        tau=tau,
+        niter=niter,
+        tol=1e-7,
+        show=False,
+    )
+
+    # 1/2 || [R1; R2; R3] ||_2^2 + ||x||_1
+    x_lasso, _ = ADMM(
+        l2_stack, l1_op, x0=np.zeros(m), tau=tau, niter=niter, show=False
+    )
+
+    assert_array_almost_equal(x_cons, x_lasso, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_ConsensusADMM_with_GPG(par: Dict[str, Any]) -> None:
+    """Check equivalency of ConsensusADMM and GeneralizedProximalGradient
+    """
+    np.random.seed(0)
+
+    n, m = par["n"], par["m"]
+
+    # Define sparse model
+    x = np.zeros(m)
+    x[2], x[4] = 1, 0.5
+
+    g = np.zeros_like(x)
+    g[1], g[2] = 1, 0.5
+
+    # Random mixing matrices
+    R1 = np.random.normal(0.0, 1.0, (n, m))
+    Rop1 = MatrixMult(R1)
+    y1 = Rop1 @ x
+
+    R2 = np.random.normal(0.0, 1.0, (n, m))
+    Rop2 = MatrixMult(R2)
+    y2 = Rop2 @ x
+
+    l2_1 = L2(Op=Rop1, b=y1, niter=50, warm=False)
+    l2_2 = L2(Op=Rop2, b=y2, niter=50, warm=False)
+    l1_1 = L1(sigma=5e-1)
+    l1_2 = L1(sigma=2.5e-1, g=g)
+
+    # Step size
+    L = (Rop1.H * Rop1).eigs(1).real.item()
+    tau = 0.5 / L
+
+    xgpg = GeneralizedProximalGradient(
+        [l2_1, l2_2],
+        [l1_1, l1_2],
+        x0=np.zeros(m), tau=tau, niter=150, show=True)
+    xppxa = ConsensusADMM(
+        [l2_1, l2_2, l1_1, l1_2],
+        x0=np.zeros(m), tau=tau, niter=15000, show=True, tol=1e-7)
+
+    assert_array_almost_equal(xgpg, xppxa, decimal=2)
