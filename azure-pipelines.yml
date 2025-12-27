@@ -46,7 +46,7 @@ jobs:
   displayName: 'Mac'
 
   pool:
-    vmImage: 'macOS-latest'
+    vmImage: 'macOS-15-arm64'
 
   variables:
     NUMBA_NUM_THREADS: 1
@@ -55,7 +55,7 @@ jobs:
   - task: UsePythonVersion@0
     inputs:
       versionSpec: '3.11'
-      architecture: 'x64'
+      architecture: 'arm64'
 
   - script: |
       python -m pip install --upgrade pip setuptools wheel django
