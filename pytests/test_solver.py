@@ -257,11 +257,20 @@ def test_PPXA_with_ADMM(par: Dict[str, Any]) -> None:
     tau = 0.5 / L
 
     xadmm, _ = ADMM(
-        l2, l1, x0=np.zeros(m), tau=tau, niter=15000, show=True)
+        l2, l1,
+        x0=np.zeros(m),
+        tau=tau,
+        niter=2000,  # niter=1500 makes this test fail for seeds 0 to 499
+        show=True,
+    )
     xppxa = PPXA(
-        [l2, l1], x0=np.zeros(m), tau=tau, niter=15000, show=True, tol=1e-7)
+        [l2, l1],
+        x0=np.zeros(m),
+        tau=np.random.uniform(3 * tau, 5 * tau),
+        show=True,
+    )
 
-    assert_array_almost_equal(xadmm, xppxa, decimal=2)
+    assert_array_almost_equal(xppxa, xadmm, decimal=2)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
@@ -300,12 +309,19 @@ def test_PPXA_with_GPG(par: Dict[str, Any]) -> None:
     xgpg = GeneralizedProximalGradient(
         [l2_1, l2_2],
         [l1_1, l1_2],
-        x0=np.zeros(m), tau=tau, niter=150, show=True)
+        x0=np.zeros(m),
+        tau=tau,
+        niter=200,  # niter=150 makes this test fail for seeds 0 to 499
+        show=True,
+    )
     xppxa = PPXA(
         [l2_1, l2_2, l1_1, l1_2],
-        x0=np.zeros(m), tau=tau, niter=15000, show=True, tol=1e-7)
+        x0=np.zeros(m),
+        tau=np.random.uniform(3 * tau, 5 * tau),
+        show=True
+    )
 
-    assert_array_almost_equal(xgpg, xppxa, decimal=2)
+    assert_array_almost_equal(xppxa, xgpg, decimal=2)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
@@ -335,11 +351,20 @@ def test_ConsensusADMM_with_ADMM(par: Dict[str, Any]) -> None:
     tau = 0.5 / L
 
     xadmm, _ = ADMM(
-        l2, l1, x0=np.zeros(m), tau=tau, niter=15000, show=True)
+        l2, l1,
+        x0=np.zeros(m),
+        tau=tau,
+        niter=2000,  # niter=1500 makes this test fail for seeds 0 to 499
+        show=True
+    )
     xcadmm = ConsensusADMM(
-        [l2, l1], x0=np.zeros(m), tau=tau, niter=15000, show=True, tol=1e-7)
+        [l2, l1],
+        x0=np.random.normal(0.0, 1.0, m),  # x0=np.zeros(m),
+        tau=np.random.uniform(3 * tau, 5 * tau),
+        show=True,
+    )
 
-    assert_array_almost_equal(xadmm, xcadmm, decimal=2)
+    assert_array_almost_equal(xcadmm, xadmm, decimal=2)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
@@ -349,7 +374,6 @@ def test_ConsensusADMM_with_ADMM_for_Lasso(par: Dict[str, Any]) -> None:
     """
     m = par["m"]
     lmd = 1e-2
-    niter = 15000
     n_l2_ops = 3
 
     np.random.seed(0)
@@ -386,27 +410,32 @@ def test_ConsensusADMM_with_ADMM_for_Lasso(par: Dict[str, Any]) -> None:
     tau = 0.5 / L
 
     # 1/2||R1||_2^2 + 1/2||R2||_2^2 + 1/2||R3||_2^2 + ||x||_1
-    x_cons = ConsensusADMM(
-        prox_ops=[*l2_ops, l1_op],
-        x0=np.zeros(m),
-        tau=tau,
-        niter=niter,
-        tol=1e-7,
-        show=False,
+    xcadmm = ConsensusADMM(
+        [*l2_ops, l1_op],
+        x0=np.random.normal(0.0, 1.0, m),  # x0=np.zeros(m),
+        tau=np.random.uniform(3 * tau, 5 * tau),
+        niter=20000,  # niter=15000 makes this test fail for seeds 0 to 499
+        show=True,
     )
 
     # 1/2 || [R1; R2; R3] ||_2^2 + ||x||_1
-    x_lasso, _ = ADMM(
-        l2_stack, l1_op, x0=np.zeros(m), tau=tau, niter=niter, show=False
+    xadmm, _ = ADMM(
+        l2_stack,
+        l1_op,
+        x0=np.zeros(m),
+        tau=tau,
+        niter=15000,  # niter=10000 makes this test fail for seeds 0 to 499
+        show=True,
     )
 
-    assert_array_almost_equal(x_cons, x_lasso, decimal=2)
+    assert_array_almost_equal(xcadmm, xadmm, decimal=2)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_ConsensusADMM_with_GPG(par: Dict[str, Any]) -> None:
     """Check equivalency of ConsensusADMM and GeneralizedProximalGradient
     """
+
     np.random.seed(0)
 
     n, m = par["n"], par["m"]
@@ -439,9 +468,16 @@ def test_ConsensusADMM_with_GPG(par: Dict[str, Any]) -> None:
     xgpg = GeneralizedProximalGradient(
         [l2_1, l2_2],
         [l1_1, l1_2],
-        x0=np.zeros(m), tau=tau, niter=150, show=True)
+        x0=np.zeros(m),
+        tau=tau,
+        niter=200,  # niter=150 makes this test fail for seeds 0 to 499
+        show=True,
+    )
     xppxa = ConsensusADMM(
         [l2_1, l2_2, l1_1, l1_2],
-        x0=np.zeros(m), tau=tau, niter=15000, show=True, tol=1e-7)
+        x0=np.zeros(m),
+        tau=np.random.uniform(3 * tau, 5 * tau),
+        show=True,
+    )
 
-    assert_array_almost_equal(xgpg, xppxa, decimal=2)
+    assert_array_almost_equal(xppxa, xgpg, decimal=2)

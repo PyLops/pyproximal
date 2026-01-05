@@ -1796,7 +1796,7 @@ def DouglasRachfordSplitting(
 
 
 def PPXA(  # pylint: disable=invalid-name
-    prox_ops: List[ProxOperator],
+    proxfs: List[ProxOperator],
     x0: NDArray | List[NDArray],
     tau: float,
     eta: float = 1.0,
@@ -1820,21 +1820,22 @@ def PPXA(  # pylint: disable=invalid-name
 
     Parameters
     ----------
-    prox_ops : :obj:`list`
+    proxfs : :obj:`list`
         A list of proximable functions :math:`f_1, \ldots, f_m`.
-    x0 : :obj:`np.ndarray` or :obj:`list`
-        Initial vector :math:`\mathbf{x}` of all :math:`f_i` if 1D :obj:`np.ndarray`,
-        or :math:`\mathbf{x}_{i}` of each :math:`f_i` for :math:`i=1,\ldots,m`
-        if :obj:`list` or 2D :obj:`np.ndarray`.
+    x0 : :obj:`numpy.ndarray` or :obj:`list`
+        Initial vector :math:`\mathbf{x}` for all :math:`f_i` if 1-dimensional array
+        is provided, or initial vectors :math:`\mathbf{x}_{i}` for each :math:`f_i`
+        for :math:`i=1,\ldots,m` if a :obj:`list` of 1-dimensional arrays or a 2-dimensional
+        array of size ``(m, d)`` is provided, where ``d`` is the dimension of :math:`\mathbf{x}_{i}`.
     tau : :obj:`float`
         Positive scalar weight
     eta : :obj:`float`, optional
         Relaxation parameter (must be between 0 and 2, 0 excluded).
-    weights : :obj:`np.ndarray` or :obj:`list` or :obj:`None`, optional
+    weights : :obj:`numpy.ndarray` or :obj:`list` or :obj:`None`, optional
         Weights :math:`\sum_{i=1}^m w_i = 1, \ 0 < w_i < 1`,
         Defaults to None, which means :math:`w_1 = \cdots = w_m = \frac{1}{m}.`
     niter : :obj:`int`, optional
-        The maximum number of iterations.
+        Number of iterations of iterative scheme.
     tol : :obj:`float`, optional
         Tolerance on change of the solution (used as stopping criterion).
         If ``tol=0``, run until ``niter`` is reached.
@@ -1858,20 +1859,20 @@ def PPXA(  # pylint: disable=invalid-name
     The Parallel Proximal Algorithm (PPXA) can be expressed by the following
     recursion [1]_, [2]_, [3]_, [4]_:
 
-    * :math:`\mathbf{y}_{i}^{(0)} = \mathbf{x}` or :math:`\mathbf{y}_{i}^{(0)} = \mathbf{x}_{i}` for :math:`i=1,\ldots,m`
-    * :math:`\mathbf{x}^{(0)} = \sum_{i=1}^m w_i \mathbf{y}_{i}^{(0)}`
+    * :math:`\mathbf{y}_{i}^{0} = \mathbf{x}` or :math:`\mathbf{y}_{i}^{0} = \mathbf{x}_{i}` for :math:`i=1,\ldots,m`
+    * :math:`\mathbf{x}^{0} = \sum_{i=1}^m w_i \mathbf{y}_{i}^{0}`
     * for :math:`k = 1, \ldots`
 
       * for :math:`i = 1, \ldots, m`
 
-        * :math:`\mathbf{p}_{i}^{(k)} = \prox_{\frac{\tau}{w_i} f_i} (\mathbf{y}_{i}^{(k)})`
+        * :math:`\mathbf{p}_{i}^{k} = \prox_{\frac{\tau}{w_i} f_i} (\mathbf{y}_{i}^{k})`
 
-      * :math:`\mathbf{p}^{(k)} = \sum_{i=1}^{m} w_i \mathbf{p}_{i}^{(k)}`
+      * :math:`\mathbf{p}^{k} = \sum_{i=1}^{m} w_i \mathbf{p}_{i}^{k}`
       * for :math:`i = 1, \ldots, m`
 
-        * :math:`\mathbf{y}_{i}^{(k+1)} = \mathbf{y}_{i}^{(k)} + \eta (2 \mathbf{p}^{(k)} - \mathbf{x}^{(k)} - \mathbf{p}_i^{(k)})`
+        * :math:`\mathbf{y}_{i}^{k+1} = \mathbf{y}_{i}^{k} + \eta (2 \mathbf{p}^{k} - \mathbf{x}^{k} - \mathbf{p}_i^{k})`
 
-      * :math:`\mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} + \eta (\mathbf{p}^{(k)} - \mathbf{x}^{(k)})`
+      * :math:`\mathbf{x}^{k+1} = \mathbf{x}^{k} + \eta (\mathbf{p}^{k} - \mathbf{x}^{k})`
 
     where :math:`0 < \eta < 2` and
     :math:`\sum_{i=1}^m w_i = 1, \ 0 < w_i < 1`.
@@ -1903,15 +1904,16 @@ def PPXA(  # pylint: disable=invalid-name
             "Parallel Proximal Algorithm\n"
             "---------------------------------------------------------"
         )
-        for i, prox_op in enumerate(prox_ops):
-            print(f"Proximal operator (f{i}): {type(prox_op)}")
+        for i, proxf in enumerate(proxfs):
+            print(f"Proximal operator (f{i}): {type(proxf)}")
         print(f"tau = {tau:10e}\tniter = {niter:d}\n")
         head = "   Itn       x[0]          J=sum_i f_i"
         print(head)
 
     ncp = get_array_module(x0)
 
-    m = len(prox_ops)
+    # initialize model
+    m = len(proxfs)
     if weights is None:
         w = ncp.full(m, 1. / m)
     else:
@@ -1925,24 +1927,28 @@ def PPXA(  # pylint: disable=invalid-name
     x = ncp.mean(y, axis=0)
     x_old = x.copy()
 
+    # iterate
     for iiter in range(niter):
 
-        p = ncp.stack([prox_ops[i].prox(y[i], tau / w[i]) for i in range(m)])
+        p = ncp.stack([proxfs[i].prox(y[i], tau / w[i]) for i in range(m)])
         pn = ncp.sum(w[:, None] * p, axis=0)
         y = y + eta * (2 * pn - x - p)
         x = x + eta * (pn - x)
 
+        # run callback
         if callback is not None:
             callback(x)
 
+        # show iteration logger
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf = ncp.sum([prox_ops[i](x) for i in range(m)])
+                pf = ncp.sum([proxfs[i](x) for i in range(m)])
                 print(
                     f"{iiter + 1:6d}  {ncp.real(to_numpy(x[0])):12.5e}  "
                     f"{pf:10.3e}"
                 )
 
+        # break if tolerance condition is met
         if ncp.abs(x - x_old).max() < tol:
             break
 
@@ -1956,7 +1962,7 @@ def PPXA(  # pylint: disable=invalid-name
 
 
 def ConsensusADMM(  # pylint: disable=invalid-name
-    prox_ops: List[ProxOperator],
+    proxfs: List[ProxOperator],
     x0: NDArray,
     tau: float,
     niter: int = 1000,
@@ -1979,14 +1985,14 @@ def ConsensusADMM(  # pylint: disable=invalid-name
 
     Parameters
     ----------
-    prox_ops : :obj:`list`
+    proxfs : :obj:`list`
         A list of proximable functions :math:`f_1, \ldots, f_m`.
-    x0 : :obj:`np.ndarray`
+    x0 : :obj:`numpy.ndarray`
         Initial vector
     tau : :obj:`float`
         Positive scalar weight
     niter : :obj:`int`, optional
-        The maximum number of iterations.
+        Number of iterations of iterative scheme.
     tol : :obj:`float`, optional
         Tolerance on change of the solution (used as stopping criterion).
         If ``tol=0``, run until ``niter`` is reached.
@@ -2011,18 +2017,18 @@ def ConsensusADMM(  # pylint: disable=invalid-name
     The ADMM for the consensus problem can be expressed by the following
     recursion [1]_, [2]_:
 
-    * :math:`\bar{\mathbf{x}}^{(0)} = \mathbf{x}`
+    * :math:`\bar{\mathbf{x}}^{0} = \mathbf{x}`
     * for :math:`k = 1, \ldots`
 
       * for :math:`i = 1, \ldots, m`
 
-        * :math:`\mathbf{x}_i^{(k+1)} = \mathrm{prox}_{\tau f_i} \left(\bar{\mathbf{x}}^{(k)} - \mathbf{y}_i^{(k)}\right)`
+        * :math:`\mathbf{x}_i^{k+1} = \mathrm{prox}_{\tau f_i} \left(\bar{\mathbf{x}}^{k} - \mathbf{y}_i^{k}\right)`
 
-      * :math:`\bar{\mathbf{x}}^{(k+1)} = \frac{1}{m} \sum_{i=1}^m \mathbf{x}_i^{(k)}`
+      * :math:`\bar{\mathbf{x}}^{k+1} = \frac{1}{m} \sum_{i=1}^m \mathbf{x}_i^{k}`
 
       * for :math:`i = 1, \ldots, m`
 
-        * :math:`\mathbf{y}_i^{(k+1)} = \mathbf{y}_i^{(k)} + \mathbf{x}_i^{(k+1)} - \bar{\mathbf{x}}^{(k+1)}`
+        * :math:`\mathbf{y}_i^{k+1} = \mathbf{y}_i^{k} + \mathbf{x}_i^{k+1} - \bar{\mathbf{x}}^{k+1}`
 
     The current implementation returns :math:`\bar{\mathbf{x}}`.
 
@@ -2045,36 +2051,41 @@ def ConsensusADMM(  # pylint: disable=invalid-name
             "Consensus ADMM\n"
             "---------------------------------------------------------"
         )
-        for i, prox_op in enumerate(prox_ops):
-            print(f"Proximal operator (f{i}): {type(prox_op)}")
+        for i, proxf in enumerate(proxfs):
+            print(f"Proximal operator (f{i}): {type(proxf)}")
         print(f"tau = {tau:10e}\tniter = {niter:d}\n")
         head = "   Itn       x[0]          J=sum_i f_i"
         print(head)
 
     ncp = get_array_module(x0)
 
-    m = len(prox_ops)
+    # initialize model
+    m = len(proxfs)
     x_bar = x0.copy()
     x_bar_old = x0.copy()
     y = ncp.zeros_like(x0)
 
+    # iterate
     for iiter in range(niter):
 
-        x = ncp.stack([prox_ops[i].prox(x_bar - y[i], tau) for i in range(m)])
+        x = ncp.stack([proxfs[i].prox(x_bar - y[i], tau) for i in range(m)])
         x_bar = ncp.mean(x, axis=0)
         y = y + x - x_bar
 
+        # run callback
         if callback is not None:
             callback(x_bar)
 
+        # show iteration logger
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf = ncp.sum([prox_ops[i](x_bar) for i in range(m)])
+                pf = ncp.sum([proxfs[i](x_bar) for i in range(m)])
                 print(
                     f"{iiter + 1:6d}  {ncp.real(to_numpy(x_bar[0])):12.5e}  "
                     f"{pf:10.3e}"
                 )
 
+        # break if tolerance condition is met
         if ncp.abs(x_bar - x_bar_old).max() < tol:
             break
 
