@@ -33,7 +33,7 @@ First install `pyproximal` with your package manager of choice.
 
         .. code-block:: bash
 
-            conda install --channel conda-forge pyproximal
+            >> conda install --channel conda-forge pyproximal
 
         Most of the dependencies (all required and some of the optional) are
         automatically installed for you.
@@ -42,27 +42,27 @@ First install `pyproximal` with your package manager of choice.
 
         .. code-block:: bash
 
-            pip install pyproximal
+            >> pip install pyproximal
         
         Only the *required* dependencies are installed. To install
         some of the optional dependencies, run:
         
         .. code-block:: bash
 
-            pip install "pyproximal[advanced]"
+            >> pip install "pyproximal[advanced]"
 
    .. tab-item:: :iconify:`material-icon-theme:uv` uv
 
         .. code-block:: bash
 
-            uv add pyproximal
+            >> uv add pyproximal
         
         Only the *required* dependencies are installed. To install
         some of the optional dependencies, run:
         
         .. code-block:: bash
 
-            uv add "pyproximal[advanced]"
+            >> uv add "pyproximal[advanced]"
 
 
 From Source
@@ -75,13 +75,13 @@ To access the latest source from github:
 
         .. code-block:: bash
 
-            pip install https://github.com/PyLops/pyproximal.git@dev
+            >> pip install https://github.com/PyLops/pyproximal.git@dev
 
    .. tab-item:: :iconify:`material-icon-theme:uv` uv
 
         .. code-block:: bash
 
-            uv add git+https://github.com/PyLops/pyproximal.git --branch dev
+            >> uv add git+https://github.com/PyLops/pyproximal.git --branch dev
 
 
 .. _DevInstall:
@@ -103,35 +103,53 @@ Install dependencies
 We recommend installing dependencies into a separate environment.
 For that end, we provide a `Makefile` with useful commands for setting up the environment.
 
-Conda (recommended)
--------------------
-For a ``conda`` environment, run
+.. tab-set::
 
-.. code-block:: bash
+   .. tab-item:: :iconify:`devicon:anaconda` conda
 
-   >> make dev-install_conda # for x86 (Intel or AMD CPUs)
-   >> make dev-install_conda_arm # for arm (M-series Mac)
+        .. code-block:: bash
 
-This will create and activate an environment called ``pylops``, with all required and optional dependencies.
+            >> make dev-install_conda # for x86 (Intel or AMD CPUs)
+            >> make dev-install_conda_arm # for arm (M-series Mac)
+        
+        This creates and activate an environment called ``pyproximal``, with 
+        all required and optional dependencies.
+            
+   .. tab-item:: :iconify:`devicon:pypi` pip
 
-Pip
----
-If you prefer a ``pip`` installation, we provide the following command
+        .. code-block:: bash
 
-.. code-block:: bash
+            >> make dev-install
 
-   >> make dev-install
+        Thid does not create a virtual environment. Make sure you create and 
+        activate your environment before running this command.
 
-Note that, differently from the  ``conda`` command, the above **will not** create a virtual environment.
-Make sure you create and activate your environment previously.
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> uv sync
+
+        This also creates a virtual environment `.venv` that can be activated at 
+        any time with `source .venv/bin/activate` (Linux/macOS).
 
 Run tests
 =========
 To ensure that everything has been setup correctly, run tests:
 
-.. code-block:: bash
+.. tab-set::
 
-   >> make tests
+   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+
+        .. code-block:: bash
+
+            >> make tests
+   
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> make tests_uv
 
 Make sure no tests fail, this guarantees that the installation has been successful.
 
@@ -151,7 +169,6 @@ From then on, you can pull changes (for example, in the dev branch) with:
 
    >> git pull upstream dev
 
-
 Install pre-commit hooks
 ========================
 To ensure consistency in the coding style of our developers we rely on
@@ -161,9 +178,19 @@ that have been configured in the ``.pre-commit-config.yaml`` file.
 
 In order to setup such hooks in your local repository, run:
 
-.. code-block:: bash
+.. tab-set::
 
-   >> pre-commit install
+   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+
+        .. code-block:: bash
+
+            >> pre-commit install
+   
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> uv run pre-commit install
 
 Once this is set up, when committing changes, ``pre-commit`` will reject and "fix" your code by running the proper hooks.
 At this point, the user must check the changes and then stage them before trying to commit again.
@@ -173,20 +200,50 @@ Final steps
 PyLops does not enforce the use of a linter as a pre-commit hook, but we do highly encourage using one before submitting a Pull Request.
 A properly configured linter (``flake8``) can be run with:
 
-.. code-block:: bash
+.. tab-set::
 
-   >> make lint
+   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+
+        .. code-block:: bash
+
+            >> make lint
+   
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> make lint_uv
 
 In addition, it is highly encouraged to build the docs prior to submitting a Pull Request.
 Apart from ensuring that docstrings are properly formatted, they can aid in catching bugs during development.
 Build (or update) the docs with:
 
-.. code-block:: bash
+.. tab-set::
 
-   >> make doc
+   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+
+        .. code-block:: bash
+
+            >> make doc
+   
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> make doc_uv
 
 or
 
-.. code-block:: bash
+.. tab-set::
 
-   >> make docupdate
+   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+
+        .. code-block:: bash
+
+            >> make docupdate
+   
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> make docupdate_uv
