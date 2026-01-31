@@ -27,7 +27,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies and pyproximal
-        run: |
-          run: uv sync --locked --all-extras --all-groups
+        run: uv sync --locked --all-extras --all-groups
       - name: Test with pytest
         run: uv run pytest --color=yes pytests/
