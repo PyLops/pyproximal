@@ -27,8 +27,10 @@ dependencies:
     - pytest-runner
     - setuptools_scm
     - pooch
-    - pydata-sphinx-theme
+    - shibuya
+    - sphinx-design
     - sphinx-gallery
+    - sphinx-iconify
     - nbsphinx
     - sphinxemoji
     - image

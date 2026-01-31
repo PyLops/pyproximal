@@ -1,0 +1,33 @@
+name: PyProximal Testing with UV
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [ ubuntu-latest, macos-latest ]
+        python-version: ["3.10", "3.11", "3.12"]
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get history and tags for SCM versioning to work
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - name: Install uv with Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies and pyproximal
+        run: |
+          run: uv sync --locked --all-extras --all-groups
+      - name: Test with pytest
+        run: uv run pytest --color=yes pytests/

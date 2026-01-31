@@ -29,6 +29,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
+requires-python = ">=3.10"
 dependencies = [
     "numpy >= 1.21.0",
     "scipy >= 1.11.0",
@@ -41,6 +42,33 @@ dynamic = ["version"]
 advanced = [
     "llvmlite",
     "numba",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "isort",
+    "flake8",
+    "pre-commit",
+    "autopep8",
+    "black",
+    "mypy",
+]
+doc = [
+    "matplotlib",
+    "scikit-image",
+    "bm3d<4.2.4",
+    "bm4d<4.2.4",
+    "pooch",
+    "sphinx",
+    "sphinx-design",
+    "sphinx-gallery",
+    "sphinx-iconify",
+    "shibuya",
+    "sphinxemoji",
+    "numpydoc",
+    "nbsphinx",
+    "image",
 ]
 
 [tool.setuptools.packages.find]
@@ -59,7 +87,6 @@ warn_unreachable = true
 allow_redefinition = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
-plugins = ["numpy.typing.mypy_plugin"]
 
 [[tool.mypy.overrides]]
 module = ["cupy.*", "numpy.*", "numba.*", "pylops.*", "scipy.*", "scooby.*", "pyproximal.*"]

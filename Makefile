@@ -1,7 +1,8 @@
 PIP := $(shell command -v pip3 2> /dev/null || command which pip 2> /dev/null)
 PYTHON := $(shell command -v python3 2> /dev/null || command which python 2> /dev/null)
+UV := $(shell command -v uv 2> /dev/null || command which uv 2> /dev/null)
 
-.PHONY: install dev-install install_conda dev-install_conda tests doc docupdate servedoc lint typeannot
+.PHONY: install dev-install install_conda dev-install_conda tests tests_uv doc doc_uv docupdate docupdate_uv servedoc lint lint_uv typeannot typeannot_uv
 
 pipcheck:
 ifndef PIP
@@ -14,6 +15,12 @@ ifndef PYTHON
 	$(error "Ensure python or python3 are in your PATH")
 endif
 	@echo Using python: $(PYTHON)
+
+uvcheck:
+ifndef UV
+	$(error "Ensure uv is in your PATH")
+endif
+	@echo Using uv: $(UV)
 
 install:
 	make pipcheck
@@ -36,13 +43,27 @@ tests:
 	make pythoncheck
 	pytest
 
+tests_uv:
+	make uvcheck
+	$(UV) run pytest
+
 doc:
 	cd docs  && rm -rf source/api/generated && rm -rf source/gallery &&\
 	rm -rf source/tutorials && rm -rf source/examples &&\
 	rm -rf build && make html && cd ..
 
+doc_uv:
+	make uvcheck
+	cd docs  && rm -rf source/api/generated && rm -rf source/gallery &&\
+	rm -rf source/tutorials && rm -rf source/examples &&\
+	rm -rf build && $(UV) run make html && cd ..
+
 docupdate:
 	cd docs && make html && cd ..
+
+docupdate_uv:
+	make uvcheck
+	cd docs && $(UV) run make html && cd ..
 
 servedoc:
 	$(PYTHON) -m http.server --directory docs/build/html/
@@ -50,5 +71,13 @@ servedoc:
 lint:
 	flake8 docs/source examples/ pyproximal/ pytests/ tutorials/
 
+lint_uv:
+	make uvcheck
+	$(UV) run flake8 docs/source examples/ pyproximal/ pytests/ tutorials/
+
 typeannot:
 	mypy pyproximal/
+
+typeannot_uv:
+	make uvcheck
+	$(UV) run mypy pyproximal/
