@@ -116,8 +116,8 @@ subclassing the :py:class:`pyproximal.ProxOperator` class and by implementing
    :hidden:
    :caption: Getting involved:
 
-   Implementing new operators  <adding.rst>
-   Contributing <contributing.rst>
-   Changelog <changelog.rst>
-   Credits <credits.rst>
+   adding.rst
+   contributing.rst
+   changelog.rst
+   credits.rst
 

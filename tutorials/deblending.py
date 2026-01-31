@@ -17,9 +17,7 @@ so-called supergather than contains all shots superimposed to each other,
 :math:`\mathbf{S}` is a patch-FK transform, and :math:`i_{\mathbf{d}^b-\boldsymbol\Phi \mathbf{d}}`
 is the indicator function of the :py:class:`pyproximal.AffineSet`.
 
-References
-----------
-1. M. Ravasi, "Seismic deblending with a hard data constraint", IMAGE, 2024.
+.. [1] M. Ravasi, "Seismic deblending with a hard data constraint", IMAGE, 2024.
 
 """
 

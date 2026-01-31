@@ -22,6 +22,8 @@ extensions = [
     'matplotlib.sphinxext.plot_directive',
     'numpydoc',
     'nbsphinx',
+    "sphinx_design",
+    "sphinx_iconify",
     'sphinx_gallery.gen_gallery',
     'sphinxemoji.sphinxemoji',
 ]
@@ -87,7 +89,7 @@ master_doc = 'index'
 # General information about the project
 year = datetime.date.today().year
 project = 'PyProximal'
-copyright = '{}, Matteo Ravasi'.format(year)
+copyright = "{}, PyLops Development Team".format(year)
 
 # Version
 version = __version__
@@ -103,7 +105,6 @@ html_static_path = ["_static"]
 html_last_updated_fmt = '%b %d, %Y'
 html_title = 'PyProximal'
 html_short_title = 'PyProximal'
-html_logo = '_static/pyproximal.png'
 html_favicon = "_static/favicon.ico"
 html_extra_path = []
 pygments_style = 'default'
@@ -113,15 +114,12 @@ html_show_sphinx = True
 html_show_copyright = True
 
 # Theme config
-html_theme = "pydata_sphinx_theme"
+html_theme = "shibuya"
 html_theme_options = {
+    "accent_color": "teal",
     "github_url": "https://github.com/PyLops/pyproximal",
-    # 'logo_only': True,
-    # 'display_version': True,
-    "logo": {
-        "image_light": "pyproximal_b.png",
-        "image_dark": "pyproximal.png",
-    }
+    "light_logo": "_static/pyproximal_b.png",
+    "dark_logo": "_static/pyproximal.png",
 }
 html_css_files = [
     "css/custom.css",
@@ -156,6 +154,7 @@ mathjax3_config = {
         }
     }
 }
+
 
 # Load the custom CSS files (needs sphinx >= 1.6 for this to work)
 def setup(app):

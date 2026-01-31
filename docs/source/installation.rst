@@ -1,12 +1,12 @@
 .. _installation:
 
-Installation
-############
+|:desktop_computer:| Installation
+#################################
 
 Dependencies
 ************
 
-Our mandatory dependencies are limited to:
+The mandatory dependencies of PyProximal are limited to:
 
 * Python 3.10 or greater
 * `NumPy <http://www.numpy.org>`_
@@ -23,35 +23,65 @@ For learning, however, the standard installation is often good enough.
 Step-by-step installation for users
 ***********************************
 
-Conda (recommended)
-===================
-If using ``conda``, install our ``conda-forge`` distribution via:
+From Package Manager
+====================
+First install `pyproximal` with your package manager of choice.
 
-.. code-block:: bash
+.. tab-set::
 
-   >> conda install --channel conda-forge pyproximal
+   .. tab-item:: :iconify:`devicon:anaconda` conda
 
-Using the ``conda-forge`` distribution is recommended as all the dependencies (both required
-and optional) will be automatically installed for you.
+        .. code-block:: bash
 
-Pip
-===
-If you are using ``pip``, and simply type the following command in your terminal
-to install the PyPI distribution:
+            conda install --channel conda-forge pyproximal
 
-.. code-block:: bash
+        Most of the dependencies (all required and some of the optional) are
+        automatically installed for you.
+            
+   .. tab-item:: :iconify:`devicon:pypi` pip
 
-   >> pip install pyproximal
+        .. code-block:: bash
 
-Note that when installing via ``pip``, only *required* dependencies are installed.
+            pip install pyproximal
+        
+        Only the *required* dependencies are installed. To install
+        some of the optional dependencies, run:
+        
+        .. code-block:: bash
+
+            pip install "pyproximal[advanced]"
+
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            uv add pyproximal
+        
+        Only the *required* dependencies are installed. To install
+        some of the optional dependencies, run:
+        
+        .. code-block:: bash
+
+            uv add "pyproximal[advanced]"
+
 
 From Source
 ===========
 To access the latest source from github:
 
-.. code-block:: bash
+.. tab-set::
 
-   >> pip install https://github.com/PyLops/pyproximal.git@dev
+   .. tab-item:: :iconify:`devicon:pypi` pip
+
+        .. code-block:: bash
+
+            pip install https://github.com/PyLops/pyproximal.git@dev
+
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            uv add git+https://github.com/PyLops/pyproximal.git --branch dev
 
 
 .. _DevInstall:

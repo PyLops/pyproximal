@@ -1,7 +1,7 @@
 .. _contributing:
 
-Contributing
-############
+|:heart:| Contributing
+######################
 
 Contributions are welcome and greatly appreciated!
 
@@ -110,8 +110,10 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated accordingly.
 3. Ensure that the updated code passes all tests.
 
+
 Project structure
-#################
+*****************
+
 This repository is organized as follows:
 
 * **pyproximal**: Python library containing various proximal operators and solvers
