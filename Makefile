@@ -66,7 +66,12 @@ docupdate_uv:
 	cd docs && $(UV) run make html && cd ..
 
 servedoc:
+	make pythoncheck
 	$(PYTHON) -m http.server --directory docs/build/html/
+
+servedoc_uv:
+	make uvcheck
+	$(UV) run python -m http.server --directory docs/build/html/
 
 lint:
 	flake8 docs/source examples/ pyproximal/ pytests/ tutorials/
