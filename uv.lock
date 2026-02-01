@@ -135,23 +135,19 @@ css = [
 
 [[package]]
 name = "bm3d"
-version = "4.0.1"
+version = "4.0.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bm4d" },
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "numpy", version = "2.3.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "scipy", version = "1.17.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/49/0f/5387ec8e07b3345e9b8e23cba2a28e27a6b7bccb3e74e2e63dd23a8ca8b5/bm3d-4.0.1.tar.gz", hash = "sha256:92ad34a0923facd2d5211700093c7fff196133f28cf646244b0598a7daf90dd3", size = 1068761, upload-time = "2022-12-20T02:21:31.328Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e6/3a/ef3cbc420270472e3b4302acfd259ed58f5508ac217cc23eb9d1c7c1b204/bm3d-4.0.3.tar.gz", hash = "sha256:e9cda8d65134b384fe1af50a40a446a77774711c1a3a7412e2144f5e8f3e4088", size = 1069197, upload-time = "2024-09-06T15:41:34.304Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/ff/ab6cb80798cde8cc14f1970f0a244494d0bdcb0d5371c61d030a7c55a7c5/bm3d-4.0.1-py3-none-any.whl", hash = "sha256:81e430d4a7aa5f30e51f8c61eab55265e3e074a4f5cea67ab0238eb4bf15cc7f", size = 9979, upload-time = "2022-12-20T02:21:17.289Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/2b/7f0990efc53f85dd90213b33a6ac0356d5adbb52e0c5bf15a66e9b5193ef/bm3d-4.0.3-py3-none-any.whl", hash = "sha256:fc4dfc0de0cd810fcb6ad198e1d0c6f99cf19d41f2ec69ff867674cfb9f2a775", size = 10148, upload-time = "2024-09-06T15:41:32.02Z" },
 ]
 
 [[package]]
 name = "bm4d"
-version = "4.2.3"
+version = "4.2.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -161,9 +157,9 @@ dependencies = [
     { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scipy", version = "1.17.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8d/c6/6b46e32625b9bf36bfcd4a1b7fd6ca6ecaff7d32034273b15e056f43d3ee/bm4d-4.2.3.tar.gz", hash = "sha256:e4cd0865f304f584118b9e8af880f0f2212ae9c5aa5192cf5d96c40007659de6", size = 4095146, upload-time = "2022-12-20T02:21:27.247Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/20/33/d85ecd508ad6d0782002c21264d5d67f43d430d9e2304841bd5c7fb25753/bm4d-4.2.5.tar.gz", hash = "sha256:5a7ca4d85ecb570e8eb20213d035fc801da58227772fd077b0a8798f5342c9b4", size = 3891186, upload-time = "2024-09-06T15:40:13.357Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d4/ab/59a1f5ea27bfb0f9ba306cd109a0f3b763e696530cc00a1ce52a1704de21/bm4d-4.2.3-py3-none-any.whl", hash = "sha256:752c3a5952624d760e5251ba38dd4e7e46b6e450deb7fc3bd05544128ac6c27a", size = 1068070, upload-time = "2022-12-20T02:21:15.4Z" },
+    { url = "https://files.pythonhosted.org/packages/19/47/034be51bc2b40279fd1417397d3f330b73906774bd6eaecd26ed93c1491f/bm4d-4.2.5-py3-none-any.whl", hash = "sha256:601338bbd54bcbd971d70b5a6961583a9ccaa564c982389cf3f82bd0a6d5bad5", size = 862033, upload-time = "2024-09-06T15:40:10.58Z" },
 ]
 
 [[package]]
@@ -1948,8 +1944,8 @@ dev = [
     { name = "pytest" },
 ]
 doc = [
-    { name = "bm3d", specifier = "<4.2.4" },
-    { name = "bm4d", specifier = "<4.2.4" },
+    { name = "bm3d" },
+    { name = "bm4d" },
     { name = "image" },
     { name = "matplotlib" },
     { name = "nbsphinx" },

@@ -57,8 +57,8 @@ dev = [
 doc = [
     "matplotlib",
     "scikit-image",
-    "bm3d<4.2.4",
-    "bm4d<4.2.4",
+    "bm3d",
+    "bm4d",
     "pooch",
     "sphinx",
     "sphinx-design",
