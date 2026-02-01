@@ -1,4 +1,4 @@
-name: PyProximal Testing
+name: PyProximal-testing
 
 on:
   pull_request:
