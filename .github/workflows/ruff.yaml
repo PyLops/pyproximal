@@ -18,4 +18,4 @@ jobs:
       - name: ruff Lint
         uses: astral-sh/ruff-action@v3
         with:
-          args: check pyproximal
+           src: "./pyproximal"
