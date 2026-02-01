@@ -24,8 +24,5 @@ nbsphinx
 image
 pre-commit
 autopep8
-isort
-black
-flake8
-flake8-pyproject
+ruff
 mypy

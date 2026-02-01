@@ -47,12 +47,9 @@ advanced = [
 [dependency-groups]
 dev = [
     "pytest",
-    "isort",
-    "flake8",
-    "flake8-pyproject",
     "pre-commit",
     "autopep8",
-    "black",
+    "ruff",
     "mypy",
 ]
 doc = [
@@ -82,11 +79,21 @@ version_file = "pyproximal/version.py"
 addopts = "--verbose"
 python_files = ["pytests/*.py"]
 
-[tool.flake8]
-ignore = ["E203", "E501", "W503", "E402"]
-max-line-length = 88
-per-file-ignores = [
-  "__init__.py:F401,F403,F405"
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+ignore = [
+  #"E203",  # whitespace before ':', conflicts with black
+  "E501",  # line length handled by formatter
+  "E402",  # module level import not at top of file
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [
+  "F401",  # imported but unused (re-exports)
+  "F403",  # star import used for public API
+  "F405",  # name may be undefined from star import
 ]
 
 [tool.mypy]

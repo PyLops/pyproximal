@@ -7,29 +7,21 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
 
-  - repo: https://github.com/psf/black
-    rev: 25.1.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.14.14
     hooks:
-      - id: black
-        args: # arguments to configure black
-          - --line-length=88
-
-  - repo: https://github.com/pycqa/isort
-    rev: 6.0.1
-    hooks:
-      - id: isort
-        name: isort (python)
-        args:
-          [
-            "--profile",
-            "black",
-            "--skip",
-            "__init__.py",
-            "--filter-files",
-            "--line-length=88",
-          ]
+      - id: ruff-check
+        args: [ --fix ]
+      - id: ruff-format
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.9.28
     hooks:
       - id: uv-lock
+
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: "v0.23"
+    hooks:
+      - id: validate-pyproject
+        additional_dependencies: ["validate-pyproject-schema-store[all]"]

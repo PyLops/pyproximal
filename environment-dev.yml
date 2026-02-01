@@ -19,8 +19,6 @@ dependencies:
   - icc_rt
   - pre-commit
   - autopep8
-  - isort
-  - black
   - pip:
     - bm4d
     - bm3d
@@ -34,6 +32,5 @@ dependencies:
     - nbsphinx
     - sphinxemoji
     - image
-    - flake8
-    - flake8-pyproject
+    - ruff
     - mypy
