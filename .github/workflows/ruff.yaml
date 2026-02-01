@@ -18,8 +18,4 @@ jobs:
       - name: ruff Lint
         uses: astral-sh/ruff-action@v3
         with:
-          args: >
-            check pyproximal
-            --line-length 88
-            --ignore E203,E501,E402
-            --per-file-ignores "__init__.py:F401,__init__.py:F403,__init__.py:F405"
+          args: check pyproximal
