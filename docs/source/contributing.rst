@@ -65,26 +65,55 @@ Now you can make your changes locally.
 3. When you're done making changes, check that your code follows the guidelines for :ref:`addingoperator` and
 that both old and new tests pass successfully:
 
-.. code-block:: bash
+.. tab-set::
 
-   >>  make tests
+   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
 
-4. Run flake8 to check the quality of your code:
+        .. code-block:: bash
 
-.. code-block:: bash
+            >> make tests
+   
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
 
-   >> make lint
+        .. code-block:: bash
 
-Note that PyProximal does not enforce full compliance with flake8, rather this is used as a
-guideline and will also be run as part of our CI.
-Make sure to limit to a minimum flake8 warnings before making a PR.
+            >> make tests_uv
+
+4. Run ruff to check the quality of your code:
+
+
+.. tab-set::
+
+   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+
+        .. code-block:: bash
+
+            >> make lint
+   
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> make lint_uv
+   
+Note that PyProximal enforces full compliance with ruff and it
+will also be run as part of our CI.
 
 5. Update the docs
 
-.. code-block:: bash
+.. tab-set::
 
-   >> make docupdate
+   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
 
+        .. code-block:: bash
+
+            >> make docupdate
+   
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> make docupdate_uv
 
 6. Commit your changes and push your branch to GitLab:
 

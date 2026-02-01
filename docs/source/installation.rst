@@ -198,7 +198,7 @@ At this point, the user must check the changes and then stage them before trying
 Final steps
 ===========
 PyLops does not enforce the use of a linter as a pre-commit hook, but we do highly encourage using one before submitting a Pull Request.
-A properly configured linter (``flake8``) can be run with:
+A properly configured linter (``ruff``) can be run with:
 
 .. tab-set::
 

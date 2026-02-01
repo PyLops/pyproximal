@@ -58,14 +58,21 @@ Ready to contribute?
     ```
     make tests
     ```
+    or
+    ```
+    make tests_uv
+    ```
 
-4. Run flake8 to check the quality of your code:
+4. Run ruff to check the quality of your code:
     ```
     make lint
     ```
-    Note that PyLops does not enforce full compliance with flake8, rather this is used as a
-guideline and will also be run as part of our CI.
-Make sure to limit to a minimum flake8 warnings before making a PR.
+    or
+    ```
+    make lint_uv
+    ```
+
+    Note that PyProximal enforces full compliance with ruff and it will also be run as part of our CI.
 
 5. Update the docs
    ```
