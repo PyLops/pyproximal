@@ -80,6 +80,7 @@ addopts = "--verbose"
 python_files = ["pytests/*.py"]
 
 [tool.ruff]
+src = ["pyproximal"]
 line-length = 88
 
 [tool.ruff.lint]
