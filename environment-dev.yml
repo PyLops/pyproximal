@@ -35,4 +35,5 @@ dependencies:
     - sphinxemoji
     - image
     - flake8
+    - flake8-pyproject
     - mypy

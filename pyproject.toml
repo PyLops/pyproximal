@@ -49,6 +49,7 @@ dev = [
     "pytest",
     "isort",
     "flake8",
+    "flake8-pyproject",
     "pre-commit",
     "autopep8",
     "black",
@@ -76,6 +77,17 @@ exclude = ["pytests"]
 
 [tool.setuptools_scm]
 version_file = "pyproximal/version.py"
+
+[tool.pytest.ini_options]
+addopts = "--verbose"
+python_files = ["pytests/*.py"]
+
+[tool.flake8]
+ignore = ["E203", "E501", "W503", "E402"]
+max-line-length = 88
+per-file-ignores = [
+  "__init__.py:F401,F403,F405"
+]
 
 [tool.mypy]
 files = ["pyproximal", ]

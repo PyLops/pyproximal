@@ -28,3 +28,8 @@ repos:
             "--filter-files",
             "--line-length=88",
           ]
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.9.28
+    hooks:
+      - id: uv-lock

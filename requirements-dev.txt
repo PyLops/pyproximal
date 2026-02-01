@@ -5,20 +5,20 @@ numba
 scikit-image
 matplotlib
 ipython
-bm4d<4.2.4 # temporary as gclib problem arises in readthedocs
-bm3d<4.0.2 # temporary as gclib problem arises in readthedocs
+bm4d
+bm3d
 typing_extensions
 pytest
 pytest-runner
 setuptools_scm
-docutils<0.18
-Sphinx
+sphinx
 pooch
 shibuya
 sphinx-design
 sphinx-gallery
 sphinx-iconify
 sphinxemoji
+shibuya
 numpydoc
 nbsphinx
 image
@@ -27,4 +27,5 @@ autopep8
 isort
 black
 flake8
+flake8-pyproject
 mypy
