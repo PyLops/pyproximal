@@ -1,7 +1,10 @@
+from typing import Any
 import os
 
 import numpy as np
 from numba import jit
+
+from pylops.utils.typing import NDArray
 
 # detect whether to use parallel or not
 numba_threads = int(os.getenv("NUMBA_NUM_THREADS", "1"))
@@ -9,7 +12,9 @@ parallel = True if numba_threads != 1 else False
 
 
 @jit(nopython=True)
-def fun_jit(mu, x, coeffs, scalar, lower, upper):
+def fun_jit(
+    mu: int, x: NDArray, coeffs: NDArray, scalar: float, lower: float, upper: float
+) -> Any:
     """Bisection function"""
     return (
         np.dot(coeffs, np.minimum(np.maximum(x - mu * coeffs, lower), upper)) - scalar
@@ -18,8 +23,17 @@ def fun_jit(mu, x, coeffs, scalar, lower, upper):
 
 @jit(nopython=True, nogil=True)
 def bisect_jit(
-    x, coeffs, scalar, lower, upper, bisect_lower, bisect_upper, maxiter, ftol, xtol
-):
+    x: NDArray,
+    coeffs: NDArray,
+    scalar: float,
+    lower: float,
+    upper: float,
+    bisect_lower: float,
+    bisect_upper: float,
+    maxiter: int,
+    ftol: float,
+    xtol: float,
+) -> Any:
     """Bisection method
 
     Parameters
@@ -64,7 +78,16 @@ def bisect_jit(
 
 
 @jit(nopython=True, parallel=parallel, nogil=True)
-def simplex_jit(x, coeffs, scalar, lower, upper, maxiter, ftol, xtol):
+def simplex_jit(
+    x: NDArray,
+    coeffs: NDArray,
+    scalar: float,
+    lower: float,
+    upper: float,
+    maxiter: int,
+    ftol: float,
+    xtol: float,
+) -> NDArray:
     """Simplex proximal
 
     Parameters

@@ -1,10 +1,10 @@
 __all__ = ["Report"]
 
-# scooby is a soft dependency for pyproximal
 from types import ModuleType
 from typing import Optional
 
 try:
+    # scooby is a soft dependency for pyproximal
     from scooby import Report as ScoobyReport
 except ImportError:
 
@@ -25,7 +25,7 @@ except ImportError:
             )
 
 
-class Report(ScoobyReport):
+class Report(ScoobyReport):  # type: ignore[misc]
     r"""Print date, time, and version information.
 
     Use ``scooby`` to print date, time, and package version information in any
