@@ -34,3 +34,4 @@ dependencies:
     - image
     - ruff
     - mypy
+    - coverage

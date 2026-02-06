@@ -2,7 +2,9 @@ PIP := $(shell command -v pip3 2> /dev/null || command which pip 2> /dev/null)
 PYTHON := $(shell command -v python3 2> /dev/null || command which python 2> /dev/null)
 UV := $(shell command -v uv 2> /dev/null || command which uv 2> /dev/null)
 
-.PHONY: install dev-install install_conda dev-install_conda tests tests_uv doc doc_uv docupdate docupdate_uv servedoc lint lint_uv typeannot typeannot_uv
+.PHONY: install dev-install install_conda dev-install_conda
+.PHONY: tests tests_uv doc doc_uv docupdate docupdate_uv servedoc
+.PHONY: lint lint_uv typeannot typeannot_uv coverage, coverage_uv
 
 pipcheck:
 ifndef PIP
@@ -86,3 +88,13 @@ typeannot:
 typeannot_uv:
 	make uvcheck
 	$(UV) run mypy pyproximal/
+
+coverage:
+	coverage run -m pytest && coverage xml && coverage html && $(PYTHON) -m http.server --directory htmlcov/
+
+coverage_uv:
+	make uvcheck
+	$(UV) run coverage run -m pytest  &&\
+	$(UV) run coverage xml &&\
+	$(UV) run coverage html  &&\
+	$(UV) run python -m http.server --directory htmlcov/

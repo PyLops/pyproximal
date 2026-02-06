@@ -1,7 +1,7 @@
 # This workflow runs MyPy on the PR
 name: PyProximal-mypy
 
-on: pull_request
+on: [push, pull_request]
 
 jobs:
   mypy:
@@ -14,6 +14,7 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.11"
+          enable-cache: true
       - name: Install dependencies and pyproximal
         run: uv sync --locked --all-extras --all-groups
       - name: Run Mypy
