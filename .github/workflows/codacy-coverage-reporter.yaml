@@ -34,7 +34,7 @@ jobs:
 
       - name: Coverage with pytest
         run: |
-          uv run coverage -m pytest
+          uv run coverage run -m pytest
           uv run coverage xml
 
       - name: Run codacy-coverage-reporter
