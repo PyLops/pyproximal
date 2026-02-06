@@ -36,6 +36,13 @@ jobs:
         run: |
           uv run coverage run -m pytest
           uv run coverage xml
+          uv run coverage html
+
+      - name: Upload HTML coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: htmlcov/
 
       - name: Run codacy-coverage-reporter
         if: github.event_name == 'push'
