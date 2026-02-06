@@ -34,8 +34,8 @@ jobs:
 
       - name: Coverage with pytest
         run: |
-          uv coverage run -m pytest
-          uv coverage xml
+          uv run coverage -m pytest
+          uv run coverage xml
 
       - name: Run codacy-coverage-reporter
         if: github.event_name == 'push'
