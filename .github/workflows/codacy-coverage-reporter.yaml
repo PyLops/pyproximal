@@ -1,0 +1,35 @@
+# This workflow uploads PyProximal coverage analysis on Codacy
+# For more information see: https://github.com/codacy/codacy-coverage-reporter-action
+name: PyProximal-coverage
+
+on: [push, pull_request_target]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [ ubuntu-latest, ]
+        python-version: ["3.11", ]
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get history and tags for SCM versioning to work
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - name: Install uv with Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies and pyproximal
+        run: uv sync --locked --all-extras --all-groups
+      - name: Coverage with pytest
+        run: |
+          uv coverage run -m pytest
+          uv coverage xml
+      - name: Run codacy-coverage-reporter
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.xml
