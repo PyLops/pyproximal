@@ -783,7 +783,7 @@ def GeneralizedProximalGradient(
     Notes
     -----
     The Generalized Proximal gradient algorithm can be expressed by the
-    following recursion:
+    following recursion [1]_:
 
     .. math::
         \text{for } j=1,\cdots,n, \\
@@ -794,6 +794,9 @@ def GeneralizedProximalGradient(
 
     where :math:`\sum_{j=1}^n w_j=1`. In the current implementation, :math:`w_j=1/n` when
     not provided.
+
+    .. [1] Raguet, H., Fadili, J. and Peyré, G. "Generalized Forward-Backward Splitting",
+       arXiv, 2012.
 
     """
     # check if weights sum to 1
@@ -1915,7 +1918,7 @@ def PPXA(  # pylint: disable=invalid-name
     # initialize model
     m = len(proxfs)
     if weights is None:
-        w = ncp.full(m, 1. / m)
+        w = ncp.full(m, 1.0 / m)
     else:
         w = ncp.asarray(weights)
 
@@ -1944,8 +1947,7 @@ def PPXA(  # pylint: disable=invalid-name
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf = ncp.sum([proxfs[i](x) for i in range(m)])
                 print(
-                    f"{iiter + 1:6d}  {ncp.real(to_numpy(x[0])):12.5e}  "
-                    f"{pf:10.3e}"
+                    f"{iiter + 1:6d}  {ncp.real(to_numpy(x[0])):12.5e}  " f"{pf:10.3e}"
                 )
 
         # break if tolerance condition is met
