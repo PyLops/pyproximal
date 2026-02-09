@@ -84,6 +84,9 @@ python_files = ["pytests/*.py"]
 src = ["pyproximal"]
 line-length = 88
 
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = [
   "F401",  # imported but unused (re-exports)
