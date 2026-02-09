@@ -29,15 +29,18 @@ jobs:
       architecture: 'arm64'
 
   - script: |
-      python -m pip install --upgrade pip setuptools wheel django
-      pip install -r requirements-dev.txt
-      pip install .
-    displayName: 'Install prerequisites and library'
+      python -m pip install --upgrade pip
+      pip install uv
+    displayName: 'Install uv'
 
   - script: |
-      pytest
+      uv sync --locked --all-extras --all-groups
+    displayName: 'Install dependencies and pyproximal'
+
+  - script: |
+      uv run pytest --color=yes pytests/
     condition: succeededOrFailed()
-    displayName: 'Run tests'
+    displayName: 'Test with pytest'
 
 
 # Linux
@@ -58,12 +61,15 @@ jobs:
       architecture: 'x64'
 
   - script: |
-      python -m pip install --upgrade pip setuptools wheel django
-      pip install -r requirements-dev.txt
-      pip install .
-    displayName: 'Install prerequisites and library'
+      python -m pip install --upgrade pip
+      pip install uv
+    displayName: 'Install uv'
 
   - script: |
-      pytest
+      uv sync --locked --all-extras --all-groups
+    displayName: 'Install dependencies and pyproximal'
+
+  - script: |
+      uv run pytest --color=yes pytests/
     condition: succeededOrFailed()
-    displayName: 'Run tests'
+    displayName: 'Test with pytest'
