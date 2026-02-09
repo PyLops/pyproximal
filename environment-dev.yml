@@ -10,7 +10,7 @@ dependencies:
   - pylops>=2.0.0
   - scikit-image
   - matplotlib
-  - typing_extensions
+  - typing_extensions>=4.0.0
   - ipython
   - pytest
   - Sphinx

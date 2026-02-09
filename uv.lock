@@ -1930,7 +1930,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.21.0" },
     { name = "pylops", specifier = ">=2.0.0" },
     { name = "scipy", specifier = ">=1.11.0" },
-    { name = "typing-extensions" },
+    { name = "typing-extensions", specifier = ">=4.0.0" },
 ]
 provides-extras = ["advanced"]
 
