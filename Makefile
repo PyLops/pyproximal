@@ -2,7 +2,7 @@ PIP := $(shell command -v pip3 2> /dev/null || command which pip 2> /dev/null)
 PYTHON := $(shell command -v python3 2> /dev/null || command which python 2> /dev/null)
 UV := $(shell command -v uv 2> /dev/null || command which uv 2> /dev/null)
 
-.PHONY: install dev-install install_conda dev-install_conda
+.PHONY: install_conda dev-install_conda
 .PHONY: tests tests_uv doc doc_uv docupdate docupdate_uv servedoc
 .PHONY: lint lint_uv typeannot typeannot_uv coverage, coverage_uv
 
@@ -23,14 +23,6 @@ ifndef UV
 	$(error "Ensure uv is in your PATH")
 endif
 	@echo Using uv: $(UV)
-
-install:
-	make pipcheck
-	$(PIP) install -r requirements.txt && $(PIP) install .
-
-dev-install:
-	make pipcheck
-	$(PIP) install -r requirements-dev.txt && $(PIP) install -e .
 
 install_conda:
 	conda env create -f environment.yml && source ${CONDA_PREFIX}/etc/profile.d/conda.sh && conda activate pyproximal && pip install .

@@ -13,11 +13,14 @@ The mandatory dependencies of PyProximal are limited to:
 * `SciPy <http://www.scipy.org/scipylib/index.html>`_
 * `PyLops <https://pylops.readthedocs.io>`_
 
-We highly encourage using the `Anaconda Python distribution <https://www.anaconda.com/download>`_
+We encourage using the `Anaconda Python distribution <https://www.anaconda.com/download>`_
 or its standalone package manager `Conda <https://docs.conda.io/en/latest/index.html>`_.
 Especially for Intel processors, this ensures a higher performance with no configuration (e.g., 
 the linking to ``Intel MKL`` library, a highly optimized BLAS library created by Intel).
-For learning, however, the standard installation is often good enough.
+
+For learning, however, the standard installation is often good enough; in that case, we
+recommend using `uv <https://docs.astral.sh/uv/>`_, a modern Python package manager that
+is easy to use and has a very fast dependency resolver.
 
 
 Step-by-step installation for users
@@ -37,19 +40,6 @@ First install `pyproximal` with your package manager of choice.
 
         Most of the dependencies (all required and some of the optional) are
         automatically installed for you.
-            
-   .. tab-item:: :iconify:`devicon:pypi` pip
-
-        .. code-block:: bash
-
-            >> pip install pyproximal
-        
-        Only the *required* dependencies are installed. To install
-        some of the optional dependencies, run:
-        
-        .. code-block:: bash
-
-            >> pip install "pyproximal[advanced]"
 
    .. tab-item:: :iconify:`material-icon-theme:uv` uv
 
@@ -114,23 +104,14 @@ For that end, we provide a `Makefile` with useful commands for setting up the en
         
         This creates and activate an environment called ``pyproximal``, with 
         all required and optional dependencies.
-            
-   .. tab-item:: :iconify:`devicon:pypi` pip
-
-        .. code-block:: bash
-
-            >> make dev-install
-
-        Thid does not create a virtual environment. Make sure you create and 
-        activate your environment before running this command.
 
    .. tab-item:: :iconify:`material-icon-theme:uv` uv
 
         .. code-block:: bash
 
-            >> uv sync
+            >> uv sync --locked --all-extras --all-groups 
 
-        This also creates a virtual environment `.venv` that can be activated at 
+        This creates a virtual environment `.venv` that can be activated at 
         any time with `source .venv/bin/activate` (Linux/macOS).
 
 Run tests
@@ -139,7 +120,7 @@ To ensure that everything has been setup correctly, run tests:
 
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+   .. tab-item:: :iconify:`devicon:anaconda`
 
         .. code-block:: bash
 
@@ -180,7 +161,7 @@ In order to setup such hooks in your local repository, run:
 
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+   .. tab-item:: :iconify:`devicon:anaconda`
 
         .. code-block:: bash
 
@@ -202,7 +183,7 @@ A properly configured linter (``ruff``) can be run with:
 
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+   .. tab-item:: :iconify:`devicon:anaconda`
 
         .. code-block:: bash
 
@@ -220,7 +201,7 @@ Build (or update) the docs with:
 
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+   .. tab-item:: :iconify:`devicon:anaconda`
 
         .. code-block:: bash
 
@@ -236,7 +217,7 @@ or
 
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+   .. tab-item:: :iconify:`devicon:anaconda`
 
         .. code-block:: bash
 

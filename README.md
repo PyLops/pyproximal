@@ -105,20 +105,24 @@ This repository is organized as follows:
 * **tutorials**:  set of python script tutorials to be embedded in documentation using sphinx-gallery
 
 ## Getting started
-You need **Python 3.8 or greater**.
+You need **Python 3.10 or greater**.
 
-*Note: Versions prior to v0.3.0 work also with Python 3.6 or greater, however they
-require scipy version to be lower than v1.8.0.*
+#### From Conda
 
 To get the most out of PyLops straight out of the box, we recommend `conda` to install PyLops:
 ```bash
 conda install -c conda-forge pyproximal
 ```
 
-#### From PyPi
+#### From PyPI
 You can also install pyproximal with `pip`:
 ```bash
 pip install pyproximal
+```
+
+or via `uv` (reccomended):
+```bash
+uv pip install pyproximal
 ```
 
 #### From Github
@@ -144,8 +148,9 @@ git clone https://github.com/your_name_here/pyproximal.git
 ```
 
 ### 2. Install PyLops in a new Conda environment
-To ensure that further development of PyLops is performed within the same environment (i.e., same dependencies) as
-that defined by ``requirements-dev.txt`` or ``environment-dev.yml`` files, we suggest to work off a new Conda enviroment.
+To ensure that further development of PyLops is performed within the same environment (i.e.,
+same dependencies) as that defined by ``environment-dev.yml``/``environment-dev-arm.yml`` files,
+we suggest to work off a new Conda enviroment.
 
 The first time you clone the repository run the following command:
 ```
