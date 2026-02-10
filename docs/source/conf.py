@@ -165,8 +165,3 @@ mathjax3_config = {
         }
     }
 }
-
-
-# Load the custom CSS files (needs sphinx >= 1.6 for this to work)
-def setup(app):
-    app.add_css_file("style.css")
