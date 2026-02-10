@@ -119,17 +119,20 @@ You can also install pyproximal with `pip`:
 ```bash
 pip install pyproximal
 ```
-
-or via `uv` (reccomended):
+or via `uv`:
 ```bash
 uv pip install pyproximal
 ```
 
 #### From Github
-Finally, you can also directly install from the main branch (although this is not recommended)
+Finally, you can also directly install from the main branch (although this is not recommended):
 
 ```
 pip install git+https://git@github.com/PyLops/pyproximal.git@main
+```
+or via `uv`:
+```bash
+uv add git+https://github.com/PyLops/pyproximal.git --branch main
 ```
 
 ## Contributing
@@ -167,6 +170,9 @@ Remember to always activate the conda environment every time you open a new term
 source activate pyproximal
 ```
 
+If you prefer to use ``uv``, checkout the [Contributing](https://pyproximal.readthedocs.io/en/latest/contributing.html) page in the official documentation.
+
+
 ## Documentation
 The official documentation of PyProximal is available [here](https://pyproximal.readthedocs.io/).
 
@@ -189,8 +195,6 @@ When using PyProximal in scientific publications, please cite the following pape
 
 - Ravasi M, Örnhag M. V., Luiken N., Leblanc O. and Uruñuela E., 2024, *<b>PyProximal - scalable convex optimization in Python</b>*,
   Journal of Open Source Software, 9(95), 6326. doi: 10.21105/joss.06326 [(link)](https://joss.theoj.org/papers/10.21105/joss.06326)
-
-
 
 ## Contributors
 * Matteo Ravasi, mrava87
