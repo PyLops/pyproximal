@@ -67,7 +67,7 @@ that both old and new tests pass successfully:
 
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+   .. tab-item:: :iconify:`devicon:anaconda` conda
 
         .. code-block:: bash
 
@@ -78,13 +78,23 @@ that both old and new tests pass successfully:
         .. code-block:: bash
 
             >> make tests_uv
+   
+   .. tab-item:: :iconify:`material-icon-theme:foxpro` nox
+
+        .. code-block:: bash
+
+            >> make tests_nox
+        
+        Whilst not enforced, this is recommended as it runs the tests
+        with different versions of Python (the same that are used in our CI). 
+        Note that you need to have `nox` installed to run this command - 
+        use `pipx install nox` or `brew install nox` on macOS to install it.
 
 4. Run ruff to check the quality of your code:
 
-
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+   .. tab-item:: :iconify:`devicon:anaconda` conda
 
         .. code-block:: bash
 
@@ -103,7 +113,7 @@ will also be run as part of our CI.
 
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda` \ :iconify:`devicon:pypi` pip
+   .. tab-item::  conda
 
         .. code-block:: bash
 
