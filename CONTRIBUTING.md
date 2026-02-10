@@ -46,8 +46,6 @@ Ready to contribute?
 
 1. Follow all installation instructions in the [Step-by-step installation for developers](https://pyproximal.readthedocs.io/en/stable/installation.html#step-by-step-installation-for-developers) section of the documentation.
 
-1. Fork the `PyProximal` repo.
-
 2. Create a branch for local development:
     ```
     git checkout -b name-of-your-branch
@@ -79,7 +77,7 @@ Ready to contribute?
    make docupdate
    ```
 
-6. Commit your changes and push your branch to GitLab::
+6. Commit your changes and push your branch to GitHub:
     ```
     git add .
     git commit -m "Your detailed description of your changes."

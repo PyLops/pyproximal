@@ -95,7 +95,7 @@ For that end, we provide a `Makefile` with useful commands for setting up the en
 
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda` conda
+   .. tab-item::  conda
 
         .. code-block:: bash
 
@@ -109,8 +109,8 @@ For that end, we provide a `Makefile` with useful commands for setting up the en
 
         .. code-block:: bash
 
-            >> uv sync --locked --all-extras --all-groups 
-
+            >> make dev-install_uv
+        
         This creates a virtual environment `.venv` that can be activated at 
         any time with `source .venv/bin/activate` (Linux/macOS).
 
@@ -120,7 +120,7 @@ To ensure that everything has been setup correctly, run tests:
 
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda`
+   .. tab-item:: :iconify:`devicon:anaconda` conda
 
         .. code-block:: bash
 
@@ -161,7 +161,7 @@ In order to setup such hooks in your local repository, run:
 
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda`
+   .. tab-item:: :iconify:`devicon:anaconda` conda
 
         .. code-block:: bash
 
@@ -183,7 +183,7 @@ A properly configured linter (``ruff``) can be run with:
 
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda`
+   .. tab-item:: :iconify:`devicon:anaconda` conda
 
         .. code-block:: bash
 
@@ -201,7 +201,7 @@ Build (or update) the docs with:
 
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda`
+   .. tab-item:: :iconify:`devicon:anaconda` conda
 
         .. code-block:: bash
 
@@ -217,7 +217,7 @@ or
 
 .. tab-set::
 
-   .. tab-item:: :iconify:`devicon:anaconda`
+   .. tab-item:: :iconify:`devicon:anaconda` conda
 
         .. code-block:: bash
 
