@@ -105,27 +105,34 @@ This repository is organized as follows:
 * **tutorials**:  set of python script tutorials to be embedded in documentation using sphinx-gallery
 
 ## Getting started
-You need **Python 3.8 or greater**.
+You need **Python 3.10 or greater**.
 
-*Note: Versions prior to v0.3.0 work also with Python 3.6 or greater, however they
-require scipy version to be lower than v1.8.0.*
+#### From Conda
 
 To get the most out of PyLops straight out of the box, we recommend `conda` to install PyLops:
 ```bash
 conda install -c conda-forge pyproximal
 ```
 
-#### From PyPi
+#### From PyPI
 You can also install pyproximal with `pip`:
 ```bash
 pip install pyproximal
 ```
+or via `uv`:
+```bash
+uv pip install pyproximal
+```
 
 #### From Github
-Finally, you can also directly install from the main branch (although this is not recommended)
+Finally, you can also directly install from the main branch (although this is not recommended):
 
 ```
 pip install git+https://git@github.com/PyLops/pyproximal.git@main
+```
+or via `uv`:
+```bash
+uv add git+https://github.com/PyLops/pyproximal.git --branch main
 ```
 
 ## Contributing
@@ -144,8 +151,9 @@ git clone https://github.com/your_name_here/pyproximal.git
 ```
 
 ### 2. Install PyLops in a new Conda environment
-To ensure that further development of PyLops is performed within the same environment (i.e., same dependencies) as
-that defined by ``requirements-dev.txt`` or ``environment-dev.yml`` files, we suggest to work off a new Conda enviroment.
+To ensure that further development of PyLops is performed within the same environment (i.e.,
+same dependencies) as that defined by ``environment-dev.yml``/``environment-dev-arm.yml`` files,
+we suggest to work off a new Conda enviroment.
 
 The first time you clone the repository run the following command:
 ```
@@ -161,6 +169,9 @@ Remember to always activate the conda environment every time you open a new term
 ```
 source activate pyproximal
 ```
+
+If you prefer to use ``uv``, checkout the [Contributing](https://pyproximal.readthedocs.io/en/latest/contributing.html) page in the official documentation.
+
 
 ## Documentation
 The official documentation of PyProximal is available [here](https://pyproximal.readthedocs.io/).
@@ -184,8 +195,6 @@ When using PyProximal in scientific publications, please cite the following pape
 
 - Ravasi M, Örnhag M. V., Luiken N., Leblanc O. and Uruñuela E., 2024, *<b>PyProximal - scalable convex optimization in Python</b>*,
   Journal of Open Source Software, 9(95), 6326. doi: 10.21105/joss.06326 [(link)](https://joss.theoj.org/papers/10.21105/joss.06326)
-
-
 
 ## Contributors
 * Matteo Ravasi, mrava87

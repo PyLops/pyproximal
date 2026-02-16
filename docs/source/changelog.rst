@@ -1,7 +1,7 @@
 .. _changlog:
 
-Changelog
-=========
+|:newspaper_roll:| Changelog
+############################
 
 Version 0.11.1
 --------------

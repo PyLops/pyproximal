@@ -5,19 +5,21 @@
 # Required
 version: 2
 
-# Set the version of Python and other tools you might need
-build:
-  os: ubuntu-20.04
-  tools:
-    python: "3.11"
-
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
   configuration: docs/source/conf.py
 
-# Declare the Python requirements required to build your docs
-python:
-  install:
-    - requirements: requirements-doc.txt
-    - method: pip
-      path: .
+# Set the version of environment using UV
+build:
+   os: ubuntu-24.04
+   tools:
+      python: "3.13"
+   jobs:
+      pre_create_environment:
+         - asdf plugin add uv
+         - asdf install uv latest
+         - asdf global uv latest
+      create_environment:
+         - uv venv "${READTHEDOCS_VIRTUALENV_PATH}"
+      install:
+         - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --locked --all-extras --all-groups

@@ -1,7 +1,7 @@
 .. _api:
 
-PyProximal API
-==============
+|:wrench:| PyProximal API
+=========================
 
 The Application Programming Interface (API) of PyProximal is composed of 3 elements:
 

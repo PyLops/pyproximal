@@ -11,7 +11,7 @@ from pyproximal.ProxOperator import ProxOperator, _check_tau
 try:
     from numba import jit
 
-    from ._Simplex_cuda import simplex_jit_cuda
+    from ._Simplex_cuda import simplex_jit_cuda  # type: ignore[attr-defined]
     from ._Simplex_numba import bisect_jit, fun_jit, simplex_jit
 except ModuleNotFoundError:
     jit = None

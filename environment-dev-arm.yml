@@ -10,7 +10,7 @@ dependencies:
   - pylops>=2.0.0
   - scikit-image
   - matplotlib
-  - typing_extensions
+  - typing_extensions>=4.0.0
   - ipython
   - pytest
   - Sphinx
@@ -18,18 +18,19 @@ dependencies:
   - numba
   - pre-commit
   - autopep8
-  - isort
-  - black
   - pip:
     - bm4d
     - bm3d
     - pytest-runner
     - setuptools_scm
     - pooch
-    - pydata-sphinx-theme
+    - shibuya
+    - sphinx-design
     - sphinx-gallery
+    - sphinx-iconify
     - nbsphinx
     - sphinxemoji
     - image
-    - flake8
+    - ruff
     - mypy
+    - coverage

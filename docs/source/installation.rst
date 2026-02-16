@@ -1,57 +1,77 @@
 .. _installation:
 
-Installation
-############
+|:desktop_computer:| Installation
+#################################
 
 Dependencies
 ************
 
-Our mandatory dependencies are limited to:
+The mandatory dependencies of PyProximal are limited to:
 
 * Python 3.10 or greater
 * `NumPy <http://www.numpy.org>`_
 * `SciPy <http://www.scipy.org/scipylib/index.html>`_
 * `PyLops <https://pylops.readthedocs.io>`_
 
-We highly encourage using the `Anaconda Python distribution <https://www.anaconda.com/download>`_
+We encourage using the `Anaconda Python distribution <https://www.anaconda.com/download>`_
 or its standalone package manager `Conda <https://docs.conda.io/en/latest/index.html>`_.
 Especially for Intel processors, this ensures a higher performance with no configuration (e.g., 
 the linking to ``Intel MKL`` library, a highly optimized BLAS library created by Intel).
-For learning, however, the standard installation is often good enough.
+
+For learning, however, the standard installation is often good enough; in that case, we
+recommend using `uv <https://docs.astral.sh/uv/>`_, a modern Python package manager that
+is easy to use and has a very fast dependency resolver.
 
 
 Step-by-step installation for users
 ***********************************
 
-Conda (recommended)
-===================
-If using ``conda``, install our ``conda-forge`` distribution via:
+From Package Manager
+====================
+First install `pyproximal` with your package manager of choice.
 
-.. code-block:: bash
+.. tab-set::
 
-   >> conda install --channel conda-forge pyproximal
+   .. tab-item:: :iconify:`devicon:anaconda` conda
 
-Using the ``conda-forge`` distribution is recommended as all the dependencies (both required
-and optional) will be automatically installed for you.
+        .. code-block:: bash
 
-Pip
-===
-If you are using ``pip``, and simply type the following command in your terminal
-to install the PyPI distribution:
+            >> conda install --channel conda-forge pyproximal
 
-.. code-block:: bash
+        Most of the dependencies (all required and some of the optional) are
+        automatically installed for you.
 
-   >> pip install pyproximal
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
 
-Note that when installing via ``pip``, only *required* dependencies are installed.
+        .. code-block:: bash
+
+            >> uv add pyproximal
+        
+        Only the *required* dependencies are installed. To install
+        some of the optional dependencies, run:
+        
+        .. code-block:: bash
+
+            >> uv add "pyproximal[advanced]"
+
 
 From Source
 ===========
 To access the latest source from github:
 
-.. code-block:: bash
+.. tab-set::
 
-   >> pip install https://github.com/PyLops/pyproximal.git@dev
+   .. tab-item:: :iconify:`devicon:pypi` pip
+
+        .. code-block:: bash
+
+            >> pip install https://github.com/PyLops/pyproximal.git@dev
+
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> uv add git+https://github.com/PyLops/pyproximal.git --branch dev
 
 
 .. _DevInstall:
@@ -73,35 +93,44 @@ Install dependencies
 We recommend installing dependencies into a separate environment.
 For that end, we provide a `Makefile` with useful commands for setting up the environment.
 
-Conda (recommended)
--------------------
-For a ``conda`` environment, run
+.. tab-set::
 
-.. code-block:: bash
+   .. tab-item::  conda
 
-   >> make dev-install_conda # for x86 (Intel or AMD CPUs)
-   >> make dev-install_conda_arm # for arm (M-series Mac)
+        .. code-block:: bash
 
-This will create and activate an environment called ``pylops``, with all required and optional dependencies.
+            >> make dev-install_conda # for x86 (Intel or AMD CPUs)
+            >> make dev-install_conda_arm # for arm (M-series Mac)
+        
+        This creates and activate an environment called ``pyproximal``, with 
+        all required and optional dependencies.
 
-Pip
----
-If you prefer a ``pip`` installation, we provide the following command
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
 
-.. code-block:: bash
+        .. code-block:: bash
 
-   >> make dev-install
-
-Note that, differently from the  ``conda`` command, the above **will not** create a virtual environment.
-Make sure you create and activate your environment previously.
+            >> make dev-install_uv
+        
+        This creates a virtual environment `.venv` that can be activated at 
+        any time with `source .venv/bin/activate` (Linux/macOS).
 
 Run tests
 =========
 To ensure that everything has been setup correctly, run tests:
 
-.. code-block:: bash
+.. tab-set::
 
-   >> make tests
+   .. tab-item:: :iconify:`devicon:anaconda` conda
+
+        .. code-block:: bash
+
+            >> make tests
+   
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> make tests_uv
 
 Make sure no tests fail, this guarantees that the installation has been successful.
 
@@ -121,7 +150,6 @@ From then on, you can pull changes (for example, in the dev branch) with:
 
    >> git pull upstream dev
 
-
 Install pre-commit hooks
 ========================
 To ensure consistency in the coding style of our developers we rely on
@@ -131,9 +159,19 @@ that have been configured in the ``.pre-commit-config.yaml`` file.
 
 In order to setup such hooks in your local repository, run:
 
-.. code-block:: bash
+.. tab-set::
 
-   >> pre-commit install
+   .. tab-item:: :iconify:`devicon:anaconda` conda
+
+        .. code-block:: bash
+
+            >> pre-commit install
+   
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> uv run pre-commit install
 
 Once this is set up, when committing changes, ``pre-commit`` will reject and "fix" your code by running the proper hooks.
 At this point, the user must check the changes and then stage them before trying to commit again.
@@ -141,22 +179,52 @@ At this point, the user must check the changes and then stage them before trying
 Final steps
 ===========
 PyLops does not enforce the use of a linter as a pre-commit hook, but we do highly encourage using one before submitting a Pull Request.
-A properly configured linter (``flake8``) can be run with:
+A properly configured linter (``ruff``) can be run with:
 
-.. code-block:: bash
+.. tab-set::
 
-   >> make lint
+   .. tab-item:: :iconify:`devicon:anaconda` conda
+
+        .. code-block:: bash
+
+            >> make lint
+   
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> make lint_uv
 
 In addition, it is highly encouraged to build the docs prior to submitting a Pull Request.
 Apart from ensuring that docstrings are properly formatted, they can aid in catching bugs during development.
 Build (or update) the docs with:
 
-.. code-block:: bash
+.. tab-set::
 
-   >> make doc
+   .. tab-item:: :iconify:`devicon:anaconda` conda
+
+        .. code-block:: bash
+
+            >> make doc
+   
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> make doc_uv
 
 or
 
-.. code-block:: bash
+.. tab-set::
 
-   >> make docupdate
+   .. tab-item:: :iconify:`devicon:anaconda` conda
+
+        .. code-block:: bash
+
+            >> make docupdate
+   
+   .. tab-item:: :iconify:`material-icon-theme:uv` uv
+
+        .. code-block:: bash
+
+            >> make docupdate_uv
