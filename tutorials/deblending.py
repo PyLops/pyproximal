@@ -24,6 +24,7 @@ is the indicator function of the :py:class:`pyproximal.AffineSet`.
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops
+
 import pyproximal
 
 np.random.seed(10)

@@ -97,8 +97,7 @@ select = [
   "I"    # isort
 ]
 ignore = [
-  "E501",  # line too long (handled by formatter like Black)
-  "I001",  # allow usorted imports
+  "E501",  # line too long (for comments and strings)
   "UP031", # use of old '%' formatting instead of f-strings
 ]
 
@@ -107,11 +106,14 @@ ignore = [
   "F401",  # imported but unused (re-exports)
   "F403",  # star import used for public API
   "F405",  # name may be undefined from star import
+  "I001",  # allow usorted imports
 ]
 "tutorials/*.py" = [
-  "E402",  # module level import not at top of file
   "E731",  # do not assign a lambda expression, use def
 ]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pyproximal"]
 
 [tool.mypy]
 files = ["pyproximal", ]

@@ -48,8 +48,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
 
+from pyproximal import Nuclear, ProxOperator
+from pyproximal.optimization.primal import ADMM
+from pyproximal.ProxOperator import _check_tau
+
 plt.close("all")
 np.random.seed(0)
+
+###############################################################################
+# Let's start by loading the data.
+
 data = np.load("../testdata/mocap.npz", allow_pickle=True)
 X_gt = data["X_gt"]
 markers = data["markers"].item()
@@ -209,9 +217,6 @@ def unstack(Xs: np.ndarray):
 # are simply those of the (stacked) nuclear norm and the Frobenius norm.
 # We implement these next:
 
-from pyproximal import Nuclear, ProxOperator
-from pyproximal.ProxOperator import _check_tau
-
 
 class BlockDiagFrobenius(ProxOperator):
     r"""Proximal operator for 1/2 * ||RX - M||_F^2 where R is block-diagonal.
@@ -261,8 +266,6 @@ class StackedNuclear(Nuclear):
 
 ###############################################################################
 # Now we are ready to solve the problem using ADMM.
-
-from pyproximal.optimization.primal import ADMM
 
 mu = 1
 R = data["R"]

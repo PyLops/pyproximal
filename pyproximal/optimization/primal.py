@@ -1,8 +1,8 @@
 import time
 import warnings
+from collections.abc import Callable
 from math import sqrt
 from typing import TYPE_CHECKING, Any, Optional
-from collections.abc import Callable
 
 import numpy as np
 from pylops.optimization.leastsquares import regularized_inversion

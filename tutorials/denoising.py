@@ -24,8 +24,9 @@ For both examples we investigate with different choices of regularization:
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops
-import pyproximal
 from scipy import datasets
+
+import pyproximal
 
 plt.close("all")
 np.random.seed(10)

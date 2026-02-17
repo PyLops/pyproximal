@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from pyproximal.proximal import ETP, SCAD, Geman, Log, Log1, QuadraticEnvelopeCard
 from pyproximal.utils import moreau
 

@@ -1,5 +1,5 @@
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from pylops.utils.backend import get_array_module
 from pylops.utils.typing import NDArray

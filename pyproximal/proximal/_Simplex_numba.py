@@ -1,9 +1,8 @@
-from typing import Any
 import os
+from typing import Any
 
 import numpy as np
 from numba import jit
-
 from pylops.utils.typing import NDArray
 
 # detect whether to use parallel or not

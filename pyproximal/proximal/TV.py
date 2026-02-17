@@ -1,6 +1,6 @@
+from collections.abc import Callable
 from copy import deepcopy
 from typing import Any
-from collections.abc import Callable
 
 import numpy as np
 from pylops import FirstDerivative, Gradient

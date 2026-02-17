@@ -1,5 +1,5 @@
-from typing import Any, TypeVar
 from collections.abc import Callable, Sequence
+from typing import Any, TypeVar
 
 from pylops.utils.backend import get_array_module
 from pylops.utils.typing import NDArray

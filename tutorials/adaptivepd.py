@@ -16,8 +16,9 @@ For this example, we consider a simple denoising problem.
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops
-import pyproximal
 from skimage.data import camera
+
+import pyproximal
 
 plt.close("all")
 np.random.seed(10)

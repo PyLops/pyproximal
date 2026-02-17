@@ -2,8 +2,9 @@ import datetime
 import os
 import sys
 
-from pyproximal import __version__
 from sphinx_gallery.sorting import ExampleTitleSortKey
+
+from pyproximal import __version__
 
 # Sphinx needs to be able to import the package to use autodoc and
 # get the version number

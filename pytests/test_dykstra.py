@@ -3,6 +3,7 @@ from typing import Any
 
 import numpy as np
 import pytest
+
 from pyproximal.projection import (
     BoxProj,
     EuclideanBallProj,

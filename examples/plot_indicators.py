@@ -8,6 +8,7 @@ computed via their orthogonal projections.
 
 import matplotlib.pyplot as plt
 import numpy as np
+
 import pyproximal
 
 plt.close("all")

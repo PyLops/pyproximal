@@ -26,8 +26,9 @@ import bm3d
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops
-import pyproximal
 from pylops.config import set_ndarray_multiplication
+
+import pyproximal
 
 plt.close("all")
 np.random.seed(0)

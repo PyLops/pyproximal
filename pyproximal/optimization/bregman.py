@@ -1,7 +1,7 @@
 import time
+from collections.abc import Callable
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Optional
-from collections.abc import Callable
 
 import numpy as np
 from pylops.utils.typing import NDArray

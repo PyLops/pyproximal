@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Any, Optional, Union
 from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import numpy as np
 from pylops.utils.typing import NDArray

@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from pylops.basicoperators import MatrixMult
+
 from pyproximal.proximal import L2
 from pyproximal.utils.bilinear import LowRankFactorizedMatrix
 from pyproximal.utils.gradtest import gradtest_bilinear, gradtest_proximal

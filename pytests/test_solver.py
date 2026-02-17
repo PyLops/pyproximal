@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 from pylops.basicoperators import Identity, MatrixMult
+
 from pyproximal.optimization.primal import (
     ADMM,
     ADMML2,

@@ -1,8 +1,9 @@
 import numpy as np
-import pyproximal
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 from pylops import Identity, MatrixMult, Restriction
+
+import pyproximal
 from pyproximal.proximal import (
     L1,
     L2,

@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 from pylops import Diagonal
+
 from pyproximal.utils.bilinear import LowRankFactorizedMatrix
 
 par1 = {"n": 21, "m": 11, "k": 5, "imag": 0, "dtype": "float32"}  # real

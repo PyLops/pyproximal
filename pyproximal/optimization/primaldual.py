@@ -1,6 +1,6 @@
 import time
-from typing import TYPE_CHECKING
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import numpy as np
 from pylops.utils.backend import get_array_module, to_numpy

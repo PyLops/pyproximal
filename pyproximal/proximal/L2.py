@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Any, Optional
 from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Optional
 
 import numpy as np
 from pylops import Identity, MatrixMult

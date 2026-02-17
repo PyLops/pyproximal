@@ -19,6 +19,7 @@ on the data term which must be satisfied exactly. Similarly, we can also conside
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops
+
 import pyproximal
 
 plt.close("all")

@@ -46,8 +46,9 @@ will simply use the `grad` method whilst the second solver relies on the
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pyproximal
 import scipy as sp
+
+import pyproximal
 
 plt.close("all")
 np.random.seed(10)

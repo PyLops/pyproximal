@@ -27,6 +27,7 @@ a vector whose elements are the $L_1$ norm of each column of :math:`\mathbf{X}`.
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops
+
 import pyproximal
 
 plt.close("all")
