@@ -97,11 +97,12 @@ typeannot_uv:
 	$(UV) run mypy pyproximal/
 
 coverage:
-	coverage run -m pytest && coverage xml && coverage html && $(PYTHON) -m http.server --directory htmlcov/
+	coverage run --source=pyproximal -m pytest && \
+	coverage xml && coverage html && $(PYTHON) -m http.server --directory htmlcov/
 
 coverage_uv:
 	make uvcheck
-	$(UV) run coverage run -m pytest  &&\
+	$(UV) run coverage run --source=pyproximal -m pytest  &&\
 	$(UV) run coverage xml &&\
 	$(UV) run coverage html  &&\
 	$(UV) run python -m http.server --directory htmlcov/
