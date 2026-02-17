@@ -1,7 +1,6 @@
 __all__ = ["Report"]
 
 from types import ModuleType
-from typing import Optional
 
 try:
     # scooby is a soft dependency for pyproximal
@@ -11,7 +10,7 @@ except ImportError:
     class ScoobyReport:  # type: ignore[no-redef]
         def __init__(
             self,
-            additional: Optional[list[str | ModuleType]],
+            additional: list[str | ModuleType] | None,
             core: list[str | ModuleType] | None,
             optional: list[str | ModuleType] | None,
             ncol: int,
@@ -76,7 +75,7 @@ class Report(ScoobyReport):  # type: ignore[misc]
 
     def __init__(
         self,
-        add_pckg: Optional[list[str | ModuleType]] = None,
+        add_pckg: list[str | ModuleType] | None = None,
         ncol: int = 3,
         text_width: int = 80,
         sort: bool = False,

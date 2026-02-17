@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 from pylops.optimization.cls_sparsity import _softthreshold
 from pylops.utils.typing import NDArray, ShapeLike
@@ -57,7 +55,7 @@ class Nuclear(ProxOperator):
 
     """
 
-    def __init__(self, dim: ShapeLike, sigma: Union[float, NDArray] = 1.0) -> None:
+    def __init__(self, dim: ShapeLike, sigma: float | NDArray = 1.0) -> None:
         super().__init__(None, False)
         self.dim = dim
         self.sigma = sigma

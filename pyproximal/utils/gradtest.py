@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 import numpy as np
 from pylops.utils.backend import get_module
 from pylops.utils.typing import NDArray
@@ -11,7 +9,7 @@ from pyproximal.utils.bilinear import BilinearOperator
 def gradtest_proximal(
     Op: ProxOperator,
     n: int,
-    x: Optional[NDArray] = None,
+    x: NDArray | None = None,
     dtype: str = "float64",
     delta: float = 1e-6,
     rtol: float = 1e-6,
@@ -97,7 +95,7 @@ def gradtest_proximal(
     iqx = np.random.randint(0, n)
     r_or_i = np.random.randint(0, 2)
 
-    delta1: Union[float, complex] = delta
+    delta1: float | complex = delta
     if r_or_i != 0:
         delta1 = delta * 1j
 
@@ -217,7 +215,7 @@ def gradtest_bilinear(
     iqx, iqy = np.random.randint(0, nx), np.random.randint(0, ny)
     x_or_y = np.random.randint(0, 2)
 
-    delta1: Union[float, complex] = delta
+    delta1: float | complex = delta
     if complexflag:
         r_or_i = np.random.randint(0, 2)
         if r_or_i == 1:

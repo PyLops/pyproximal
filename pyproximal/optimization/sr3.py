@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pylops
@@ -98,7 +98,7 @@ def SR3(
     data: NDArray,
     kappa: float,
     eps: float,
-    x0: Optional[NDArray] = None,
+    x0: NDArray | None = None,
     adaptive: bool = True,
     iter_lim_outer: int = 100,
     iter_lim_inner: int = 100,

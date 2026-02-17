@@ -23,7 +23,6 @@ a Proximal gradient solver when used with a constraint that admits a proximal
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops
-
 import pyproximal
 
 plt.close("all")

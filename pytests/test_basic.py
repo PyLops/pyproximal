@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 from pylops import MatrixMult
-
 from pyproximal.proximal import L1, L2, Euclidean, Quadratic
 
 par1 = {"ny": 21, "nx": 11, "nt": 20, "imag": 0, "dtype": "float32"}  # real
@@ -66,7 +65,8 @@ def test_precomposition_type(par):
         _ = l1.precomposition(a=1, b=np.ones(5))  # should be float
 
         _ = l1.precomposition(
-            a=1.0, b=[1, 2, 3]  # should be float
+            a=1.0,
+            b=[1, 2, 3],  # should be float
         )  # should be float, np.ndarray or cp.ndarray
 
 

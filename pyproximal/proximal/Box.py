@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 from pylops.utils.typing import NDArray
 
@@ -29,8 +27,8 @@ class Box(ProxOperator):
 
     def __init__(
         self,
-        lower: Union[float, NDArray] = -np.inf,
-        upper: Union[float, NDArray] = np.inf,
+        lower: float | NDArray = -np.inf,
+        upper: float | NDArray = np.inf,
     ) -> None:
         super().__init__(None, False)
         self.lower = lower

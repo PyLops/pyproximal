@@ -40,9 +40,8 @@ import matplotlib.pyplot as plt
 # sphinx_gallery_thumbnail_number = 2
 import numpy as np
 import pylops
-from scipy import datasets
-
 import pyproximal
+from scipy import datasets
 
 plt.close("all")
 np.random.seed(0)

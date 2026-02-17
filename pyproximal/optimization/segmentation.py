@@ -1,4 +1,5 @@
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any
+from collections.abc import Callable
 
 import numpy as np
 from pylops import BlockDiag, Gradient
@@ -13,14 +14,14 @@ def Segment(
     cl: NDArray,
     sigma: float,
     alpha: float,
-    clsigmas: Optional[NDArray] = None,
-    z: Optional[NDArray] = None,
+    clsigmas: NDArray | None = None,
+    z: NDArray | None = None,
     niter: int = 10,
-    x0: Optional[NDArray] = None,
-    callback: Optional[Callable[[NDArray], None]] = None,
+    x0: NDArray | None = None,
+    callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
-    kwargs_simplex: Optional[Dict[str, Any]] = None,
-) -> Tuple[NDArray, NDArray]:
+    kwargs_simplex: dict[str, Any] | None = None,
+) -> tuple[NDArray, NDArray]:
     r"""Primal-dual algorithm for image segmentation
 
     Perform image segmentation over :math:`N_{cl}` classes using the

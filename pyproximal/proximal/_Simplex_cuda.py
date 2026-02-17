@@ -18,7 +18,7 @@ def bisect_jit_cuda(
     """Bisection method (See _Simplex_numba for details)."""
     a, b = bisect_lower, bisect_upper
     fa = fun_jit_cuda(a, x, coeffs, scalar, lower, upper)
-    for iiter in range(maxiter):
+    for _ in range(maxiter):
         c = (a + b) / 2.0
         if (b - a) / 2 < xtol:
             return c

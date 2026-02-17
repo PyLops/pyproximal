@@ -62,7 +62,7 @@ markers = data["markers"].item()
 
 def plot_first_3d_pose(ax, X, color="b", marker="o", linecolor="k"):
     ax.scatter(X[0, :], X[1, :], X[2, :], color, marker=marker)
-    for j, ind in enumerate(markers.values()):
+    for _, ind in enumerate(markers.values()):
         ax.plot(X[0, ind], X[1, ind], X[2, ind], "-", color=linecolor)
     ax.set_box_aspect(np.ptp(X[:3, :], axis=1))
     ax.view_init(20, 25)
@@ -289,8 +289,8 @@ plt.tight_layout()
 # Furthermore, we compute some statistics on the reconstruction performance. You
 # can vary the regulation strength :math:`\mu` to see if you can achieve better
 # performance yourself!
-print(f'Datafit: {np.linalg.norm(Rblk @ X_rec - M, "fro")}')
-print(f'Distance to GT: {np.linalg.norm(X_rec - X_gt, "fro")}')
+print(f"Datafit: {np.linalg.norm(Rblk @ X_rec - M, 'fro')}")
+print(f"Distance to GT: {np.linalg.norm(X_rec - X_gt, 'fro')}")
 
 ###############################################################################
 # One issue with the nuclear norm is that you have the hyperparameter

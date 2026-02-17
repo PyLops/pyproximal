@@ -1,4 +1,5 @@
-from typing import Any, Callable, Optional, Union
+from typing import Any
+from collections.abc import Callable
 
 import numpy as np
 from pylops.utils.typing import NDArray
@@ -40,7 +41,7 @@ def _softthreshold(x: NDArray, thresh: float) -> NDArray:
 def _current_sigma(
     sigma: FloatCallableLike,
     count: int,
-) -> Union[float, NDArray]:
+) -> float | NDArray:
     if not callable(sigma):
         return sigma
     else:
@@ -106,7 +107,7 @@ class L1(ProxOperator):
     def __init__(
         self,
         sigma: FloatCallableLike = 1.0,
-        g: Optional[NDArray] = None,
+        g: NDArray | None = None,
     ) -> None:
         super().__init__(None, False)
         self.sigma = sigma

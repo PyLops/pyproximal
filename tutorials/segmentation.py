@@ -20,7 +20,6 @@ precise mathematical description of the problem.
 
 import matplotlib.pyplot as plt
 import numpy as np
-
 import pyproximal
 
 plt.close("all")

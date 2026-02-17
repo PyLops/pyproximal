@@ -27,7 +27,6 @@ a vector whose elements are the $L_1$ norm of each column of :math:`\mathbf{X}`.
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops
-
 import pyproximal
 
 plt.close("all")
@@ -76,8 +75,9 @@ plt.tight_layout()
 np.random.seed(10)
 
 perc_subsampling = (0.1, 0.6)
-Nsub1, Nsub2 = int(np.round(N * perc_subsampling[0])), int(
-    np.round(N * perc_subsampling[1])
+Nsub1, Nsub2 = (
+    int(np.round(N * perc_subsampling[0])),
+    int(np.round(N * perc_subsampling[1])),
 )
 iava1 = np.sort(np.random.permutation(np.arange(N))[:Nsub1])
 iava2 = np.sort(np.random.permutation(np.arange(N))[:Nsub2])

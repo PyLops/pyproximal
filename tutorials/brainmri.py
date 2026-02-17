@@ -21,9 +21,8 @@ Once the model is reconstructed, we solve a second inverse problem with the aim 
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops
-from scipy.io import loadmat
-
 import pyproximal
+from scipy.io import loadmat
 
 plt.close("all")
 np.random.seed(10)

@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 from pylops.utils.typing import NDArray
 
@@ -38,7 +36,7 @@ class Intersection(ProxOperator):
         self,
         k: int,
         n: int,
-        sigma: Union[float, NDArray],
+        sigma: float | NDArray,
         niter: int = 100,
         tol: float = 1e-5,
         call: bool = True,

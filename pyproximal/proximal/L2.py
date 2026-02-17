@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional
+from collections.abc import Callable
 
 import numpy as np
 from pylops import Identity, MatrixMult
@@ -132,17 +133,17 @@ class L2(ProxOperator):
     def __init__(
         self,
         Op: Optional["LinearOperator"] = None,
-        b: Optional[NDArray] = None,
-        q: Optional[NDArray] = None,
+        b: NDArray | None = None,
+        q: NDArray | None = None,
         sigma: float = 1.0,
         alpha: float = 1.0,
         qgrad: bool = True,
-        niter: Union[int, Callable[[int], int]] = 10,
-        x0: Optional[NDArray] = None,
+        niter: int | Callable[[int], int] = 10,
+        x0: NDArray | None = None,
         warm: bool = True,
-        solver: Optional[str] = "legacy",
-        densesolver: Optional[str] = None,
-        kwargs_solver: Optional[Dict[str, Any]] = None,
+        solver: str | None = "legacy",
+        densesolver: str | None = None,
+        kwargs_solver: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(Op, True)
         self.b = b
@@ -165,10 +166,11 @@ class L2(ProxOperator):
         elif self.solver == "cgls":
             self.normaleqs = False
         else:
-            raise ValueError(
+            msg = (
                 f"Provided solver={self.solver}. "
                 "Available options are: 'legacy', 'cg', 'cgls'."
             )
+            raise ValueError(msg)
         # when using factorize, store the first tau*sigma=0 so that the
         # first time it will be recomputed (as tau cannot be 0)
         if self.densesolver == "factorize":
@@ -342,8 +344,8 @@ class L2Convolve(ProxOperator):
         b: NDArray,
         nfft: int = 2**10,
         sigma: float = 1.0,
-        dims: Optional[ShapeLike] = None,
-        dir: Optional[int] = None,
+        dims: ShapeLike | None = None,
+        dir: int | None = None,
     ) -> None:
         super().__init__(None, True)
         self.nfft = nfft

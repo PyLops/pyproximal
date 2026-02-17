@@ -27,11 +27,10 @@ where :math:`\mathcal{H}` is the set of Hankel matrices.
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.linalg import hankel
-
 from pyproximal.optimization.primal import ADMM
 from pyproximal.projection import HankelProj
 from pyproximal.proximal import Hankel, QuadraticEnvelopeRankL2
+from scipy.linalg import hankel
 
 plt.close("all")
 np.random.seed(0)
@@ -48,7 +47,7 @@ n_signal = 5
 t = np.linspace(-1, 1, 200)
 f_gt = np.zeros_like(t)
 
-for i in range(n_signal):
+for _ in range(n_signal):
     d = np.random.uniform(-1, 1)
     phi = np.random.uniform(-40 * np.pi, 40 * np.pi)
     t0 = np.random.uniform(-1, 1)

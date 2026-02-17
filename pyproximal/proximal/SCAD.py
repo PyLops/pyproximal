@@ -53,9 +53,11 @@ class SCAD(ProxOperator):
         super().__init__(None, False)
         self.sigma = sigma
         if sigma <= 0:
-            raise ValueError('Variable "sigma" must be positive.')
+            msg = 'Variable "sigma" must be positive.'
+            raise ValueError(msg)
         if a <= 2:
-            raise ValueError('Variable "a" must be larger than two.')
+            msg = 'Variable "a" must be larger than two.'
+            raise ValueError(msg)
         self.a = a
 
     def __call__(self, x: NDArray) -> float:
@@ -68,7 +70,7 @@ class SCAD(ProxOperator):
         f[ind] = self.sigma * absx[ind]
         ind = np.logical_and(self.sigma < absx, absx <= self.a * self.sigma)
         f[ind] = (
-            -x[ind] ** 2 + 2 * self.a * self.sigma * absx[ind] - self.sigma**2
+            -(x[ind] ** 2) + 2 * self.a * self.sigma * absx[ind] - self.sigma**2
         ) / (2 * (self.a - 1))
         ind = absx > self.a * self.sigma
         f[ind] = (self.a + 1) * self.sigma**2 / 2

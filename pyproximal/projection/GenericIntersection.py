@@ -1,4 +1,4 @@
-from typing import Callable, List
+from collections.abc import Callable
 
 from pylops.utils.typing import NDArray
 
@@ -100,12 +100,11 @@ class GenericIntersectionProj:
 
     def __init__(
         self,
-        projections: List[Callable[[NDArray], NDArray]],
+        projections: list[Callable[[NDArray], NDArray]],
         niter: int = 1000,
         tol: float = 1e-6,
         use_parallel: bool = False,
     ) -> None:
-
         self.projections = projections
         self.niter = niter
         self.tol = tol
@@ -125,14 +124,16 @@ class GenericIntersectionProj:
     def _single_proj(self, x0: NDArray) -> NDArray:
         r"""Compute projection :math:`P_C(\mathbf{x})` for :math:`m=1`."""
         if len(self.projections) != 1:
-            raise ValueError("len(projections) should be 1")
+            msg = "len(projections) should be 1"
+            raise ValueError(msg)
 
         return self.projections[0](x0)
 
     def _two_proj(self, x0: NDArray) -> NDArray:
         r"""Compute projection :math:`P_C(\mathbf{x})` for :math:`m=2`."""
         if len(self.projections) != 2:
-            raise ValueError("len(projections) should be 2")
+            msg = "len(projections) should be 2"
+            raise ValueError(msg)
 
         step1, step2 = self.projections
 
@@ -147,7 +148,8 @@ class GenericIntersectionProj:
     def _more_proj(self, x0: NDArray) -> NDArray:
         r"""Compute projection :math:`P_C(x)` for :math:`m \ge 2`."""
         if len(self.projections) < 2:
-            raise ValueError("len(projections) should be 2 or larger")
+            msg = "len(projections) should be 2 or larger"
+            raise ValueError(msg)
 
         return parallel_dykstra_projection(
             x0,

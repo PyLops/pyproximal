@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 from pylops.basicoperators import Identity
-
 from pyproximal.proximal import (
     AffineSet,
     Box,

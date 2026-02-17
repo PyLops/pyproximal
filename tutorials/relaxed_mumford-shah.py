@@ -31,7 +31,6 @@ outperforms TV and Tikhonov regularization, modeled after the experiments in [2]
 import matplotlib.pyplot as plt
 import numpy as np
 import pylops
-
 import pyproximal
 
 np.random.seed(1)

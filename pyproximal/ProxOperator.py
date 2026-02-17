@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
+from collections.abc import Callable
 
 import numpy as np
 from pylops.utils.typing import NDArray
@@ -19,13 +20,14 @@ def _check_tau(func: Callable[..., NDArray]) -> Callable[..., NDArray]:
 
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         if np.any(args[2] <= 0):
-            raise ValueError("tau must be positive")
+            msg = "tau must be positive"
+            raise ValueError(msg)
         return func(*args, **kwargs)
 
     return wrapper
 
 
-class ProxOperator(object):
+class ProxOperator:
     r"""Common interface for proximal operators of a function.
 
     This class defines the overarching structure of any proximal operator. It
@@ -87,10 +89,11 @@ class ProxOperator(object):
         Subclasses should implement this. Returns the
         value of the function.
         """
-        raise NotImplementedError(
+        msg = (
             "This ProxOperator's __call__ method "
             "must be implemented by subclasses to return a float."
         )
+        raise NotImplementedError(msg)
 
     @_check_tau
     def _prox_moreau(self, x: NDArray, tau: float, **kwargs: Any) -> NDArray:
@@ -207,7 +210,8 @@ class ProxOperator(object):
         if isinstance(v, (np.ndarray, cp_dtype)):
             return _SumOperator(self, v)
         else:
-            raise NotImplementedError("v must be a numpy.ndarray or cupy.ndarray")
+            msg = "v must be a numpy.ndarray or cupy.ndarray"
+            raise NotImplementedError(msg)
 
     def postcomposition(self, sigma: float) -> "ProxOperator":
         r"""Postcomposition
@@ -235,7 +239,8 @@ class ProxOperator(object):
         if isinstance(sigma, float):
             return _PostcompositionOperator(self, sigma)
         else:
-            raise NotImplementedError("sigma must be of type float")
+            msg = "sigma must be of type float"
+            raise NotImplementedError(msg)
 
     def precomposition(self, a: float, b: float | NDArray) -> "ProxOperator":
         r"""Precomposition
@@ -264,11 +269,8 @@ class ProxOperator(object):
         if isinstance(a, float) and isinstance(b, (float, np.ndarray, cp_dtype)):  # type: ignore[redundant-expr]
             return _PrecompositionOperator(self, a, b)
         else:
-            raise NotImplementedError(
-                "a must be of type float and b "
-                "must be of type float or "
-                "numpy.ndarray"
-            )
+            msg = "a must be of type float and b must be of type float or numpy.ndarray"
+            raise NotImplementedError(msg)
 
     def chain(self, g: "ProxOperator") -> "ProxOperator":
         r"""Chain
@@ -336,7 +338,8 @@ class _SumOperator(ProxOperator):
         # if not isinstance(f, ProxOperator):
         #    raise ValueError('First input must be a ProxOperator')
         if not isinstance(v, (np.ndarray, cp_dtype)):
-            raise ValueError("Second input must be a numpy.ndarray or cupy.ndarray")
+            msg = "Second input must be a numpy.ndarray or cupy.ndarray"
+            raise ValueError(msg)
         self.f, self.v = f, v
         super().__init__(None, f.hasgrad)
 
@@ -375,7 +378,8 @@ class _PostcompositionOperator(ProxOperator):
         # if not isinstance(f, ProxOperator):
         #    raise ValueError('First input must be a ProxOperator')
         if not isinstance(sigma, float):
-            raise ValueError("Second input must be a float")
+            msg = "Second input must be a float"
+            raise ValueError(msg)
         self.f, self.sigma = f, sigma
         super().__init__(None, f.hasgrad)
 
@@ -395,11 +399,11 @@ class _PrecompositionOperator(ProxOperator):
         # if not isinstance(f, ProxOperator):
         #    raise ValueError('First input must be a ProxOperator')
         if not isinstance(a, float):
-            raise ValueError("Second input must be a float")
+            msg = "Second input must be a float"
+            raise ValueError(msg)
         if not isinstance(b, (float, np.ndarray, cp_dtype)):
-            raise ValueError(
-                "Third input must be a float, numpy.ndarray, or cupy.ndarray"
-            )
+            msg = "Third input must be a float, numpy.ndarray, or cupy.ndarray"
+            raise ValueError(msg)
         self.f, self.a, self.b = f, a, b
         super().__init__(None, f.hasgrad)
 

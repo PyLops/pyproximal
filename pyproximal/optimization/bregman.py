@@ -1,6 +1,7 @@
 import time
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Any, Optional
+from collections.abc import Callable
 
 import numpy as np
 from pylops.utils.typing import NDArray
@@ -22,9 +23,9 @@ def Bregman(
     warm: bool = False,
     tolx: float = 1e-10,
     tolf: float = 1e-10,
-    bregcallback: Optional[Callable[[NDArray], None]] = None,
+    bregcallback: Callable[[NDArray], None] | None = None,
     show: bool = False,
-    **kwargs_solver: Dict[str, Any],
+    **kwargs_solver: dict[str, Any],
 ) -> NDArray:
     r"""Bregman iterations with Proximal Solver
 

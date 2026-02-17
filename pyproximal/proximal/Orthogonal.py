@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from pylops.utils.typing import NDArray
 
@@ -65,7 +65,7 @@ class Orthogonal(ProxOperator):
         f: ProxOperator,
         Q: "LinearOperator",
         partial: bool = False,
-        b: Optional[NDArray] = None,
+        b: NDArray | None = None,
         alpha: float = 1.0,
     ) -> None:
         super().__init__(None, False)
