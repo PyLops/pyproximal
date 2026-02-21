@@ -83,11 +83,49 @@ def test_L0Ball(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
+def test_L0Ball_func(par):
+    """L0 Ball projection and proximal/dual proximal of related indicator
+    with sigma as callable"""
+    np.random.seed(10)
+
+    l0 = L0Ball(lambda x: 1)
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"]) + 1.0
+
+    # evaluation
+    assert l0(x) is False
+    xp = l0.prox(x, 1.0)
+    assert l0(xp) is True
+
+    # prox / dualprox
+    tau = 2.0
+    assert moreau(l0, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
 def test_L10Ball(par):
     """L10 Ball projection and proximal/dual proximal of related indicator"""
     np.random.seed(10)
 
     l0 = L10Ball(3, 1)
+    x = np.random.normal(0.0, 1.0, (3, par["nx"])).astype(par["dtype"]).ravel() + 1.0
+
+    # evaluation
+    assert l0(x) is False
+    xp = l0.prox(x, 1.0)
+    assert l0(xp) is True
+
+    # prox / dualprox
+    tau = 2.0
+    assert moreau(l0, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_L10Ball_func(par):
+    """L10 Ball projection and proximal/dual proximal of related indicator
+    with sigma as callable"""
+    np.random.seed(10)
+
+    l0 = L10Ball(3, lambda x: 1)
     x = np.random.normal(0.0, 1.0, (3, par["nx"])).astype(par["dtype"]).ravel() + 1.0
 
     # evaluation

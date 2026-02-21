@@ -101,7 +101,9 @@ def test_ETP(par):
 def test_Geman(par):
     """Geman penalty and proximal/dual proximal"""
     np.random.seed(10)
+
     geman = Geman(sigma=par["sigma"], gamma=par["gamma"])
+
     # Geman
     x = np.random.normal(0.0, 10.0, par["nx"]).astype(par["dtype"])
     expected = par["sigma"] * np.linalg.norm(np.abs(x) / (np.abs(x) + par["gamma"]), 1)
@@ -116,7 +118,9 @@ def test_Geman(par):
 def test_QuadraticEnvelopeCard(par):
     """QuadraticEnvelopeCard penalty and proximal/dual proximal"""
     np.random.seed(10)
+
     fmu = QuadraticEnvelopeCard(mu=par["mu"])
+
     # Quadratic envelope of the l0-penalty
     x = np.random.normal(0.0, 10.0, par["nx"]).astype(par["dtype"])
     expected = np.linalg.norm(
@@ -126,4 +130,6 @@ def test_QuadraticEnvelopeCard(par):
 
     # Check proximal operator
     tau = 0.25
+    assert moreau(fmu, x, tau)
+    tau = 1.25
     assert moreau(fmu, x, tau)

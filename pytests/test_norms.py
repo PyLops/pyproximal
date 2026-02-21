@@ -27,6 +27,8 @@ np.random.seed(10)
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Euclidean(par):
     """Euclidean norm and proximal/dual proximal"""
+    np.random.seed(10)
+
     eucl = Euclidean(sigma=par["sigma"])
 
     # norm
@@ -46,6 +48,8 @@ def test_L2_op(par):
     """L2 norm of Op*x and proximal (since Op is a Diagonal
     operator the denominator becomes 1 + sigma*tau*d[i]^2
     for every i)"""
+    np.random.seed(10)
+
     b = np.zeros(par["nx"], dtype=par["dtype"])
     d = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     l2 = L2(Op=Diagonal(d, dtype=par["dtype"]), b=b, sigma=par["sigma"], niter=500)
@@ -65,6 +69,8 @@ def test_L2_op(par):
 def test_L2_op_solver(par):
     """L2 norm of Op*x-b and proximal, the first compared to close-form
     solution and the second with different choices of solver."""
+    np.random.seed(10)
+
     Op = MatrixMult(
         np.random.normal(0, 1, (par["nx"], par["nx"])).astype(dtype=par["dtype"]),
         dtype=par["dtype"],
@@ -94,6 +100,8 @@ def test_L2_dense(par):
     compared to closed-form solution (since Op is a Diagonal
     operator the denominator becomes 1 + sigma*tau*d[i]^2 for
     every i)"""
+    np.random.seed(10)
+
     for densesolver in ("numpy", "scipy", "factorize"):
         b = np.zeros(par["nx"], dtype=par["dtype"])
         d = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
@@ -118,6 +126,8 @@ def test_L2_dense(par):
 def test_L2_diff(par):
     """L2 norm of difference (x-b) and proximal
     compared to closed-form solution"""
+    np.random.seed(10)
+
     b = np.ones(par["nx"], dtype=par["dtype"])
     l2 = L2(b=b, sigma=par["sigma"])
 
@@ -137,6 +147,8 @@ def test_L2_x(par):
     """L2 norm of x and proximal (implemented both directly and
     with identity operator and zero b and compared to closed-form
     solution)"""
+    np.random.seed(10)
+
     l2 = L2(
         Op=Identity(par["nx"], dtype=par["dtype"]),
         b=np.zeros(par["nx"], dtype=par["dtype"]),
@@ -160,7 +172,25 @@ def test_L2_x(par):
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_L1(par):
     """L1 norm and proximal/dual proximal"""
+    np.random.seed(10)
+
     l1 = L1(sigma=par["sigma"])
+
+    # norm
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    assert l1(x) == par["sigma"] * np.sum(np.abs(x))
+
+    # prox / dualprox
+    tau = 2.0
+    assert moreau(l1, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_L1_func(par):
+    """L1 norm and proximal/dual proximal with sigma as callable"""
+    np.random.seed(10)
+
+    l1 = L1(sigma=lambda x: par["sigma"])
 
     # norm
     x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
@@ -174,6 +204,8 @@ def test_L1(par):
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_L1_diff(par):
     """L1 norm of difference and proximal/dual proximal"""
+    np.random.seed(10)
+
     g = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     l1 = L1(sigma=par["sigma"], g=g)
 
@@ -189,6 +221,8 @@ def test_L1_diff(par):
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_L0(par):
     """L0 norm and proximal/dual proximal"""
+    np.random.seed(10)
+
     l0 = L0(sigma=par["sigma"])
 
     # norm
@@ -205,6 +239,8 @@ def test_L21(par):
     """L21 norm and proximal/dual proximal on 2d array (compare it with N
     L2 norms on the columns of the 2d array
     """
+    np.random.seed(10)
+
     l21 = L21(ndim=2, sigma=par["sigma"])
 
     # norm
@@ -220,6 +256,8 @@ def test_L21(par):
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_L21_plus_L1(par):
     """L21 plus L1 norm on 2darray."""
+    np.random.seed(10)
+
     l21_plus_l1 = L21_plus_L1(sigma=par["sigma"], rho=0.8)
 
     # norm
@@ -239,6 +277,8 @@ def test_L21_plus_L1(par):
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Huber(par):
     """Huber norm and proximal/dual proximal"""
+    np.random.seed(10)
+
     hub = Huber(alpha=par["sigma"])
 
     # norm
@@ -253,14 +293,21 @@ def test_Huber(par):
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_HuberCircular(par):
     """Circular Huber norm and proximal/dual proximal"""
+    np.random.seed(10)
+
     hub = HuberCircular(alpha=par["sigma"])
 
     # norm
     x = np.random.uniform(0.0, 0.1, par["nx"]).astype(par["dtype"])
-    x = (
+    x_below = (
         (0.1 * par["sigma"]) * x / np.linalg.norm(x)
     )  # to ensure that is smaller than sigma
-    assert hub(x) == np.linalg.norm(x) ** 2 / (2 * par["sigma"])
+    assert hub(x_below) == np.linalg.norm(x_below) ** 2 / (2 * par["sigma"])
+
+    x_above = (
+        (2.0 * par["sigma"]) * x / np.linalg.norm(x)
+    )  # to ensure that is larger than sigma
+    assert hub(x_above) == np.linalg.norm(x_above) - 0.5 * par["sigma"]
 
     # prox / dualprox
     tau = 2.0
@@ -270,7 +317,10 @@ def test_HuberCircular(par):
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_TV(par):
     """TV norm of x and proximal"""
+    np.random.seed(10)
+
     tv = TV(dims=(par["nx"],), sigma=par["sigma"])
+
     # norm
     x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     derivOp = FirstDerivative(par["nx"], dtype=par["dtype"], kind="forward")
@@ -304,6 +354,8 @@ def test_Nuclear_FOM():
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Nuclear(par):
     """Nuclear norm and proximal/dual proximal"""
+    np.random.seed(10)
+
     nucl = Nuclear((par["nx"], 2 * par["nx"]), sigma=par["sigma"])
 
     # norm, cross-check with svd (use tolerance as two methods don't provide
@@ -320,6 +372,8 @@ def test_Nuclear(par):
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Weighted_Nuclear(par):
     """Weighted nuclear norm and proximal/dual proximal"""
+    np.random.seed(10)
+
     weights = par["sigma"] * np.linspace(0.1, 5, 2 * par["nx"])
     nucl = Nuclear((par["nx"], 2 * par["nx"]), sigma=weights)
 

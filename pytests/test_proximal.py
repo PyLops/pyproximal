@@ -21,29 +21,57 @@ par1 = {"nx": 10, "ny": 10, "sigma": 1.0, "dtype": "float32"}  # even float32
 par2 = {"nx": 11, "ny": 14, "sigma": 2.0, "dtype": "float64"}  # odd float64
 
 
+def test_Quadratic_nonsquare():
+    """Check Quadratic returns an error if the operator is not square"""
+    np.random.seed(10)
+    A = np.random.normal(0, 1, (10, 11))
+
+    with pytest.raises(ValueError, match="Op must be square"):
+        _ = Quadratic(Op=MatrixMult(A))
+
+
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Quadratic(par):
     """Quadratic functional and proximal/dual proximal"""
     np.random.seed(10)
-    A = np.random.normal(0, 1, (par["nx"], par["nx"]))
+    A = np.random.normal(0, 1, (par["nx"], par["nx"])).astype(par["dtype"])
     A = A.T @ A
-    quad = Quadratic(Op=MatrixMult(A), b=np.ones(par["nx"]), niter=500)
+    b = np.ones(par["nx"]).astype(par["dtype"])
 
-    # prox / dualprox
-    tau = 2.0
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
-    assert moreau(quad, x, tau)
+    for explicit in [False, True]:
+        Op = MatrixMult(A)
+        Op.explicit = explicit
+        quad = Quadratic(Op=Op, b=b, niter=500)
+        x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+
+        # call
+        _ = quad(x)
+
+        # grad
+        grad = A @ x + b
+        assert_array_almost_equal(quad.grad(x), grad, decimal=4)
+
+        # prox / dualprox
+        tau = 2.0
+        assert moreau(quad, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_DotProduct(par):
     """Dot product functional and proximal/dual proximal"""
     np.random.seed(10)
-    quad = Quadratic(b=np.ones(par["nx"]))
+    b = np.ones(par["nx"]).astype(par["dtype"])
+    quad = Quadratic(b=b)
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+
+    # call
+    _ = quad(x)
+
+    # grad
+    assert_array_almost_equal(quad.grad(x), b, decimal=4)
 
     # prox / dualprox
     tau = 2.0
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     assert moreau(quad, x, tau)
 
 
@@ -52,10 +80,16 @@ def test_Constant(par):
     """Constant functional and proximal/dual proximal"""
     np.random.seed(10)
     quad = Quadratic(c=5.0)
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+
+    # call
+    _ = quad(x)
+
+    # grad
+    assert_array_almost_equal(quad.grad(x), 0.0, decimal=4)
 
     # prox / dualprox
     tau = 2.0
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     assert moreau(quad, x, tau)
 
 
@@ -186,6 +220,24 @@ def test_SingularValuePenalty(par):
     assert moreau(penalty, X.ravel(), tau)
 
 
+def test_QuadraticEnvelopeCardIndicator():
+    """QuadraticEnvelopeCardIndicator penalty for various edge cases"""
+    fr0 = QuadraticEnvelopeCardIndicator(5)
+
+    # Check value for input size smaller than threshold
+    assert fr0(np.ones(2)) == 0
+
+    # Prox input size smaller than threshold
+    tau = 0.1
+    x = np.ones(2)
+    assert_array_equal(fr0.prox(x, tau), x)
+
+    # Prox for tau larger than 1.0 (hard-thresholding on tau)
+    tau = 2.0
+    x = np.full(2, 5.0)
+    assert_array_equal(fr0.prox(x, tau), x)
+
+
 @pytest.mark.parametrize(
     "par,expected", [(par1, 94.89988856174841), (par2, 145.6421905545182)]
 )
@@ -193,6 +245,7 @@ def test_QuadraticEnvelopeCardIndicator_case01(par, expected):
     """QuadraticEnvelopeCardIndicator penalty and proximal/dual proximal"""
     np.random.seed(10)
     fr0 = QuadraticEnvelopeCardIndicator(4)
+
     # Quadratic envelope of the indicator function of the l0-penalty
     x = np.random.normal(0.0, 10.0, par["nx"]).astype(par["dtype"])
 
@@ -207,6 +260,7 @@ def test_QuadraticEnvelopeCardIndicator_case01(par, expected):
 def test_QuadraticEnvelopeCardIndicator_case02():
     """QuadraticEnvelopeCardIndicator penalty and proximal/dual proximal"""
     fr0 = QuadraticEnvelopeCardIndicator(5)
+
     # Quadratic envelope of the indicator function of the l0-penalty
     x = np.array([1, 1.5, 1.3, 4.1, 2.1, 1.6, 1.8, 1.8])
 

@@ -28,6 +28,13 @@ par1prox = {"nx": 10, "ny": 10, "sigma": 1.0, "dtype": "float32"}  # even float3
 par2prox = {"nx": 11, "ny": 14, "sigma": 2.0, "dtype": "float64"}  # odd float64
 
 
+def test_GenericIntersectionProx_empty():
+    """Test GenericIntersectionProx raises an error when the list of
+    projections is empty"""
+    with pytest.raises(ValueError, match="items must not be empty"):
+        GenericIntersectionProx([])
+
+
 @pytest.mark.parametrize("par", [(par1proj), (par2proj)])
 def test_GenericIntersectionProx(par: dict[str, Any]) -> None:
     """GenericIntersectionProx and proximal/dual proximal of related indicator"""
