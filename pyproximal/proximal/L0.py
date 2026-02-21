@@ -1,5 +1,6 @@
 import warnings
-from typing import Any, Callable, Union
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 from pylops.utils.typing import NDArray
@@ -42,7 +43,7 @@ def _hardthreshold(x: NDArray, thresh: float) -> NDArray:
 def _current_radius(
     radius: IntCallableLike,
     count: int,
-) -> Union[int, NDArray]:
+) -> int | NDArray:
     if not callable(radius):
         return radius
     else:
@@ -233,5 +234,6 @@ class L01Ball(L10Ball):
             "to a mistake in the original choice of the name. As such "
             "L01Ball will be deprecated in v1.0.0.",
             FutureWarning,
+            stacklevel=2,
         )
         super().__init__(ndim, radius)

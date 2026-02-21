@@ -48,7 +48,7 @@ class BilinearOperator(ABC):
         pass
 
     @abstractmethod
-    def __call__(self, x: NDArray, y: Optional[NDArray] = None) -> Any:
+    def __call__(self, x: NDArray, y: NDArray | None = None) -> Any:
         pass
 
     @abstractmethod
@@ -147,7 +147,7 @@ class LowRankFactorizedMatrix(BilinearOperator):
         self.sizex = self.n * self.k
         self.sizey = self.m * self.k
 
-    def __call__(self, x: NDArray, y: Optional[NDArray] = None) -> float:
+    def __call__(self, x: NDArray, y: NDArray | None = None) -> float:
         # x can be concatenated [x,y] or just x if y is provided
         if y is None:
             x, y = x[: self.sizex], x[self.sizex :]
@@ -185,12 +185,14 @@ class LowRankFactorizedMatrix(BilinearOperator):
     def matvec(self, x: NDArray) -> NDArray:
         # check that no ambiguous situation arises due to n==m
         if self.n == self.m:
-            raise NotImplementedError(
+            msg = (
                 "Since n=m, this method"
                 "cannot distinguish automatically"
                 "between _matvecx and _matvecy. "
                 "Explicitely call either of those two methods."
             )
+            raise NotImplementedError(msg)
+
         if x.size == self.sizex:
             y = self._matvecx(x)
         else:
@@ -201,7 +203,8 @@ class LowRankFactorizedMatrix(BilinearOperator):
         if self.Op is not None:
             # Lipschitz constant for grad_y H involves Op.H Op and X.H X.
             # This is non-trivial and depends on Op's norm.
-            raise ValueError("lx cannot be computed when using Op")
+            msg = "lx cannot be computed when using Op"
+            raise ValueError(msg)
         # if Op is None, H = 0.5 * ||XY - d||^2. grad_y H = X.H (XY-d)
         # Lipschitz of grad_y H involves ||X.H X||_F or ||X||_2^2
         X = x.reshape(self.n, self.k)
@@ -211,7 +214,8 @@ class LowRankFactorizedMatrix(BilinearOperator):
         if self.Op is not None:
             # Lipschitz constant for grad_x H involves Op.H Op and Y Y.H.
             # This is non-trivial and depends on Op's norm.
-            raise ValueError("ly cannot be computed when using Op")
+            msg = "ly cannot be computed when using Op"
+            raise ValueError(msg)
         # if Op is None, H = 0.5 * ||XY - d||^2. grad_x H = (XY-d)Y.H
         # Lipschitz of grad_x H involves ||Y Y.H||_F or ||Y||_2^2
         Y = y.reshape(self.k, self.m)

@@ -1,4 +1,5 @@
-from typing import Any, Callable, Union
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 from pylops.utils.typing import NDArray
@@ -34,7 +35,7 @@ def _l2(x: NDArray, alpha: float) -> NDArray:
 def _current_kappa(
     kappa: FloatCallableLike,
     count: int,
-) -> Union[float, NDArray]:
+) -> float | NDArray:
     if not callable(kappa):
         return kappa
     else:

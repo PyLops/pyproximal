@@ -1,5 +1,4 @@
 import logging
-from typing import Optional, Union
 
 import numpy as np
 from pylops.utils.backend import get_array_module, to_cupy_conditional
@@ -30,7 +29,7 @@ class _Simplex(ProxOperator):
         self,
         n: int,
         radius: float,
-        dims: Optional[ShapeLike] = None,
+        dims: ShapeLike | None = None,
         axis: int = -1,
         maxiter: int = 100,
         xtol: float = 1e-8,
@@ -38,7 +37,8 @@ class _Simplex(ProxOperator):
     ) -> None:
         super().__init__(None, False)
         if dims is not None and len(dims) != 2:
-            raise ValueError("provide only 2 dimensions, or None")
+            msg = "provide only 2 dimensions, or None"
+            raise ValueError(msg)
         self.n = n
         self.radius = radius
         self.dims = dims
@@ -96,7 +96,7 @@ class _Simplex_numba(_Simplex):
         self,
         n: int,
         radius: float,
-        dims: Optional[ShapeLike] = None,
+        dims: ShapeLike | None = None,
         axis: int = -1,
         maxiter: int = 100,
         ftol: float = 1e-8,
@@ -163,7 +163,7 @@ class _Simplex_cuda(_Simplex):
         self,
         n: int,
         radius: float,
-        dims: Optional[ShapeLike] = None,
+        dims: ShapeLike | None = None,
         axis: int = -1,
         maxiter: int = 100,
         ftol: float = 1e-8,
@@ -208,7 +208,7 @@ class _Simplex_cuda(_Simplex):
 def Simplex(
     n: int,
     radius: float,
-    dims: Optional[ShapeLike] = None,
+    dims: ShapeLike | None = None,
     axis: int = -1,
     maxiter: int = 100,
     ftol: float = 1e-8,
@@ -265,9 +265,10 @@ def Simplex(
 
     """
     if engine not in ["numpy", "numba", "cuda"]:
-        raise KeyError("engine must be numpy or numba or cuda")
+        msg = "engine must be numpy or numba or cuda"
+        raise KeyError(msg)
 
-    s: Union[_Simplex, _Simplex_numba, _Simplex_cuda]
+    s: _Simplex | _Simplex_numba | _Simplex_cuda
     if engine == "numba" and jit is not None:
         s = _Simplex_numba(
             n,

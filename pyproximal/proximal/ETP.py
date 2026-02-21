@@ -51,9 +51,11 @@ class ETP(ProxOperator):
     def __init__(self, sigma: float, gamma: float = 1.0) -> None:
         super().__init__(None, False)
         if sigma < 0:
-            raise ValueError('Variable "sigma" must be positive.')
+            msg = 'Variable "sigma" must be positive.'
+            raise ValueError(msg)
         if gamma <= 0:
-            raise ValueError('Variable "gamma" must be strictly positive.')
+            msg = 'Variable "gamma" must be strictly positive.'
+            raise ValueError(msg)
         self.sigma = sigma
         self.gamma = gamma
 

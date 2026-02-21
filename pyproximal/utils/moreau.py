@@ -64,5 +64,6 @@ def moreau(
         return True
     else:
         if raiseerror:
-            raise ValueError("Moreau identity not verified")
+            msg = "Moreau identity not verified"
+            raise ValueError(msg)
         return False

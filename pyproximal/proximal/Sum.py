@@ -1,4 +1,5 @@
-from typing import Any, Callable, List
+from collections.abc import Callable
+from typing import Any
 
 from pylops.utils.backend import get_array_module
 from pylops.utils.typing import NDArray
@@ -109,8 +110,8 @@ class Sum(ProxOperator):
 
     def __init__(
         self,
-        ops: List[ProxOperator],
-        weights: NDArray | List[float] | None = None,
+        ops: list[ProxOperator],
+        weights: NDArray | list[float] | None = None,
         niter: int = 1000,
         tol: float = 1e-7,
         use_parallel: bool = False,
@@ -180,14 +181,16 @@ class Sum(ProxOperator):
     def _single_prox(self, x0: NDArray, tau: float) -> NDArray:
         r"""Compute :math:`\prox_{\tau \ f}(\mathbf{x})` for :math:`m = 1`."""
         if len(self.ops) != 1:
-            raise ValueError("len(ops) should be 1")
+            msg = "len(ops) should be 1"
+            raise ValueError(msg)
 
         return self.ops[0].prox(x0, tau)
 
     def _two_prox(self, x0: NDArray, tau: float) -> NDArray:
         r"""Compute :math:`\prox_{\tau \ f + g}(\mathbf{x})` for :math:`m = 2`."""
         if len(self.ops) != 2:
-            raise ValueError("len(ops) should be 2")
+            msg = "len(ops) should be 2"
+            raise ValueError(msg)
 
         def bind_tau(
             prox: Callable[[NDArray, float], NDArray],
@@ -210,7 +213,7 @@ class Sum(ProxOperator):
         for :math:`m \ge 2`.
         """
 
-        def tau_policy(tau: float, w: NDArray | List[float]) -> List[float]:
+        def tau_policy(tau: float, w: NDArray | list[float]) -> list[float]:
             if self.use_original_tau:
                 # legacy: all prox_i use the same tau
                 return [tau] * len(w)
@@ -218,7 +221,8 @@ class Sum(ProxOperator):
             return [tau / wi for wi in w]
 
         if len(self.ops) < 2:
-            raise ValueError("len(ops) should be 2 or larger")
+            msg = "len(ops) should be 2 or larger"
+            raise ValueError(msg)
 
         return parallel_dykstra_prox(
             x0,

@@ -1,5 +1,5 @@
 import time
-from typing import Callable, List, Optional, Tuple
+from collections.abc import Callable
 
 import numpy as np
 from pylops.utils.typing import NDArray
@@ -9,14 +9,14 @@ from pyproximal.utils.bilinear import BilinearOperator
 
 
 def _backtracking(
-    x: List[NDArray],
+    x: list[NDArray],
     tau: float,
     H: BilinearOperator,
-    proxf: Optional[ProxOperator],
+    proxf: ProxOperator | None,
     ix: int,
     beta: float = 0.5,
     niterback: int = 10,
-) -> Tuple[NDArray, float]:
+) -> tuple[NDArray, float]:
     r"""Backtracking
 
     Line-search algorithm for finding step sizes in PALM algorithms when
@@ -27,7 +27,7 @@ def _backtracking(
 
     def ftilde(
         x: NDArray,
-        y: List[NDArray],
+        y: list[NDArray],
         f: BilinearOperator,
         g: NDArray,
         tau: float,
@@ -59,18 +59,18 @@ def _backtracking(
 
 def PALM(
     H: BilinearOperator,
-    proxf: Optional[ProxOperator],
-    proxg: Optional[ProxOperator],
+    proxf: ProxOperator | None,
+    proxg: ProxOperator | None,
     x0: NDArray,
     y0: NDArray,
-    gammaf: Optional[float] = 1.0,
-    gammag: Optional[float] = 1.0,
+    gammaf: float | None = 1.0,
+    gammag: float | None = 1.0,
     beta: float = 0.5,
     niter: int = 10,
     niterback: int = 100,
-    callback: Optional[Callable[[NDArray, NDArray], None]] = None,
+    callback: Callable[[NDArray, NDArray], None] | None = None,
     show: bool = False,
-) -> Tuple[NDArray, NDArray]:
+) -> tuple[NDArray, NDArray]:
     r"""Proximal Alternating Linearized Minimization
 
     Solves the following minimization problem using the Proximal Alternating
@@ -220,19 +220,19 @@ def PALM(
 
 def iPALM(
     H: BilinearOperator,
-    proxf: Optional[ProxOperator],
-    proxg: Optional[ProxOperator],
+    proxf: ProxOperator | None,
+    proxg: ProxOperator | None,
     x0: NDArray,
     y0: NDArray,
-    gammaf: Optional[float] = 1.0,
-    gammag: Optional[float] = 1.0,
-    a: List[float] = [1.0, 1.0],
+    gammaf: float | None = 1.0,
+    gammag: float | None = 1.0,
+    a: tuple[float, float] = (1.0, 1.0),
     beta: float = 0.5,
     niter: int = 10,
     niterback: int = 100,
-    callback: Optional[Callable[[NDArray, NDArray], None]] = None,
+    callback: Callable[[NDArray, NDArray], None] | None = None,
     show: bool = False,
-) -> Tuple[NDArray, NDArray]:
+) -> tuple[NDArray, NDArray]:
     r"""Inertial Proximal Alternating Linearized Minimization
 
     Solves the following minimization problem using the Inertial Proximal

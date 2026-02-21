@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 from pylops.utils.typing import NDArray
 from scipy.optimize import bisect
@@ -41,8 +39,8 @@ class BoxProj:
 
     def __init__(
         self,
-        lower: Union[float, NDArray] = -np.inf,
-        upper: Union[float, NDArray] = np.inf,
+        lower: float | NDArray = -np.inf,
+        upper: float | NDArray = np.inf,
     ) -> None:
         self.lower = lower
         self.upper = upper
@@ -107,8 +105,8 @@ class HyperPlaneBoxProj:
         self,
         coeffs: NDArray,
         scalar: float,
-        lower: Union[float, NDArray] = -np.inf,
-        upper: Union[float, NDArray] = np.inf,
+        lower: float | NDArray = -np.inf,
+        upper: float | NDArray = np.inf,
         maxiter: int = 100,
         xtol: float = 1e-5,
     ) -> None:

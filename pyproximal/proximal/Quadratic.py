@@ -72,15 +72,16 @@ class Quadratic(ProxOperator):
     def __init__(
         self,
         Op: Optional["LinearOperator"] = None,
-        b: Optional[NDArray] = None,
+        b: NDArray | None = None,
         c: float = 0.0,
         niter: int = 10,
-        x0: Optional[NDArray] = None,
+        x0: NDArray | None = None,
         warm: bool = True,
     ) -> None:
         if Op is not None:
             if Op.shape[0] != Op.shape[1]:
-                raise ValueError("Op must be square")
+                msg = "Op must be square"
+                raise ValueError(msg)
         super().__init__(Op, True)
         self.b = b
         if self.Op is not None and self.b is None:

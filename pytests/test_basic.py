@@ -66,7 +66,8 @@ def test_precomposition_type(par):
         _ = l1.precomposition(a=1, b=np.ones(5))  # should be float
 
         _ = l1.precomposition(
-            a=1.0, b=[1, 2, 3]  # should be float
+            a=1.0,
+            b=[1, 2, 3],  # should be float
         )  # should be float, np.ndarray or cp.ndarray
 
 

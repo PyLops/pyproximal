@@ -82,18 +82,38 @@ python_files = ["pytests/*.py"]
 
 [tool.ruff]
 src = ["pyproximal"]
+exclude = ["pyproximal/version.py", ]
 line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle errors
+  "F",   # pyflakes
+  "W",   # pycodestyle warnings
+  "B",   # flake8-bugbear
+  "EM",  # flake8-errmsg
+  "UP",  # pyupgrade
+  "I"    # isort
+]
+ignore = [
+  "E501",  # line too long (for comments and strings)
+  "UP031", # use of old '%' formatting instead of f-strings
+]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = [
   "F401",  # imported but unused (re-exports)
   "F403",  # star import used for public API
   "F405",  # name may be undefined from star import
+  "I001",  # allow usorted imports
 ]
 "tutorials/*.py" = [
-  "E402",  # module level import not at top of file
   "E731",  # do not assign a lambda expression, use def
 ]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pyproximal"]
 
 [tool.mypy]
 files = ["pyproximal", ]
@@ -102,10 +122,10 @@ mypy_path = "pyproximal"
 strict = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 disable_error_code = ["untyped-decorator"]
-warn_unreachable = true
 allow_redefinition = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+warn_unreachable = false
 
 [[tool.mypy.overrides]]
 module = ["cupy.*", "numpy.*", "numba.*", "pylops.*", "scipy.*", "scooby.*", "pyproximal.*"]

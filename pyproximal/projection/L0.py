@@ -77,10 +77,14 @@ class L10BallProj:
 
 class L01BallProj(L10BallProj):
     def __init__(self, radius: int) -> None:
-        warnings.warn(
+        msg = (
             "The L01BallProj class has been renamed L10BallProj due "
             "to a mistake in the original choice of the name. As such "
-            "L01BallProj will be deprecated in v1.0.0.",
+            "L01BallProj will be deprecated in v1.0.0."
+        )
+        warnings.warn(
+            msg,
             FutureWarning,
+            stacklevel=2,
         )
         super().__init__(radius)

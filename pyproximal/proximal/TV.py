@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from copy import deepcopy
-from typing import Any, Callable, Union
+from typing import Any
 
 import numpy as np
 from pylops import FirstDerivative, Gradient
@@ -42,7 +43,7 @@ class TV(ProxOperator):
         self,
         dims: ShapeLike,
         sigma: float = 1.0,
-        niter: Union[int, Callable[[int], int]] = 10,
+        niter: int | Callable[[int], int] = 10,
         rtol: float = 1e-4,
         **kwargs: Any,
     ) -> None:
@@ -185,7 +186,8 @@ class TV(ProxOperator):
         while iter <= niter:
             # Current Solution
             if self.ndim == 0:
-                raise ValueError("Need to input at least one value")
+                msg = "Need to input at least one value"
+                raise ValueError(msg)
 
             if self.ndim >= 1:
                 div = np.concatenate(

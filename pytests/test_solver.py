@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any
 
 import numpy as np
 import pytest
@@ -9,12 +9,12 @@ from pyproximal.optimization.primal import (
     ADMM,
     ADMML2,
     HQS,
+    PPXA,
+    ConsensusADMM,
     DouglasRachfordSplitting,
     GeneralizedProximalGradient,
     LinearizedADMM,
     ProximalGradient,
-    PPXA,
-    ConsensusADMM,
 )
 from pyproximal.proximal import L1, L2
 
@@ -231,7 +231,7 @@ def test_ADMM_DRS(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
-def test_PPXA_with_ADMM(par: Dict[str, Any]) -> None:
+def test_PPXA_with_ADMM(par: dict[str, Any]) -> None:
     """Check equivalency of PPXA and ADMM
     when using a single regularization term
     """
@@ -257,7 +257,8 @@ def test_PPXA_with_ADMM(par: Dict[str, Any]) -> None:
     tau = 0.5 / L
 
     xadmm, _ = ADMM(
-        l2, l1,
+        l2,
+        l1,
         x0=np.zeros(m),
         tau=tau,
         niter=2000,  # niter=1500 makes this test fail for seeds 0 to 499
@@ -274,9 +275,8 @@ def test_PPXA_with_ADMM(par: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
-def test_PPXA_with_GPG(par: Dict[str, Any]) -> None:
-    """Check equivalency of PPXA and GeneralizedProximalGradient
-    """
+def test_PPXA_with_GPG(par: dict[str, Any]) -> None:
+    """Check equivalency of PPXA and GeneralizedProximalGradient"""
     np.random.seed(0)
 
     n, m = par["n"], par["m"]
@@ -318,14 +318,14 @@ def test_PPXA_with_GPG(par: Dict[str, Any]) -> None:
         [l2_1, l2_2, l1_1, l1_2],
         x0=np.zeros(m),
         tau=np.random.uniform(3 * tau, 5 * tau),
-        show=True
+        show=True,
     )
 
     assert_array_almost_equal(xppxa, xgpg, decimal=2)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
-def test_ConsensusADMM_with_ADMM(par: Dict[str, Any]) -> None:
+def test_ConsensusADMM_with_ADMM(par: dict[str, Any]) -> None:
     """Check equivalency of ConsensusADMM and ADMM
     when two proximable functions
     """
@@ -351,11 +351,12 @@ def test_ConsensusADMM_with_ADMM(par: Dict[str, Any]) -> None:
     tau = 0.5 / L
 
     xadmm, _ = ADMM(
-        l2, l1,
+        l2,
+        l1,
         x0=np.zeros(m),
         tau=tau,
         niter=2000,  # niter=1500 makes this test fail for seeds 0 to 499
-        show=True
+        show=True,
     )
     xcadmm = ConsensusADMM(
         [l2, l1],
@@ -368,7 +369,7 @@ def test_ConsensusADMM_with_ADMM(par: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
-def test_ConsensusADMM_with_ADMM_for_Lasso(par: Dict[str, Any]) -> None:
+def test_ConsensusADMM_with_ADMM_for_Lasso(par: dict[str, Any]) -> None:
     """Check equivalency of ConsensusADMM and ADMM
     when more than two proximable functions for lasso
     """
@@ -394,7 +395,7 @@ def test_ConsensusADMM_with_ADMM_for_Lasso(par: Dict[str, Any]) -> None:
     # 1/2||R1||_2^2, 1/2||R2||_2^2, 1/2||R3||_2^2
     l2_ops = [
         L2(Op=MatrixMult(Ri), b=yi, niter=50, warm=False)
-        for Ri, yi in zip(R_list, y_list)
+        for Ri, yi in zip(R_list, y_list, strict=True)
     ]
 
     # 1/2 || [R1; R2; R3] ||_2^2
@@ -432,9 +433,8 @@ def test_ConsensusADMM_with_ADMM_for_Lasso(par: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
-def test_ConsensusADMM_with_GPG(par: Dict[str, Any]) -> None:
-    """Check equivalency of ConsensusADMM and GeneralizedProximalGradient
-    """
+def test_ConsensusADMM_with_GPG(par: dict[str, Any]) -> None:
+    """Check equivalency of ConsensusADMM and GeneralizedProximalGradient"""
 
     np.random.seed(0)
 

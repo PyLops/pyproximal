@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 from pylops.utils.typing import NDArray
 
@@ -85,7 +83,7 @@ class EuclideanBall(ProxOperator):
 
     """
 
-    def __init__(self, center: Union[NDArray, float], radius: float) -> None:
+    def __init__(self, center: NDArray | float, radius: float) -> None:
         super().__init__(None, False)
         self.center = center
         self.radius = radius

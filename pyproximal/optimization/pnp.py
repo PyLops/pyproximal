@@ -1,4 +1,5 @@
-from typing import Any, Callable, Dict, Tuple, Union
+from collections.abc import Callable
+from typing import Any
 
 from pylops.utils.typing import NDArray, ShapeLike
 
@@ -47,8 +48,8 @@ def PlugAndPlay(
     dims: ShapeLike,
     x0: NDArray,
     solver: Callable[..., NDArray] = ADMM,
-    **kwargs_solver: Dict[str, Any],
-) -> Union[NDArray, Tuple[NDArray, ...]]:
+    **kwargs_solver: dict[str, Any],
+) -> NDArray | tuple[NDArray, ...]:
     r"""Plug-and-Play Priors with any proximal algorithm of choice
 
     Solves the following minimization problem using any proximal a
