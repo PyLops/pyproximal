@@ -359,9 +359,9 @@ class L2Convolve(ProxOperator):
             self.dir = -1
         else:
             self.dir = (
-                len(self.dims) - 1
+                len(dims) - 1
                 if dir is None
-                else get_normalize_axis_index()(dir, len(self.dims))
+                else get_normalize_axis_index()(dir, len(dims))
             )
 
         # convert data and filter to Fourier domain

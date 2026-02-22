@@ -48,7 +48,7 @@ class TV(ProxOperator):
         **kwargs: Any,
     ) -> None:
         super().__init__(None, True)
-        self.dims = dims
+        self.dims = (0,) if dims is None else dims
         self.ndim = 1 if dims is None else len(dims)
         self.sigma = sigma
         self.niter = niter
