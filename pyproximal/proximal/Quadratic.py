@@ -108,7 +108,7 @@ class Quadratic(ProxOperator):
                 Op1 = MatrixMult(np.eye(self.Op.shape[0]) + tau * self.Op.A)
                 x = Op1.div(y)
             else:
-                Op1 = Identity(self.Op.shape[0], dtype=self.Op.dtype) + tau * self.Op.A
+                Op1 = Identity(self.Op.shape[0], dtype=self.Op.dtype) + tau * self.Op
                 x = lsqr(Op1, y, iter_lim=self.niter, x0=self.x0)[0]
             if self.warm:
                 self.x0 = x
@@ -131,9 +131,9 @@ class Quadratic(ProxOperator):
 
         """
         if self.Op is not None and self.b is not None:
-            g = self.Op.matvec(x) / 2.0 + x
+            g = self.Op.matvec(x) + self.b
         elif self.b is not None:
-            g = x
+            g = self.b
         else:
             g = 0.0
         return g

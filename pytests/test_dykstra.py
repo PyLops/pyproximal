@@ -28,6 +28,13 @@ par1prox = {"nx": 10, "ny": 10, "sigma": 1.0, "dtype": "float32"}  # even float3
 par2prox = {"nx": 11, "ny": 14, "sigma": 2.0, "dtype": "float64"}  # odd float64
 
 
+def test_GenericIntersectionProx_empty():
+    """Test GenericIntersectionProx raises an error when the list of
+    projections is empty"""
+    with pytest.raises(ValueError, match="items must not be empty"):
+        GenericIntersectionProx([])
+
+
 @pytest.mark.parametrize("par", [(par1proj), (par2proj)])
 def test_GenericIntersectionProx(par: dict[str, Any]) -> None:
     """GenericIntersectionProx and proximal/dual proximal of related indicator"""
@@ -98,6 +105,29 @@ def test_GenericIntersectionProx(par: dict[str, Any]) -> None:
             # prox / dualprox
             tau = 2.0
             assert moreau(d, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1prox), (par2prox)])
+def test_Sum_l1(par: dict[str, Any]) -> None:
+    """Check Sum for single L1 operator (edge-case)"""
+
+    atol = 1e-6
+    tau = 1.0
+    rng = np.random.default_rng(10)
+
+    x = rng.normal(0.0, 3.5, par["nx"]).astype(par["dtype"])
+    sigma = rng.uniform(0.1, 1.0)
+
+    l1 = L1(sigma=sigma)
+
+    d = Sum(
+        [
+            l1,
+        ]
+    )
+    assert np.allclose(l1(x), d(x), atol=atol)
+    assert np.allclose(l1.prox(x, tau), d.prox(x, tau), atol=atol)
+    assert moreau(d, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1prox), (par2prox)])

@@ -68,7 +68,7 @@ class _Simplex(ProxOperator):
             carr = np.empty(self.dims[self.otheraxis], dtype=np.bool)
             for i in range(self.dims[self.otheraxis]):
                 carr[i] = not (
-                    np.abs(np.sum(x)) - self.radius < tol or np.any(x[i] < 0)
+                    np.abs(np.sum(x[i])) - self.radius > tol or np.any(x[i] < 0)
                 )
             c = bool(np.all(carr))
         return c

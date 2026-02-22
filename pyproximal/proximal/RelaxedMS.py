@@ -32,16 +32,6 @@ def _l2(x: NDArray, alpha: float) -> NDArray:
     return y
 
 
-def _current_kappa(
-    kappa: FloatCallableLike,
-    count: int,
-) -> float | NDArray:
-    if not callable(kappa):
-        return kappa
-    else:
-        return kappa(count)
-
-
 class RelaxedMumfordShah(ProxOperator):
     r"""Relaxed Mumford-Shah norm proximal operator.
 

@@ -40,7 +40,7 @@ def test_l2(par):
             complexflag=par["complexflag"],
             raiseerror=True,
             atol=1e-3,
-            verb=False,
+            verb=True,  # to test verbosity
         )
 
     # x - b
@@ -94,5 +94,5 @@ def test_lowrank(par):
             complexflag=par["complexflag"],
             raiseerror=True,
             atol=1e-3,
-            verb=False,
+            verb=True,  # to test verbosity
         )
