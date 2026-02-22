@@ -98,13 +98,16 @@ def test_SemiOrthogonal(par):
     """L1 functional with Semi-Orthogonal operator and proximal/dual proximal"""
     np.random.seed(10)
     l1 = L1()
-    orth = Orthogonal(
-        l1, 2 * Identity(par["nx"]), b=np.arange(par["nx"]), partial=True, alpha=4.0
-    )
+    Op = 2 * Identity(par["nx"])
+    b = np.arange(par["nx"])
+    orth = Orthogonal(l1, Op, b=b, partial=True, alpha=4.0)
+
+    # norm
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    assert orth(x) == pytest.approx(l1(Op @ x + b))
 
     # prox / dualprox
     tau = 2.0
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     assert moreau(orth, x, tau)
 
 
@@ -113,25 +116,48 @@ def test_Orthogonal(par):
     """L1 functional with Orthogonal operator and proximal/dual proximal"""
     np.random.seed(10)
     l1 = L1()
-    orth = Orthogonal(l1, Identity(par["nx"]), b=np.arange(par["nx"]))
+    Op = Identity(par["nx"], inplace=False)
+    b = np.arange(par["nx"])
+    orth = Orthogonal(l1, Op, b=b)
+
+    # norm
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    assert orth(x) == pytest.approx(l1(Op @ x + b))
 
     # prox / dualprox
     tau = 2.0
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     assert moreau(orth, x, tau)
 
 
+def test_VStack_nodim():
+    """VStack operator raises error when neiter restr not dim are provided"""
+    with pytest.raises(ValueError, match="Provide either nn or restr"):
+        _ = VStack(
+            [
+                L2(),
+            ],
+            None,
+            None,
+        )
+
+
 @pytest.mark.parametrize("par", [(par1), (par2)])
-def test_VStack_error(par):
-    """VStack operator error when input has wrong dimensions"""
+def test_VStack_wrongdim(par):
+    """VStack call/prox/grad raise error when input has wrong dimensions"""
     np.random.seed(10)
     nxs = [par["nx"] // 4] * 4
     nxs[-1] = par["nx"] - np.sum(nxs[:-1])
     l2 = L2()
     vstack = VStack([l2] * 4, nxs)
 
-    with pytest.raises(ValueError):
-        vstack.prox(np.ones(nxs[0]), 2)
+    with pytest.raises(ValueError, match="x must have size"):
+        vstack(np.ones(nxs[0]))
+
+    with pytest.raises(ValueError, match="x must have size"):
+        vstack.prox(np.ones(nxs[0]), 2.0)
+
+    with pytest.raises(ValueError, match="x must have size"):
+        vstack.grad(np.ones(nxs[0]))
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
@@ -194,12 +220,41 @@ def test_VStack_restriction(par):
 
 
 def test_Nonlinear():
-    """Nonlinear proximal operator. Since this is a template class simply check
-    that errors are raised when not used properly
-    """
+    """Nonlinear proximal operator."""
     np.random.seed(10)
-    with pytest.raises(TypeError):
+
+    # Check error if methods are not implemented
+    with pytest.raises(TypeError, match="Can't instantiate abstract"):
         _ = Nonlinear(np.ones(10))
+
+    # Implement basic nonlinear function and test methods
+    class Sin(Nonlinear):
+        def fun(self, x):
+            return 1 - np.sin(np.pi * x)
+
+        def grad(self, x):
+            return -np.pi * np.cos(np.pi * x)
+
+        def optimize(self):
+            x = self.x0.copy()
+            for _ in range(self.niter):
+                _ = self._fungradprox(x, self.tau)  # just to test the method
+                dx = self._gradprox(x, self.tau)
+                x -= self.alpha * dx
+            return x
+
+    sin = Sin(x0=np.full(1, 0.2), niter=100)
+    sin.alpha = 1e-1
+
+    # call
+    assert sin(0.5) == 0.0
+    assert sin(0.0) == 1.0
+
+    # call and grad
+    assert sin.fungrad(0.5)[1] == pytest.approx(0.0)
+
+    # prox
+    assert sin.prox(np.full(1, 0.5), 1e5)[0] == pytest.approx(0.5)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])

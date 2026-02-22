@@ -73,7 +73,7 @@ class Orthogonal(ProxOperator):
         self.Q = Q
         self.partial = partial
         self.alpha = alpha
-        self.b = b if b is not None else 0
+        self.b = b if b is not None else 0.0
 
     def __call__(self, x: NDArray) -> bool | float | int:
         y = self.Q.matvec(x)

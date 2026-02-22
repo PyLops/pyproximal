@@ -18,7 +18,7 @@ class TV(ProxOperator):
 
     Parameters
     ----------
-    dims : :obj:`tuple`
+    dims : :obj:`tuple`, optional
         Number of samples for each dimension
         (``None`` if only one dimension is available)
     sigma : :obj:`float`, optional
@@ -41,7 +41,7 @@ class TV(ProxOperator):
 
     def __init__(
         self,
-        dims: ShapeLike,
+        dims: ShapeLike | None,
         sigma: float = 1.0,
         niter: int | Callable[[int], int] = 10,
         rtol: float = 1e-4,
@@ -49,7 +49,7 @@ class TV(ProxOperator):
     ) -> None:
         super().__init__(None, True)
         self.dims = dims
-        self.ndim = len(dims)
+        self.ndim = 1 if dims is None else len(dims)
         self.sigma = sigma
         self.niter = niter
         self.count = 0
@@ -185,10 +185,6 @@ class TV(ProxOperator):
         iter = 0
         while iter <= niter:
             # Current Solution
-            if self.ndim == 0:
-                msg = "Need to input at least one value"
-                raise ValueError(msg)
-
             if self.ndim >= 1:
                 div = np.concatenate(
                     (

@@ -9,6 +9,7 @@ from pyproximal.proximal import (
     EuclideanBall,
     HalfSpace,
     Hankel,
+    Intersection,
     L0Ball,
     L1Ball,
     L10Ball,
@@ -197,6 +198,16 @@ def test_Simplex(par):
         assert moreau(sim1, x, tau)
 
 
+def test_Simplex_engine():
+    """Simplex engine check"""
+    with pytest.raises(KeyError, match="engine must be numpy or "):
+        _ = Simplex(
+            n=10,
+            radius=1.0,
+            engine="foo",
+        )
+
+
 @pytest.mark.parametrize("par", [(par1), (par2), (par3), (par4)])
 def test_Simplex_multi(par):
     """Simplex projection and proximal/dual proximal for 2d array"""
@@ -207,21 +218,34 @@ def test_Simplex_multi(par):
     for engine in ["numpy", "numba"]:
         x = np.abs(np.random.normal(0.0, 1.0, dims).astype(par["dtype"]))
 
+        radius = np.sum(x, axis=par["axis"]).max()
         sim = Simplex(
             n=par["ny"] * par["nx"],
-            radius=5.0,
+            radius=radius,
+            dims=dims,
+            axis=par["axis"],
+            maxiter=50,
+            engine=engine,
+        )
+        sim1 = Simplex(
+            n=par["ny"] * par["nx"],
+            radius=radius - 0.1,
             dims=dims,
             axis=par["axis"],
             maxiter=50,
             engine=engine,
         )
 
+        # evaluation
+        assert sim(x) is True
+        assert sim1(x) is False
+
         # prox
         tau = 2.0
         y = sim.prox(x.ravel(), tau)
         assert_array_almost_equal(
             np.sum(y.reshape(dims), axis=par["axis"]),
-            5.0 * np.ones(dims[otheraxis]),
+            radius * np.ones(dims[otheraxis]),
             decimal=1,
         )
 
@@ -235,12 +259,16 @@ def test_Affine(par):
     np.random.seed(10)
 
     Op = Identity(par["nx"])
-    b = np.random.normal(0.0, 1.0, par["nx"])
+    x = np.ones(par["nx"])
+    b = Op @ x
     aff = AffineSet(Op, b, 10)
+
+    # norm
+    assert aff(x) is True
+    assert aff(x + 1.0) is False
 
     # prox
     tau = 2.0
-    x = np.ones(par["nx"])
     assert_array_almost_equal(aff.prox(x, tau), b)
 
     # prox / dualprox
@@ -271,11 +299,36 @@ def test_HalfSpace(par):
     np.random.seed(10)
 
     w = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
-    b = np.random.normal(0.0, 1.0)
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    b = np.dot(w, x) + 1.0  # to ensure x is inside the half-space
 
     half_space = HalfSpace(w, b)
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+
+    # call
+    assert half_space(x) is True
 
     # prox / dualprox
     tau = 2.0
     assert moreau(half_space, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_Intersection(par):
+    """Intersection projection and proximal/dual proximal of related indicator"""
+    np.random.seed(10)
+
+    k = 3
+    x = np.random.normal(0, k, par["nx"])
+    sigma = np.array([[3, 2, 1], [2, 2, 1], [3, 4, 1]])
+    sigma = sigma.T @ sigma
+
+    ic = Intersection(k, par["nx"], sigma, niter=10, tol=1e-3)
+    x = np.random.normal(0.0, 1.0, k * par["nx"]).astype(par["dtype"])
+
+    # call
+    xproj = ic.prox(x, 2.0)
+    assert ic(xproj) is True
+
+    # prox / dualprox
+    tau = 2.0
+    assert moreau(ic, x, tau)

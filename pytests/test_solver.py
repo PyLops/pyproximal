@@ -26,7 +26,7 @@ def test_HQS_noinitial():
     """Check that an error is raised if no initial value
     is provided to HQS solver
     """
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Both x0 or "):
         _ = HQS(
             proxf=L2(),
             proxg=L1(),
@@ -40,7 +40,7 @@ def test_ADMM_noinitial():
     """Check that an error is raised if no initial value
     is provided to ADMM solver
     """
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Both x0 or"):
         _ = ADMM(
             proxf=L2(),
             proxg=L1(),
@@ -54,7 +54,7 @@ def test_ADMML2_noinitial():
     """Check that an error is raised if no initial value
     is provided to PrimalDual solver
     """
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Both x0 or"):
         # Both None
         _ = ADMML2(
             proxg=L1(),
@@ -65,7 +65,7 @@ def test_ADMML2_noinitial():
             x0=None,
             z0=None,
         )
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="x0 must be provided when"):
         # x0 is None (and Op provided)
         _ = ADMML2(
             proxg=L1(),
@@ -82,7 +82,7 @@ def test_LinearizedADMM_noinitial():
     """Check that an error is raised if no initial x0
     is provided to LinearizedADMM solver
     """
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Both x0 or "):
         # Both None
         _ = LinearizedADMM(
             proxf=L2(),
@@ -93,7 +93,7 @@ def test_LinearizedADMM_noinitial():
             x0=None,
             z0=None,
         )
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="x0 must be provided when"):
         # x0 is None (and Op provided)
         _ = LinearizedADMM(
             proxf=L2(),
@@ -109,7 +109,7 @@ def test_LinearizedADMM_noinitial():
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_GPG_weights(par):
     """Check GPG raises error if weight is not summing to 1"""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="must be an array of size"):
         np.random.seed(0)
         n, m = par["n"], par["m"]
 

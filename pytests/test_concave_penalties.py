@@ -22,6 +22,15 @@ par2 = {
 }  # odd float64
 
 
+def test_SCAD_sigmaneg():
+    """Check SCAD returns an error for negative sigma"""
+    with pytest.raises(ValueError, match='Variable "sigma" must be positive'):
+        _ = SCAD(sigma=-1.0)
+
+    with pytest.raises(ValueError, match='Variable "a" must be larger'):
+        _ = SCAD(sigma=1.0, a=1.7)
+
+
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_SCAD(par):
     """SCAD penalty and proximal/dual proximal"""
@@ -37,23 +46,33 @@ def test_SCAD(par):
         (par["a"] + 1) * par["sigma"] ** 2 / 2 * np.count_nonzero(x)
     )
 
-    # Check proximal operator
+    # prox / dualprox
     tau = 2.0
     x = np.random.normal(0.0, 10.0, par["nx"]).astype(par["dtype"])
     assert moreau(scad, x, tau)
 
-    # Make sure that a ValueError is raised if you try to instantiate with a <= 2
-    with pytest.raises(ValueError):
-        _ = SCAD(sigma=1.0, a=1.7)
+
+def test_Log_Log1_neg():
+    """Check Log/Log1 returns an error for negative inputs"""
+    with pytest.raises(ValueError, match='Variable "sigma" must be positive'):
+        _ = Log(sigma=-1.0)
+
+    with pytest.raises(ValueError, match='Variable "gamma" must be positive'):
+        _ = Log(sigma=1.0, gamma=-1.0)
+
+    with pytest.raises(ValueError, match='Variable "delta" must be positive'):
+        _ = Log1(1.0, delta=-1.0)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Log(par):
     """Log penalty and proximal/dual proximal"""
     np.random.seed(10)
+
     log = Log(sigma=par["sigma"], gamma=par["gamma"])
-    # Log
     x = np.random.normal(0.0, 10.0, par["nx"]).astype(par["dtype"])
+
+    # norm
     expected = (
         par["sigma"]
         / np.log(par["gamma"] + 1)
@@ -61,7 +80,7 @@ def test_Log(par):
     )
     assert log(x) == pytest.approx(expected)
 
-    # Check proximal operator
+    # prox / dualprox
     tau = 2.0
     assert moreau(log, x, tau)
 
@@ -70,21 +89,37 @@ def test_Log(par):
 def test_Log1(par):
     """Log1 penalty and proximal/dual proximal"""
     np.random.seed(10)
-    log = Log1(sigma=par["sigma"])
 
-    # Check proximal operator
-    tau = 2.0
+    log = Log1(sigma=par["sigma"])
     x = np.random.normal(0.0, 10.0, par["nx"]).astype(par["dtype"])
+
+    # norm
+    expected = float(np.sum(np.log(np.abs(x) + log.delta)))
+    assert log(x) == pytest.approx(expected)
+
+    # prox / dualprox
+    tau = 2.0
     assert moreau(log, x, tau)
+
+
+def test_ETP_sigma_gamma_neg():
+    """Check ETP returns an error for negative sigma and gamma"""
+    with pytest.raises(ValueError, match='Variable "sigma" must be positive'):
+        _ = ETP(sigma=-1.0)
+
+    with pytest.raises(ValueError, match='Variable "gamma" must be strictly'):
+        _ = ETP(sigma=1.0, gamma=0.0)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_ETP(par):
     """Exponential-type penalty and proximal/dual proximal"""
     np.random.seed(10)
+
     etp = ETP(sigma=par["sigma"], gamma=par["gamma"])
-    # ETP
     x = np.random.normal(0.0, 10.0, par["nx"]).astype(par["dtype"])
+
+    # norm
     expected = (
         par["sigma"]
         / (1 - np.exp(-par["gamma"]))
@@ -92,9 +127,18 @@ def test_ETP(par):
     )
     assert etp(x) == pytest.approx(expected)
 
-    # Check proximal operator
+    # prox / dualprox
     tau = 2.0
     assert moreau(etp, x, tau)
+
+
+def test_Geman_sigma_gamma_neg():
+    """Check Geman returns an error for negative sigma and gamma"""
+    with pytest.raises(ValueError, match='Variable "sigma" must be positive'):
+        _ = Geman(sigma=-1.0)
+
+    with pytest.raises(ValueError, match='Variable "gamma" must be strictly'):
+        _ = Geman(sigma=1.0, gamma=0.0)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
@@ -103,13 +147,13 @@ def test_Geman(par):
     np.random.seed(10)
 
     geman = Geman(sigma=par["sigma"], gamma=par["gamma"])
-
-    # Geman
     x = np.random.normal(0.0, 10.0, par["nx"]).astype(par["dtype"])
+
+    # norm
     expected = par["sigma"] * np.linalg.norm(np.abs(x) / (np.abs(x) + par["gamma"]), 1)
     assert geman(x) == pytest.approx(expected)
 
-    # Check proximal operator
+    # prox / dualprox
     tau = 2.0
     assert moreau(geman, x, tau)
 

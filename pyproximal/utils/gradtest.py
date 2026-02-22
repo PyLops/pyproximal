@@ -220,6 +220,8 @@ def gradtest_bilinear(
         r_or_i = np.random.randint(0, 2)
         if r_or_i == 1:
             delta1 = delta * 1j
+    else:
+        r_or_i = 0
 
     # extract gradient value to test
     if x_or_y == 0:

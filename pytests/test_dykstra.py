@@ -108,6 +108,29 @@ def test_GenericIntersectionProx(par: dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("par", [(par1prox), (par2prox)])
+def test_Sum_l1(par: dict[str, Any]) -> None:
+    """Check Sum for single L1 operator (edge-case)"""
+
+    atol = 1e-6
+    tau = 1.0
+    rng = np.random.default_rng(10)
+
+    x = rng.normal(0.0, 3.5, par["nx"]).astype(par["dtype"])
+    sigma = rng.uniform(0.1, 1.0)
+
+    l1 = L1(sigma=sigma)
+
+    d = Sum(
+        [
+            l1,
+        ]
+    )
+    assert np.allclose(l1(x), d(x), atol=atol)
+    assert np.allclose(l1.prox(x, tau), d.prox(x, tau), atol=atol)
+    assert moreau(d, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1prox), (par2prox)])
 def test_Sum_l1_l1(par: dict[str, Any]) -> None:
     """Check Sum for L1 + L1"""
 
