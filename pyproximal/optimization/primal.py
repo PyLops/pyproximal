@@ -1734,23 +1734,33 @@ def DouglasRachfordSplitting(
     Notes
     -----
     The Douglas-Rachford Splitting algorithm can be expressed by the following
-    recursion [1]_, [2]_:
+    recursion [1]_, [2]_, [3]_, [4]_:
 
     .. math::
 
-        \mathbf{y}^{k} &= \prox_{\tau g}(\mathbf{x}^k) \\
-        \mathbf{x}^{k+1} &= \mathbf{x}^{k} +
-        \eta (\prox_{\tau f}(2 \mathbf{y}^{k} - \mathbf{x}^{k})
-        - \mathbf{y}^{k})
+        \mathbf{x}^{k} &= \prox_{\tau g}(\mathbf{y}^k) \\
+        \mathbf{y}^{k+1} &= \mathbf{y}^{k} +
+        \eta (\prox_{\tau f}(2 \mathbf{x}^{k} - \mathbf{y}^{k})
+        - \mathbf{x}^{k})
 
     .. [1] Patrick L. Combettes and Jean-Christophe Pesquet. 2011. Proximal
         Splitting Methods in Signal Processing. In Fixed-Point Algorithms for
-        Inverse Problems in Science and Engineering, Springer, 185-212.
+        Inverse Problems in Science and Engineering, Springer, pp. 185-212.
+        Algorithm 10.15.
         https://doi.org/10.1007/978-1-4419-9569-8_10
     .. [2] Scott B. Lindstrom and Brailey Sims. 2021. Survey: Sixty Years of
         Douglas-Rachford. Journal of the Australian Mathematical Society, 110,
-        3, 333-370. https://doi.org/10.1017/S1446788719000570
+        3, 333-370. Eq.(15). https://doi.org/10.1017/S1446788719000570
         https://arxiv.org/abs/1809.07181
+    .. [3] Ryu, E.K., Yin, W., 2022. Large-Scale Convex Optimization: Algorithms
+        & Analyses via Monotone Operators. Cambridge University Press,
+        Cambridge. Eq.(2.18). https://doi.org/10.1017/9781009160865
+        https://large-scale-book.mathopt.com/
+    .. [4] Combettes, P.L., Pesquet, J.-C., 2008. A proximal decomposition
+        method for solving convex variational inverse problems. Inverse Problems
+        24, 065014. Proposition 3.2. https://doi.org/10.1088/0266-5611/24/6/065014
+        https://arxiv.org/abs/0807.2617
+
 
     """
     if show:
@@ -1765,15 +1775,15 @@ def DouglasRachfordSplitting(
         head = "   Itn       x[0]          f           g       J = f + g"
         print(head)
 
-    x = x0.copy()
+    y = x0.copy()
     for iiter in range(niter):
 
         if gfirst:
-            y = proxg.prox(x, tau)
-            x = x + eta * (proxf.prox(2 * y - x, tau) - y)
+            x = proxg.prox(y, tau)
+            y = y + eta * (proxf.prox(2 * x - y, tau) - x)
         else:
-            y = proxf.prox(x, tau)
-            x = x + eta * (proxg.prox(2 * y - x, tau) - y)
+            x = proxf.prox(y, tau)
+            y = y + eta * (proxg.prox(2 * x - y, tau) - x)
 
         # run callback
         if callback is not None:
