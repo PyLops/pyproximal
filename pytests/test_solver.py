@@ -186,7 +186,7 @@ def test_PG_GPG(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
-def test_ADMM_DRS(par: Dict[str, Any]) -> None:
+def test_ADMM_DRS(par):
     """Check equivalency of ADMM and DouglasRachfordSplitting
     when using a single regularization term
     """

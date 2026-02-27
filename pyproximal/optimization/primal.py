@@ -1761,7 +1761,6 @@ def DouglasRachfordSplitting(
         24, 065014. Proposition 3.2. https://doi.org/10.1088/0266-5611/24/6/065014
         https://arxiv.org/abs/0807.2617
 
-
     """
     if show:
         tstart = time.time()
