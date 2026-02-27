@@ -2063,7 +2063,7 @@ def ConsensusADMM(  # pylint: disable=invalid-name
     m = len(proxfs)
     x_bar = x0.copy()
     x_bar_old = x0.copy()
-    y = ncp.zeros((m, x0.shape[0]))
+    y = ncp.zeros((m, x0.size))
 
     # iterate
     for iiter in range(niter):
