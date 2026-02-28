@@ -7,7 +7,7 @@ class EuclideanBallProj:
 
     Parameters
     ----------
-    center : :obj:`np.ndarray` or :obj:`float`
+    center : :obj:`numpy.ndarray` or :obj:`float`
         Center of the ball
     radius : :obj:`float`
         Radius

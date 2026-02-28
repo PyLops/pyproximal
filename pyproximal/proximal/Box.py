@@ -12,9 +12,9 @@ class Box(ProxOperator):
 
     Parameters
     ----------
-    lower : :obj:`float` or :obj:`np.ndarray`, optional
+    lower : :obj:`float` or :obj:`numpy.ndarray`, optional
         Lower bound
-    upper : :obj:`float` or :obj:`np.ndarray`, optional
+    upper : :obj:`float` or :obj:`numpy.ndarray`, optional
         Upper bound
 
     Notes

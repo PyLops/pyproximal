@@ -20,7 +20,7 @@ class Sum(ProxOperator):
     ----------
     ops : :obj:`list`
         A list of proximable functions :math:`f_1, \ldots, f_m`.
-    weights : :obj:`np.ndarray` or :obj:`list` or :obj:`None`, optional, default=None
+    weights : :obj:`numpy.ndarray` or :obj:`list` or :obj:`None`, optional, default=None
         Weights :math:`\sum_{i=1}^m w_i = 1, \ 0 < w_i < 1`,
         used when :math:`m > 2`, or :math:`m = 2` and ``use_parallel=True``.
         Defaults to None, which means :math:`w_1 = \cdots = w_m = \frac{1}{m}.`
@@ -142,7 +142,7 @@ class Sum(ProxOperator):
 
         Parameters
         ----------
-        x : :obj:`np.ndarray`
+        x : :obj:`numpy.ndarray`
             Vector
 
         Returns

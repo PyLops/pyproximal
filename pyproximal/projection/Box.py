@@ -8,9 +8,9 @@ class BoxProj:
 
     Parameters
     ----------
-    lower : :obj:`float` or :obj:`np.ndarray`, optional
+    lower : :obj:`float` or :obj:`numpy.ndarray`, optional
         Lower bound
-    upper : :obj:`float` or :obj:`np.ndarray`, optional
+    upper : :obj:`float` or :obj:`numpy.ndarray`, optional
         Upper bound
 
     Notes
@@ -56,13 +56,13 @@ class HyperPlaneBoxProj:
 
     Parameters
     ----------
-    coeffs : :obj:`np.ndarray`
+    coeffs : :obj:`numpy.ndarray`
         Vector of coefficients used in the definition of the hyperplane
     scalar : :obj:`float`
         Scalar used in the definition of the hyperplane
-    lower : :obj:`float` or :obj:`np.ndarray`, optional
+    lower : :obj:`float` or :obj:`numpy.ndarray`, optional
         Lower bound of Box
-    upper : :obj:`float` or :obj:`np.ndarray`, optional
+    upper : :obj:`float` or :obj:`numpy.ndarray`, optional
         Upper bound of Box
     maxiter : :obj:`int`, optional
         Maximum number of iterations used by :func:`scipy.optimize.bisect`
@@ -123,7 +123,7 @@ class HyperPlaneBoxProj:
 
         Parameters
         ----------
-        x : :obj:`np.ndarray`
+        x : :obj:`numpy.ndarray`
             Vector
 
         """

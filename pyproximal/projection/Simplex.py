@@ -45,7 +45,7 @@ class SimplexProj:
 
         Parameters
         ----------
-        x : :obj:`np.ndarray`
+        x : :obj:`numpy.ndarray`
             Vector
         maxiter : :obj:`int`, optional
             Maximum number of iterations used by :func:`scipy.optimize.bisect`

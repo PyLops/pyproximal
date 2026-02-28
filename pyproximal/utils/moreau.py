@@ -25,7 +25,7 @@ def moreau(
     ----------
     prox : :obj:`pyproximal.ProxOperator`
         Proximal operator
-    x : :obj:`np.ndarray`
+    x : :obj:`numpy.ndarray`
         Vector
     tau : :obj:`float`
         Positive scalar weight

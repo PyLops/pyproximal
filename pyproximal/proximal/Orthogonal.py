@@ -25,7 +25,7 @@ class Orthogonal(ProxOperator):
         Orthogonal operator
     partial : :obj:`bool`, optional
         Partial (``True``) of full (``False``) orthogonality
-    b : :obj:`np.ndarray`, optional
+    b : :obj:`numpy.ndarray`, optional
         Vector
     alpha : :obj:`float`, optional
         Positive coefficient for partial orthogonality. It will be ignored if
