@@ -29,7 +29,7 @@ class Nonlinear(ABC, ProxOperator):
 
     Parameters
     ----------
-    x0 : :obj:`np.ndarray`
+    x0 : :obj:`numpy.ndarray`
         Initial vector
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme used to compute the proximal

@@ -60,13 +60,13 @@ class L1(ProxOperator):
 
     Parameters
     ----------
-    sigma : :obj:`float` or :obj:`np.ndarray` or :obj:`func`, optional
+    sigma : :obj:`float` or :obj:`numpy.ndarray` or :obj:`func`, optional
         Multiplicative coefficient of L1 norm. This can be a constant number, a list
         of values (for 2-dimensional inputs, acting on the second dimension) or
         a function that is called passing a counter which keeps track of how many
         times the ``prox`` method has been invoked before and returns a scalar (or a list of)
         ``sigma`` to be used.
-    g : :obj:`np.ndarray`, optional
+    g : :obj:`numpy.ndarray`, optional
         Vector to be subtracted
 
     Notes

@@ -22,13 +22,13 @@ class Quadratic(ProxOperator):
     ----------
     Op : :obj:`pylops.LinearOperator`, optional
         Linear operator (must be square)
-    b : :obj:`np.ndarray`, optional
+    b : :obj:`numpy.ndarray`, optional
         Vector
     c : :obj:`float`, optional
         Scalar
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme used to compute the proximal
-    x0 : :obj:`np.ndarray`, optional
+    x0 : :obj:`numpy.ndarray`, optional
         Initial vector
     warm : :obj:`bool`, optional
         Warm start (``True``) or not (``False``). Uses estimate from previous
@@ -121,12 +121,12 @@ class Quadratic(ProxOperator):
 
         Parameters
         ----------
-        x : :obj:`np.ndarray`
+        x : :obj:`numpy.ndarray`
             Vector
 
         Returns
         -------
-        g : :obj:`np.ndarray`
+        g : :obj:`numpy.ndarray`
             Gradient vector
 
         """

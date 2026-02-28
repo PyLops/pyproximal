@@ -21,6 +21,7 @@ pyproximal.egg-info/
 pyproximal/version.py
 
 # Development #
+.codacy
 .vscode
 .ipynb_checkpoints/
 notebooks

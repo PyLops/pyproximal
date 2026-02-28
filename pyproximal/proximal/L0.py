@@ -58,7 +58,7 @@ class L0(ProxOperator):
 
     Parameters
     ----------
-    sigma : :obj:`float` or :obj:`np.ndarray` or :obj:`func`, optional
+    sigma : :obj:`float` or :obj:`numpy.ndarray` or :obj:`func`, optional
         Multiplicative coefficient of L0 norm. This can be a constant number, a list
         of values (for multidimensional inputs, acting on the second dimension) or
         a function that is called passing a counter which keeps track of how many

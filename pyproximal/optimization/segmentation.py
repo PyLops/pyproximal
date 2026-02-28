@@ -29,7 +29,7 @@ def Segment(
 
     Parameters
     ----------
-    y : :obj:`np.ndarray`
+    y : :obj:`numpy.ndarray`
         Image to segment (must have 2 or more dimensions)
     cl : :obj:`numpy.ndarray`
         Classes
