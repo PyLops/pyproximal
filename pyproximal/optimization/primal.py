@@ -888,7 +888,9 @@ def GeneralizedProximalGradient(
                 )
                 msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
                     iiter + 1,
-                    x[0] if x.ndim == 1 else x[0, 0],
+                    np.real(to_numpy(x[0]))
+                    if x.ndim == 1
+                    else np.real(to_numpy(x[0, 0])),
                     pf,
                     pg,
                     pf + pg,
