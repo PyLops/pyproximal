@@ -82,6 +82,9 @@ build.hooks.vcs.version-file = "pyproximal/version.py"
 [tool.hatch.build.targets.wheel]
 packages = ["pyproximal"]
 
+[tool.hatch.build.targets.sdist]
+exclude = ["/.github", "/testdata"]
+
 [tool.pytest.ini_options]
 addopts = "--verbose"
 python_files = ["pytests/*.py"]
