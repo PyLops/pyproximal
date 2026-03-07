@@ -75,12 +75,12 @@ Documentation = "https://pyproximal.readthedocs.io/en/stable"
 Discussions = "https://github.com/PyLops/pyproximal/discussions"
 Issues = "https://github.com/PyLops/pyproximal/issues"
 
-[tool.hatch.build.targets.wheel]
-packages = ["pyproximal"]
-
 [tool.hatch]
 version.source = "vcs"
 build.hooks.vcs.version-file = "pyproximal/version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pyproximal"]
 
 [tool.pytest.ini_options]
 addopts = "--verbose"
