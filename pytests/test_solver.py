@@ -210,19 +210,19 @@ def test_ADMM_DRS(par):
     # ADMM
     l2 = L2(Op=Rop, b=y, niter=10, warm=True)
     l1 = L1(sigma=5e-1)
-    xadmm = ADMM(l2, l1, x0=np.zeros(m), tau=tau, niter=100, show=True)
+    xadmm, zadmm = ADMM(l2, l1, x0=np.zeros(m), tau=tau, niter=100, show=True)
 
     # DRS with g first
     l2 = L2(Op=Rop, b=y, niter=10, warm=True)
     l1 = L1(sigma=5e-1)
-    xdrs_g = DouglasRachfordSplitting(
+    xdrs_g, ydrs_g = DouglasRachfordSplitting(
         l2, l1, x0=np.zeros(m), tau=tau, niter=100, show=True, gfirst=True
     )
 
     # DRS with f first
     l2 = L2(Op=Rop, b=y, niter=10, warm=True)
     l1 = L1(sigma=5e-1)
-    xdrs_f = DouglasRachfordSplitting(
+    xdrs_f, ydrs_f = DouglasRachfordSplitting(
         l2, l1, x0=np.zeros(m), tau=tau, niter=100, show=True, gfirst=False
     )
 
