@@ -17,11 +17,8 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Get history and tags for SCM versioning to work
-        run: |
-          git fetch --prune --unshallow
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - name: Check out source repository
+        uses: actions/checkout@v4
       - name: Install uv with Python ${{ matrix.python-version }}
         uses: astral-sh/setup-uv@v6
         with:
