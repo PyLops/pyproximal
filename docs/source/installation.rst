@@ -5,7 +5,6 @@
 
 Dependencies
 ************
-
 The mandatory dependencies of PyProximal are limited to:
 
 * Python 3.10 or greater
@@ -54,10 +53,9 @@ First install `pyproximal` with your package manager of choice.
 
             >> uv add "pyproximal[advanced]"
 
-
 From Source
 ===========
-To access the latest source from github:
+To access the latest source from GitHub:
 
 .. tab-set::
 
@@ -89,7 +87,6 @@ Fork the `PyProximal repository <https://github.com/PyLops/pyproximal>`_ and clo
 
 Install dependencies
 ====================
-
 We recommend installing dependencies into a separate environment.
 For that end, we provide a `Makefile` with useful commands for setting up the environment.
 
@@ -178,7 +175,7 @@ At this point, the user must check the changes and then stage them before trying
 
 Final steps
 ===========
-PyLops does not enforce the use of a linter as a pre-commit hook, but we do highly encourage using one before submitting a Pull Request.
+PyProximal does not enforce the use of a linter as a pre-commit hook, but we do highly encourage using one before submitting a Pull Request.
 A properly configured linter (``ruff``) can be run with:
 
 .. tab-set::
