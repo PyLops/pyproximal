@@ -37,8 +37,8 @@ First install `pyproximal` with your package manager of choice.
 
             >> conda install --channel conda-forge pyproximal
 
-        Most of the dependencies (all required and some of the optional) are
-        automatically installed for you.
+        which installs also the *required* dependencies, if not already present
+        in your environment.
 
    .. tab-item:: :iconify:`material-icon-theme:uv` uv
 
@@ -46,8 +46,8 @@ First install `pyproximal` with your package manager of choice.
 
             >> uv add pyproximal
         
-        Only the *required* dependencies are installed. To install
-        some of the optional dependencies, run:
+        which installs also the *required* dependencies, if not already present
+        in your environment. To also install the optional dependencies, run:
         
         .. code-block:: bash
 
@@ -79,7 +79,8 @@ Step-by-step installation for developers
 
 Fork PyProximal
 ===============
-Fork the `PyProximal repository <https://github.com/PyLops/pyproximal>`_ and clone it by executing the following in your terminal:
+Fork the `PyProximal repository <https://github.com/PyLops/pyproximal>`_ and clone it
+by executing the following in your terminal:
 
 .. code-block:: bash
 
@@ -175,8 +176,8 @@ At this point, the user must check the changes and then stage them before trying
 
 Final steps
 ===========
-PyProximal does not enforce the use of a linter as a pre-commit hook, but we do highly encourage using one before submitting a Pull Request.
-A properly configured linter (``ruff``) can be run with:
+PyProximal does enforce the use of a linter (``ruff``), which is run both as a pre-commit hook and as a GitHub Action.
+The linter can also be run locally with:
 
 .. tab-set::
 

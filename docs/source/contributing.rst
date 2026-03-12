@@ -113,7 +113,7 @@ will also be run as part of our CI.
 
 .. tab-set::
 
-   .. tab-item::  conda
+   .. tab-item::  :iconify:`devicon:anaconda` conda
 
         .. code-block:: bash
 
