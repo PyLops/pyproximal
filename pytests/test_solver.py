@@ -15,8 +15,9 @@ from pyproximal.optimization.primal import (
     GeneralizedProximalGradient,
     LinearizedADMM,
     ProximalGradient,
+    ProximalPoint,
 )
-from pyproximal.proximal import L1, L2
+from pyproximal.proximal import L1, L2, Quadratic
 
 par1 = {"n": 8, "m": 10, "dtype": "float32"}  # float64
 par2 = {"n": 8, "m": 10, "dtype": "float64"}  # float32
@@ -138,6 +139,29 @@ def test_GPG_weights(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
+def test_ProximalPoint(par):
+    """Check solution of ProximalPoint for quadratic function equals the solution of the
+    associated system of linear equations
+    """
+    np.random.seed(10)
+    m = par["m"]
+
+    # Random mixing matrix
+    A = np.random.normal(0.0, 1.0, (m, m))
+    A = A.T @ A
+
+    # Model and data
+    x = np.linspace(-5.0, 5.0, par["m"])
+    y = A @ x
+
+    # Proximal point algorithm with quadatic function
+    quad = Quadratic(Op=MatrixMult(A), b=-y, niter=2)
+    xpp = ProximalPoint(quad, x0=np.zeros_like(x), tau=0.1, niter=1000, tol=0)
+
+    assert_array_almost_equal(xpp, x, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
 def test_PG_GPG(par):
     """Check equivalency of ProximalGradient and GeneralizedProximalGradient when using
     a single regularization term
@@ -210,20 +234,20 @@ def test_ADMM_DRS(par):
     # ADMM
     l2 = L2(Op=Rop, b=y, niter=10, warm=True)
     l1 = L1(sigma=5e-1)
-    xadmm, zadmm = ADMM(l2, l1, x0=np.zeros(m), tau=tau, niter=100, show=True)
+    xadmm, zadmm = ADMM(l2, l1, x0=np.zeros(m), tau=tau, niter=100)
 
     # DRS with g first
     l2 = L2(Op=Rop, b=y, niter=10, warm=True)
     l1 = L1(sigma=5e-1)
     xdrs_g, ydrs_g = DouglasRachfordSplitting(
-        l2, l1, x0=np.zeros(m), tau=tau, niter=100, show=True, gfirst=True
+        l2, l1, x0=np.zeros(m), tau=tau, niter=100, gfirst=True
     )
 
     # DRS with f first
     l2 = L2(Op=Rop, b=y, niter=10, warm=True)
     l1 = L1(sigma=5e-1)
     xdrs_f, ydrs_f = DouglasRachfordSplitting(
-        l2, l1, x0=np.zeros(m), tau=tau, niter=100, show=True, gfirst=False
+        l2, l1, x0=np.zeros(m), tau=tau, niter=100, gfirst=False
     )
 
     assert_array_almost_equal(xadmm, xdrs_g, decimal=2)
@@ -262,13 +286,11 @@ def test_PPXA_with_ADMM(par: dict[str, Any]) -> None:
         x0=np.zeros(m),
         tau=tau,
         niter=2000,  # niter=1500 makes this test fail for seeds 0 to 499
-        show=True,
     )
     xppxa = PPXA(
         [l2, l1],
         x0=np.zeros(m),
         tau=np.random.uniform(3 * tau, 5 * tau),
-        show=True,
     )
 
     assert_array_almost_equal(xppxa, xadmm, decimal=2)
@@ -312,13 +334,11 @@ def test_PPXA_with_GPG(par: dict[str, Any]) -> None:
         x0=np.zeros(m),
         tau=tau,
         niter=200,  # niter=150 makes this test fail for seeds 0 to 499
-        show=True,
     )
     xppxa = PPXA(
         [l2_1, l2_2, l1_1, l1_2],
         x0=np.zeros(m),
         tau=np.random.uniform(3 * tau, 5 * tau),
-        show=True,
     )
 
     assert_array_almost_equal(xppxa, xgpg, decimal=2)
@@ -356,13 +376,11 @@ def test_ConsensusADMM_with_ADMM(par: dict[str, Any]) -> None:
         x0=np.zeros(m),
         tau=tau,
         niter=2000,  # niter=1500 makes this test fail for seeds 0 to 499
-        show=True,
     )
     xcadmm = ConsensusADMM(
         [l2, l1],
         x0=np.random.normal(0.0, 1.0, m),  # x0=np.zeros(m),
         tau=np.random.uniform(3 * tau, 5 * tau),
-        show=True,
     )
 
     assert_array_almost_equal(xcadmm, xadmm, decimal=2)
@@ -416,7 +434,6 @@ def test_ConsensusADMM_with_ADMM_for_Lasso(par: dict[str, Any]) -> None:
         x0=np.random.normal(0.0, 1.0, m),  # x0=np.zeros(m),
         tau=np.random.uniform(3 * tau, 5 * tau),
         niter=20000,  # niter=15000 makes this test fail for seeds 0 to 499
-        show=True,
     )
 
     # 1/2 || [R1; R2; R3] ||_2^2 + ||x||_1
@@ -426,7 +443,6 @@ def test_ConsensusADMM_with_ADMM_for_Lasso(par: dict[str, Any]) -> None:
         x0=np.zeros(m),
         tau=tau,
         niter=15000,  # niter=10000 makes this test fail for seeds 0 to 499
-        show=True,
     )
 
     assert_array_almost_equal(xcadmm, xadmm, decimal=2)
@@ -471,13 +487,11 @@ def test_ConsensusADMM_with_GPG(par: dict[str, Any]) -> None:
         x0=np.zeros(m),
         tau=tau,
         niter=200,  # niter=150 makes this test fail for seeds 0 to 499
-        show=True,
     )
     xppxa = ConsensusADMM(
         [l2_1, l2_2, l1_1, l1_2],
         x0=np.zeros(m),
         tau=np.random.uniform(3 * tau, 5 * tau),
-        show=True,
     )
 
     assert_array_almost_equal(xppxa, xgpg, decimal=2)
