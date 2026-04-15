@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 _units = {"B": 1, "KB": 1024, "MB": 1024**2, "GB": 1024**3}
 
 
-class Solver(pSolver, metaclass=ABCMeta):
+class Solver(pSolver, metaclass=ABCMeta):  # type: ignore[misc]
     r"""Solver
 
     This is a template class which a user must subclass when implementing a new solver.
@@ -114,9 +114,9 @@ class Solver(pSolver, metaclass=ABCMeta):
         self,
         proxf: ProxOperator | list[ProxOperator],
         proxg: ProxOperator | None = None,
-        *args,
+        *args: Any,
         show: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> Any:
         """Solve
 
