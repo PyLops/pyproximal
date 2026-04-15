@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 from pylops.basicoperators import Identity, MatrixMult
+from pylops.optimization.sparsity import fista, ista
 
 from pyproximal.optimization.primal import (
     ADMM,
@@ -21,6 +22,14 @@ from pyproximal.proximal import L1, L2, Quadratic
 
 par1 = {"n": 8, "m": 10, "dtype": "float32"}  # float64
 par2 = {"n": 8, "m": 10, "dtype": "float64"}  # float32
+
+
+def test_ProximalGradient_unknown_acceleration():
+    """Check that an error is raised if an unknown acceleration
+    method is provided to ProximalGradient solver
+    """
+    with pytest.raises(NotImplementedError, match="Acceleration should "):
+        _ = ProximalGradient(proxf=L2(), proxg=L1(), x0=None, acceleration="unknown")
 
 
 def test_HQS_noinitial():
@@ -159,6 +168,62 @@ def test_ProximalPoint(par):
     xpp = ProximalPoint(quad, x0=np.zeros_like(x), tau=0.1, niter=1000, tol=0)
 
     assert_array_almost_equal(xpp, x, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_PG_ISTA(par):
+    """Check equivalency of ProximalGradient and ISTA/FISTA (PyLops)"""
+    np.random.seed(0)
+    n, m = par["n"], par["m"]
+
+    # Define sparse model
+    x = np.zeros(m)
+    x[2], x[4] = 1, 0.5
+
+    # Random mixing matrix
+    R = np.random.normal(0.0, 1.0, (n, m))
+    Rop = MatrixMult(R)
+
+    y = Rop @ x
+
+    # Step size
+    L = (Rop.H * Rop).eigs(1).real
+    tau = 0.99 / L
+
+    for solver, acceleration in zip(
+        [ista, fista],
+        [None, "fista"],
+        strict=True,
+    ):
+        # ISTA/FISTA
+        eps = 5e-1
+        xista = solver(
+            Rop,
+            y,
+            niter=100,
+            alpha=tau,
+            eps=eps,
+            tol=1e-8,
+            monitorres=False,
+            show=False,
+        )[0]
+
+        # PG
+        l2 = L2(Op=Rop, b=y)
+        l1 = L1()
+        epsg = eps * 0.5  # to compensate for 0.5 in ISTA: thresh = eps * alpha * 0.5
+        xpg = ProximalGradient(
+            l2,
+            l1,
+            x0=np.zeros(m),
+            tau=tau,
+            epsg=epsg,
+            acceleration=acceleration,
+            niter=100,
+            tol=1e-8,
+        )
+
+        assert_array_almost_equal(xpg, xista, decimal=2)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
