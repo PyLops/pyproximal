@@ -10,11 +10,12 @@ import numpy as np
 import pylops
 from pylops.optimization.callback import Callbacks
 from pylops.utils.backend import get_array_module, to_numpy
-from pylops.utils.typing import NDArray, Tmemunit
+from pylops.utils.typing import NDArray
 
 from pyproximal.optimization.basesolver import Solver
 from pyproximal.ProxOperator import ProxOperator
 from pyproximal.utils.bilinear import BilinearOperator
+from pyproximal.utils.typing import Tmemunit
 
 if TYPE_CHECKING:
     from pylops.linearoperator import LinearOperator
