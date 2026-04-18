@@ -1,4 +1,5 @@
-from typing import Any, Callable, List
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 from pylops.utils.typing import NDArray
@@ -38,7 +39,7 @@ class GenericIntersectionProx(ProxOperator):
 
     def __init__(
         self,
-        projections: List[Callable[[NDArray], NDArray]],
+        projections: list[Callable[[NDArray], NDArray]],
         niter: int = 1000,
         tol: float = 1e-6,
         use_parallel: bool = False,

@@ -101,7 +101,7 @@ class Rosebrock(pyproximal.proximal.Nonlinear):
     def optimize(self):
         self.solhist = []
         sol = self.x0.copy()
-        for iiter in range(self.niter):
+        for _ in range(self.niter):
             x1, x2 = sol
             dfx1, dfx2 = self._gradprox(sol, self.tau)
             x1 -= self.alpha * dfx1
@@ -123,7 +123,7 @@ alpha = 0.02
 steps = [
     (0, 0),
 ]
-for iiter in range(niters):
+for _ in range(niters):
     x, y = steps[-1]
     dfx, dfy = rosenbrock_grad(x, y)
     x -= alpha * dfx

@@ -1,0 +1,24 @@
+# This workflow runs MyPy on the PR
+name: PyProximal-mypy
+
+on: [push, pull_request]
+
+jobs:
+  mypy:
+    runs-on: ubuntu-latest
+    name: MyPy
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install uv with Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+          enable-cache: true
+      - name: Install dependencies and pyproximal
+        run: uv sync --locked --all-extras --all-groups
+      - name: Run Mypy
+        run: |
+          uv run mypy pyproximal/

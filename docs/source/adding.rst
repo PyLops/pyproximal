@@ -2,9 +2,9 @@
 
 .. _numpydoc-docstring: https://numpydoc.readthedocs.io/en/latest/
 
+|:paintbrush:| Implementing new operators
+#########################################
 
-Implementing new operators
-==========================
 Users are welcome to create new operators and add them to the PyProximal library.
 
 In this tutorial, we will go through the key steps in the definition of an operator, using the

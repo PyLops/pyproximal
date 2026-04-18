@@ -1,7 +1,8 @@
 import time
 import warnings
+from collections.abc import Callable
 from math import sqrt
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Optional
 
 import numpy as np
 from pylops.optimization.leastsquares import regularized_inversion
@@ -24,7 +25,7 @@ def _backtracking(
     epsg: float,
     beta: float = 0.5,
     niterback: int = 10,
-) -> Tuple[NDArray, float]:
+) -> tuple[NDArray, float]:
     r"""Backtracking
 
     Line-search algorithm for finding step sizes in proximal algorithms when
@@ -54,9 +55,9 @@ def _x0z0_init(
     x0: NDArray | None,
     z0: NDArray | None,
     Op: Optional["LinearOperator"] = None,
-    z0name: Optional[str] = "z0",
-    Opname: Optional[str] = "Op",
-) -> Tuple[NDArray, NDArray]:
+    z0name: str | None = "z0",
+    Opname: str | None = "Op",
+) -> tuple[NDArray, NDArray]:
     r"""Initialize x0 and z0
 
     Initialize x0 and z0 using the following convention.
@@ -85,9 +86,8 @@ def _x0z0_init(
 
     """
     if x0 is None and z0 is None:
-        raise ValueError(
-            f"Both x0 or {z0name} are None, provide either of them or both"
-        )
+        msg = f"Both x0 or {z0name} are None, provide either of them or both"
+        raise ValueError(msg)
 
     if Op is None:
         if x0 is None:
@@ -96,7 +96,8 @@ def _x0z0_init(
             z0 = x0.copy()
     else:
         if x0 is None:
-            raise ValueError(f"x0 must be provided when {Opname} is also provided")
+            msg = f"x0 must be provided when {Opname} is also provided"
+            raise ValueError(msg)
         elif z0 is None:
             z0 = Op @ x0
     return x0, z0
@@ -107,8 +108,8 @@ def ProximalPoint(
     x0: NDArray,
     tau: float,
     niter: int = 10,
-    tol: Optional[float] = None,
-    callback: Optional[Callable[[NDArray], None]] = None,
+    tol: float | None = None,
+    callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
 ) -> NDArray:
     r"""Proximal point algorithm
@@ -209,16 +210,16 @@ def ProximalGradient(
     proxf: ProxOperator,
     proxg: ProxOperator,
     x0: NDArray,
-    epsg: Union[float, NDArray] = 1.0,
-    tau: Optional[float] = None,
+    epsg: float | NDArray = 1.0,
+    tau: float | None = None,
     backtracking: bool = False,
     beta: float = 0.5,
     eta: float = 1.0,
     niter: int = 10,
     niterback: int = 100,
-    acceleration: Optional[str] = None,
-    tol: Optional[float] = None,
-    callback: Optional[Callable[[NDArray], None]] = None,
+    acceleration: str | None = None,
+    tol: float | None = None,
+    callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
 ) -> NDArray:
     r"""Proximal gradient (optionally accelerated)
@@ -329,9 +330,8 @@ def ProximalGradient(
         epsg_print = "Multi"
 
     if acceleration not in [None, "None", "vandenberghe", "fista"]:
-        raise NotImplementedError(
-            "Acceleration should be None, vandenberghe " "or fista"
-        )
+        msg = "Acceleration should be None, vandenberghe or fista"
+        raise NotImplementedError(msg)
     if show:
         tstart = time.time()
         print(
@@ -453,14 +453,14 @@ def AcceleratedProximalGradient(
     proxf: ProxOperator,
     proxg: ProxOperator,
     x0: NDArray,
-    tau: Optional[float] = None,
+    tau: float | None = None,
     beta: float = 0.5,
     epsg: float = 1.0,
     niter: int = 10,
     niterback: int = 100,
     acceleration: str = "vandenberghe",
-    tol: Optional[float] = None,
-    callback: Optional[Callable[[NDArray], None]] = None,
+    tol: float | None = None,
+    callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
 ) -> NDArray:
     r"""Accelerated Proximal gradient
@@ -476,6 +476,7 @@ def AcceleratedProximalGradient(
         "appropriate acceleration parameter as this behaviour will become default in "
         "version v1.0.0 and AcceleratedProximalGradient will be removed.",
         FutureWarning,
+        stacklevel=2,
     )
     return ProximalGradient(
         proxf,
@@ -497,14 +498,14 @@ def AndersonProximalGradient(
     proxf: ProxOperator,
     proxg: ProxOperator,
     x0: NDArray,
-    epsg: Union[float, NDArray] = 1.0,
-    tau: Union[float, NDArray] = 1.0,
+    epsg: float | NDArray = 1.0,
+    tau: float | NDArray = 1.0,
     niter: int = 10,
     nhistory: int = 10,
     epsr: float = 1e-10,
     safeguard: bool = False,
-    tol: Optional[float] = None,
-    callback: Optional[Callable[[NDArray], None]] = None,
+    tol: float | None = None,
+    callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
 ) -> NDArray:
     r"""Proximal gradient with Anderson acceleration
@@ -623,18 +624,20 @@ def AndersonProximalGradient(
     x = proxg.prox(y, epsg[0] * tau)
     g = y.copy()
     r = g - x0
-    R, G = [
-        g,
-    ], [
-        r,
-    ]
+    R, G = (
+        [
+            g,
+        ],
+        [
+            r,
+        ],
+    )
     pf = proxf(x)
     pfg = np.inf
     tolbreak = False
 
     # iterate
     for iiter in range(niter):
-
         # update fix point
         g = x - tau * proxf.grad(x)
         r = g - y
@@ -720,16 +723,16 @@ def AndersonProximalGradient(
 
 
 def GeneralizedProximalGradient(
-    proxfs: List[ProxOperator],
-    proxgs: List[ProxOperator],
+    proxfs: list[ProxOperator],
+    proxgs: list[ProxOperator],
     x0: NDArray,
-    tau: Optional[float],
-    epsg: Union[float, NDArray] = 1.0,
-    weights: Optional[NDArray] = None,
+    tau: float | None,
+    epsg: float | NDArray = 1.0,
+    weights: NDArray | None = None,
     eta: float = 1.0,
     niter: int = 10,
-    acceleration: Optional[str] = None,
-    callback: Optional[Callable[[NDArray], None]] = None,
+    acceleration: str | None = None,
+    callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
 ) -> NDArray:
     r"""Generalized Proximal gradient
@@ -783,7 +786,7 @@ def GeneralizedProximalGradient(
     Notes
     -----
     The Generalized Proximal gradient algorithm can be expressed by the
-    following recursion:
+    following recursion [1]_:
 
     .. math::
         \text{for } j=1,\cdots,n, \\
@@ -795,14 +798,16 @@ def GeneralizedProximalGradient(
     where :math:`\sum_{j=1}^n w_j=1`. In the current implementation, :math:`w_j=1/n` when
     not provided.
 
+    .. [1] Raguet, H., Fadili, J. and Peyré, G. "Generalized Forward-Backward Splitting",
+       arXiv, 2012.
+
     """
     # check if weights sum to 1
     if weights is None:
         weights = np.ones(len(proxgs)) / len(proxgs)
     if len(weights) != len(proxgs) or np.sum(weights) != 1.0:
-        raise ValueError(
-            f"omega={weights} must be an array of size {len(proxgs)} " f"summing to 1"
-        )
+        msg = f"omega={weights} must be an array of size {len(proxgs)} summing to 1"
+        raise ValueError(msg)
 
     # check if epgs is a vector
     epsg = np.asarray(epsg, dtype=float)
@@ -813,9 +818,8 @@ def GeneralizedProximalGradient(
         epsg_print = "Multi"
 
     if acceleration not in [None, "None", "vandenberghe", "fista"]:
-        raise NotImplementedError(
-            "Acceleration should be None, vandenberghe " "or fista"
-        )
+        msg = "Acceleration should be None, vandenberghe or fista"
+        raise NotImplementedError(msg)
     if show:
         tstart = time.time()
         print(
@@ -850,7 +854,7 @@ def GeneralizedProximalGradient(
 
         # gradient
         grad = np.zeros_like(x)
-        for i, proxf in enumerate(proxfs):
+        for _, proxf in enumerate(proxfs):
             grad += proxf.grad(x)
 
         # proximal step
@@ -879,10 +883,14 @@ def GeneralizedProximalGradient(
         if show:
             if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
                 pf: float = np.sum([proxf(x) for proxf in proxfs])
-                pg: float = np.sum([eg * proxg(x) for proxg, eg in zip(proxgs, epsg)])
+                pg: float = np.sum(
+                    [eg * proxg(x) for proxg, eg in zip(proxgs, epsg, strict=True)]
+                )
                 msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
                     iiter + 1,
-                    x[0] if x.ndim == 1 else x[0, 0],
+                    np.real(to_numpy(x[0]))
+                    if x.ndim == 1
+                    else np.real(to_numpy(x[0, 0])),
                     pf,
                     pg,
                     pf + pg,
@@ -898,14 +906,14 @@ def HQS(
     proxf: ProxOperator,
     proxg: ProxOperator,
     x0: NDArray,
-    tau: Union[float, NDArray],
+    tau: float | NDArray,
     niter: int = 10,
-    z0: Optional[NDArray] = None,
+    z0: NDArray | None = None,
     gfirst: bool = True,
-    callback: Optional[Callable[..., None]] = None,
+    callback: Callable[..., None] | None = None,
     callbackz: bool = False,
     show: bool = False,
-) -> Tuple[NDArray, NDArray]:
+) -> tuple[NDArray, NDArray]:
     r"""Half Quadratic splitting
 
     Solves the following minimization problem using Half Quadratic splitting
@@ -1051,12 +1059,12 @@ def ADMM(
     x0: NDArray,
     tau: float,
     niter: int = 10,
-    z0: Optional[NDArray] = None,
+    z0: NDArray | None = None,
     gfirst: bool = False,
-    callback: Optional[Callable[..., None]] = None,
+    callback: Callable[..., None] | None = None,
     callbackz: bool = False,
     show: bool = False,
-) -> Tuple[NDArray, NDArray]:
+) -> tuple[NDArray, NDArray]:
     r"""Alternating Direction Method of Multipliers
 
     Solves the following minimization problem using Alternating Direction
@@ -1210,12 +1218,12 @@ def ADMML2(
     x0: NDArray,
     tau: float,
     niter: int = 10,
-    z0: Optional[NDArray] = None,
+    z0: NDArray | None = None,
     gfirst: bool = False,
-    callback: Optional[Callable[[NDArray], None]] = None,
+    callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
-    **kwargs_solver: Dict[str, Any],
-) -> Tuple[NDArray, NDArray]:
+    **kwargs_solver: dict[str, Any],
+) -> tuple[NDArray, NDArray]:
     r"""Alternating Direction Method of Multipliers for L2 misfit term
 
     Solves the following minimization problem using Alternating Direction
@@ -1378,10 +1386,10 @@ def LinearizedADMM(
     tau: float,
     mu: float,
     niter: int = 10,
-    z0: Optional[NDArray] = None,
-    callback: Optional[Callable[[NDArray], None]] = None,
+    z0: NDArray | None = None,
+    callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
-) -> Tuple[NDArray, NDArray]:
+) -> tuple[NDArray, NDArray]:
     r"""Linearized Alternating Direction Method of Multipliers
 
     Solves the following minimization problem using Linearized Alternating
@@ -1510,14 +1518,14 @@ def TwIST(
     A: "LinearOperator",
     b: NDArray,
     x0: NDArray,
-    alpha: Optional[float] = None,
-    beta: Optional[float] = None,
-    eigs: Optional[Tuple[float, float]] = None,
+    alpha: float | None = None,
+    beta: float | None = None,
+    eigs: tuple[float, float] | None = None,
     niter: int = 10,
-    callback: Optional[Callable[[NDArray], None]] = None,
+    callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
     returncost: bool = False,
-) -> Union[NDArray, Tuple[NDArray, NDArray]]:
+) -> NDArray | tuple[NDArray, NDArray]:
     r"""Two-step Iterative Shrinkage/Threshold
 
     Solves the following minimization problem using Two-step Iterative
@@ -1682,10 +1690,10 @@ def DouglasRachfordSplitting(
     eta: float = 1.0,
     niter: int = 10,
     gfirst: bool = True,
-    callback: Optional[Callable[..., None]] = None,
+    callback: Callable[..., None] | None = None,
     callbacky: bool = False,
     show: bool = False,
-) -> Tuple[NDArray, NDArray]:
+) -> tuple[NDArray, NDArray]:
     r"""Douglas-Rachford Splitting
 
     Solves the following minimization problem using Douglas-Rachford Splitting
@@ -1734,23 +1742,32 @@ def DouglasRachfordSplitting(
     Notes
     -----
     The Douglas-Rachford Splitting algorithm can be expressed by the following
-    recursion [1]_, [2]_:
+    recursion [1]_, [2]_, [3]_, [4]_:
 
     .. math::
 
-        \mathbf{y}^{k} &= \prox_{\tau g}(\mathbf{x}^k) \\
-        \mathbf{x}^{k+1} &= \mathbf{x}^{k} +
-        \eta (\prox_{\tau f}(2 \mathbf{y}^{k} - \mathbf{x}^{k})
-        - \mathbf{y}^{k})
+        \mathbf{x}^{k} &= \prox_{\tau g}(\mathbf{y}^k) \\
+        \mathbf{y}^{k+1} &= \mathbf{y}^{k} +
+        \eta (\prox_{\tau f}(2 \mathbf{x}^{k} - \mathbf{y}^{k})
+        - \mathbf{x}^{k})
 
     .. [1] Patrick L. Combettes and Jean-Christophe Pesquet. 2011. Proximal
         Splitting Methods in Signal Processing. In Fixed-Point Algorithms for
-        Inverse Problems in Science and Engineering, Springer, 185-212.
+        Inverse Problems in Science and Engineering, Springer, pp. 185-212.
+        Algorithm 10.15.
         https://doi.org/10.1007/978-1-4419-9569-8_10
     .. [2] Scott B. Lindstrom and Brailey Sims. 2021. Survey: Sixty Years of
         Douglas-Rachford. Journal of the Australian Mathematical Society, 110,
-        3, 333-370. https://doi.org/10.1017/S1446788719000570
+        3, 333-370. Eq.(15). https://doi.org/10.1017/S1446788719000570
         https://arxiv.org/abs/1809.07181
+    .. [3] Ryu, E.K., Yin, W., 2022. Large-Scale Convex Optimization: Algorithms
+        & Analyses via Monotone Operators. Cambridge University Press,
+        Cambridge. Eq.(2.18). https://doi.org/10.1017/9781009160865
+        https://large-scale-book.mathopt.com/
+    .. [4] Combettes, P.L., Pesquet, J.-C., 2008. A proximal decomposition
+        method for solving convex variational inverse problems. Inverse Problems
+        24, 065014. Proposition 3.2. https://doi.org/10.1088/0266-5611/24/6/065014
+        https://arxiv.org/abs/0807.2617
 
     """
     if show:
@@ -1765,15 +1782,14 @@ def DouglasRachfordSplitting(
         head = "   Itn       x[0]          f           g       J = f + g"
         print(head)
 
-    x = x0.copy()
+    y = x0.copy()
     for iiter in range(niter):
-
         if gfirst:
-            y = proxg.prox(x, tau)
-            x = x + eta * (proxf.prox(2 * y - x, tau) - y)
+            x = proxg.prox(y, tau)
+            y = y + eta * (proxf.prox(2 * x - y, tau) - x)
         else:
-            y = proxf.prox(x, tau)
-            x = x + eta * (proxg.prox(2 * y - x, tau) - y)
+            x = proxf.prox(y, tau)
+            y = y + eta * (proxg.prox(2 * x - y, tau) - x)
 
         # run callback
         if callback is not None:
@@ -1793,3 +1809,299 @@ def DouglasRachfordSplitting(
         print(f"\nTotal time (s) = {time.time() - tstart:.2f}")
         print("---------------------------------------------------------\n")
     return x, y
+
+
+def PPXA(  # pylint: disable=invalid-name
+    proxfs: list[ProxOperator],
+    x0: NDArray | list[NDArray],
+    tau: float,
+    eta: float = 1.0,
+    weights: NDArray | list[float] | None = None,
+    niter: int = 1000,
+    tol: float | None = 1e-7,
+    callback: Callable[..., None] | None = None,
+    show: bool = False,
+) -> NDArray:
+    r"""Parallel Proximal Algorithm (PPXA)
+
+    Solves the following minimization problem using
+    Parallel Proximal Algorithm (PPXA):
+
+    .. math::
+
+        \mathbf{x} = \argmin_\mathbf{x} \sum_{i=1}^m f_i(\mathbf{x})
+
+    where :math:`f_i(\mathbf{x})` are any convex
+    functions that has known proximal operators.
+
+    Parameters
+    ----------
+    proxfs : :obj:`list`
+        A list of proximable functions :math:`f_1, \ldots, f_m`.
+    x0 : :obj:`numpy.ndarray` or :obj:`list`
+        Initial vector :math:`\mathbf{x}` for all :math:`f_i` if 1-dimensional array
+        is provided, or initial vectors :math:`\mathbf{x}_{i}` for each :math:`f_i`
+        for :math:`i=1,\ldots,m` if a :obj:`list` of 1-dimensional arrays or a 2-dimensional
+        array of size ``(m, d)`` is provided, where ``d`` is the dimension of :math:`\mathbf{x}_{i}`.
+    tau : :obj:`float`
+        Positive scalar weight
+    eta : :obj:`float`, optional
+        Relaxation parameter (must be between 0 and 2, 0 excluded).
+    weights : :obj:`numpy.ndarray` or :obj:`list` or :obj:`None`, optional
+        Weights :math:`\sum_{i=1}^m w_i = 1, \ 0 < w_i < 1`,
+        Defaults to None, which means :math:`w_1 = \cdots = w_m = \frac{1}{m}.`
+    niter : :obj:`int`, optional
+        Number of iterations of iterative scheme.
+    tol : :obj:`float`, optional
+        Tolerance on change of the solution (used as stopping criterion).
+        If ``tol=0``, run until ``niter`` is reached.
+    callback : :obj:`callable`, optional
+        Function with signature (``callback(x)``) to call after each iteration
+        where ``x`` is the current model vector
+    show : :obj:`bool`, optional
+        Display iterations log
+
+    Returns
+    -------
+    x : :obj:`numpy.ndarray`
+        Inverted model
+
+    See Also
+    --------
+    ConsensusADMM: Consensus ADMM
+
+    Notes
+    -----
+    The Parallel Proximal Algorithm (PPXA) can be expressed by the following
+    recursion [1]_, [2]_, [3]_, [4]_:
+
+    * :math:`\mathbf{y}_{i}^{0} = \mathbf{x}` or :math:`\mathbf{y}_{i}^{0} = \mathbf{x}_{i}` for :math:`i=1,\ldots,m`
+    * :math:`\mathbf{x}^{0} = \sum_{i=1}^m w_i \mathbf{y}_{i}^{0}`
+    * for :math:`k = 1, \ldots`
+
+      * for :math:`i = 1, \ldots, m`
+
+        * :math:`\mathbf{p}_{i}^{k} = \prox_{\frac{\tau}{w_i} f_i} (\mathbf{y}_{i}^{k})`
+
+      * :math:`\mathbf{p}^{k} = \sum_{i=1}^{m} w_i \mathbf{p}_{i}^{k}`
+      * for :math:`i = 1, \ldots, m`
+
+        * :math:`\mathbf{y}_{i}^{k+1} = \mathbf{y}_{i}^{k} + \eta (2 \mathbf{p}^{k} - \mathbf{x}^{k} - \mathbf{p}_i^{k})`
+
+      * :math:`\mathbf{x}^{k+1} = \mathbf{x}^{k} + \eta (\mathbf{p}^{k} - \mathbf{x}^{k})`
+
+    where :math:`0 < \eta < 2` and
+    :math:`\sum_{i=1}^m w_i = 1, \ 0 < w_i < 1`.
+    In the current implementation, :math:`w_i = 1 / m` when not provided.
+
+    References
+    ----------
+    .. [1] Combettes, P.L., Pesquet, J.-C., 2008. A proximal decomposition
+        method for solving convex variational inverse problems. Inverse Problems
+        24, 065014. Algorithm 3.1. https://doi.org/10.1088/0266-5611/24/6/065014
+        https://arxiv.org/abs/0807.2617
+    .. [2] Combettes, P.L., Pesquet, J.-C., 2011. Proximal Splitting Methods in
+        Signal Processing, in Fixed-Point Algorithms for Inverse Problems in
+        Science and Engineering, Springer, pp. 185-212. Algorithm 10.27.
+        https://doi.org/10.1007/978-1-4419-9569-8_10
+    .. [3] Bauschke, H.H., Combettes, P.L., 2011. Convex Analysis and Monotone
+        Operator Theory in Hilbert Spaces, 1st ed, CMS Books in Mathematics.
+        Springer, New York, NY. Proposition 27.8.
+        https://doi.org/10.1007/978-1-4419-9467-7
+    .. [4] Ryu, E.K., Yin, W., 2022. Large-Scale Convex Optimization: Algorithms
+        & Analyses via Monotone Operators. Cambridge University Press,
+        Cambridge. Exercise 2.38 https://doi.org/10.1017/9781009160865
+        https://large-scale-book.mathopt.com/
+
+    """
+    if show:
+        tstart = time.time()
+        print(
+            "Parallel Proximal Algorithm\n"
+            "---------------------------------------------------------"
+        )
+        for i, proxf in enumerate(proxfs):
+            print(f"Proximal operator (f{i}): {type(proxf)}")
+        print(f"tau = {tau:10e}\tniter = {niter:d}\n")
+        head = "   Itn       x[0]          J=sum_i f_i"
+        print(head)
+
+    ncp = get_array_module(x0)
+
+    # initialize model
+    m = len(proxfs)
+    if weights is None:
+        w = ncp.full(m, 1.0 / m)
+    else:
+        w = ncp.asarray(weights)
+
+    if isinstance(x0, list) or x0.ndim == 2:
+        y = ncp.asarray(x0)  # yi_0 = xi_0, for i = 1, ..., m
+    else:
+        y = ncp.full((m, x0.size), x0)  # y1_0 = y2_0 = ... = ym_0 = x0
+
+    x = ncp.mean(y, axis=0)
+    x_old = x.copy()
+
+    # iterate
+    for iiter in range(niter):
+        p = ncp.stack([proxfs[i].prox(y[i], tau / w[i]) for i in range(m)])
+        pn = ncp.sum(w[:, None] * p, axis=0)
+        y = y + eta * (2 * pn - x - p)
+        x = x + eta * (pn - x)
+
+        # run callback
+        if callback is not None:
+            callback(x)
+
+        # show iteration logger
+        if show:
+            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
+                pf = ncp.sum([proxfs[i](x) for i in range(m)])
+                print(f"{iiter + 1:6d}  {ncp.real(to_numpy(x[0])):12.5e}  {pf:10.3e}")
+
+        # break if tolerance condition is met
+        if ncp.abs(x - x_old).max() < tol:
+            break
+
+        x_old = x
+
+    if show:
+        print(f"\nTotal time (s) = {time.time() - tstart:.2f}")
+        print("---------------------------------------------------------\n")
+
+    return x
+
+
+def ConsensusADMM(  # pylint: disable=invalid-name
+    proxfs: list[ProxOperator],
+    x0: NDArray,
+    tau: float,
+    niter: int = 1000,
+    tol: float | None = 1e-7,
+    callback: Callable[..., None] | None = None,
+    show: bool = False,
+) -> NDArray:
+    r"""Consensus ADMM
+
+    Solves the following global consensus problem using ADMM:
+
+    .. math::
+
+        \argmin_{\mathbf{x_1}, \mathbf{x_2}, \ldots, \mathbf{x_m}}
+        \sum_{i=1}^m f_i(\mathbf{x}_i) \quad \text{s.t.}
+        \quad \mathbf{x_1} = \mathbf{x_2} = \cdots = \mathbf{x_m}
+
+    where :math:`f_i(\mathbf{x})` are any convex
+    functions that has known proximal operators.
+
+    Parameters
+    ----------
+    proxfs : :obj:`list`
+        A list of proximable functions :math:`f_1, \ldots, f_m`.
+    x0 : :obj:`numpy.ndarray`
+        Initial vector
+    tau : :obj:`float`
+        Positive scalar weight
+    niter : :obj:`int`, optional
+        Number of iterations of iterative scheme.
+    tol : :obj:`float`, optional
+        Tolerance on change of the solution (used as stopping criterion).
+        If ``tol=0``, run until ``niter`` is reached.
+    callback : :obj:`callable`, optional
+        Function with signature (``callback(x)``) to call after each iteration
+        where ``x`` is the current model vector
+    show : :obj:`bool`, optional
+        Display iterations log
+
+    Returns
+    -------
+    x : :obj:`numpy.ndarray`
+        Inverted model
+
+    See Also
+    --------
+    ADMM: Alternating Direction Method of Multipliers
+    PPXA: Parallel Proximal Algorithm
+
+    Notes
+    -----
+    The ADMM for the consensus problem can be expressed by the following
+    recursion [1]_, [2]_:
+
+    * :math:`\bar{\mathbf{x}}^{0} = \mathbf{x}`
+    * for :math:`k = 1, \ldots`
+
+      * for :math:`i = 1, \ldots, m`
+
+        * :math:`\mathbf{x}_i^{k+1} = \mathrm{prox}_{\tau f_i} \left(\bar{\mathbf{x}}^{k} - \mathbf{y}_i^{k}\right)`
+
+      * :math:`\bar{\mathbf{x}}^{k+1} = \frac{1}{m} \sum_{i=1}^m \mathbf{x}_i^{k}`
+
+      * for :math:`i = 1, \ldots, m`
+
+        * :math:`\mathbf{y}_i^{k+1} = \mathbf{y}_i^{k} + \mathbf{x}_i^{k+1} - \bar{\mathbf{x}}^{k+1}`
+
+    The current implementation returns :math:`\bar{\mathbf{x}}`.
+
+    References
+    ----------
+    .. [1] Boyd, S., Parikh, N., Chu, E., Peleato, B., Eckstein, J., 2011.
+        Distributed Optimization and Statistical Learning via the Alternating
+        Direction Method of Multipliers. Foundations and Trends in Machine Learning,
+        Vol. 3, No. 1, pp 1-122. Section 7.1. https://doi.org/10.1561/2200000016
+        https://stanford.edu/~boyd/papers/pdf/admm_distr_stats.pdf
+    .. [2] Parikh, N., Boyd, S., 2014. Proximal Algorithms. Foundations and
+        Trends in Optimization, Vol. 1, No. 3, pp 127-239.
+        Section 5.2.1. https://doi.org/10.1561/2400000003
+        https://web.stanford.edu/~boyd/papers/pdf/prox_algs.pdf
+
+    """
+    if show:
+        tstart = time.time()
+        print(
+            "Consensus ADMM\n---------------------------------------------------------"
+        )
+        for i, proxf in enumerate(proxfs):
+            print(f"Proximal operator (f{i}): {type(proxf)}")
+        print(f"tau = {tau:10e}\tniter = {niter:d}\n")
+        head = "   Itn       x[0]          J=sum_i f_i"
+        print(head)
+
+    ncp = get_array_module(x0)
+
+    # initialize model
+    m = len(proxfs)
+    x_bar = x0.copy()
+    x_bar_old = x0.copy()
+    y = ncp.zeros((m, x0.size), dtype=x0.dtype)
+
+    # iterate
+    for iiter in range(niter):
+        x = ncp.stack([proxfs[i].prox(x_bar - y[i], tau) for i in range(m)])
+        x_bar = ncp.mean(x, axis=0)
+        y = y + x - x_bar
+
+        # run callback
+        if callback is not None:
+            callback(x_bar)
+
+        # show iteration logger
+        if show:
+            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
+                pf = ncp.sum([proxfs[i](x_bar) for i in range(m)])
+                print(
+                    f"{iiter + 1:6d}  {ncp.real(to_numpy(x_bar[0])):12.5e}  {pf:10.3e}"
+                )
+
+        # break if tolerance condition is met
+        if ncp.abs(x_bar - x_bar_old).max() < tol:
+            break
+
+        x_bar_old = x_bar
+
+    if show:
+        print(f"\nTotal time (s) = {time.time() - tstart:.2f}")
+        print("---------------------------------------------------------\n")
+
+    return x_bar

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from pylops.utils.typing import NDArray
 
@@ -25,7 +25,7 @@ class Orthogonal(ProxOperator):
         Orthogonal operator
     partial : :obj:`bool`, optional
         Partial (``True``) of full (``False``) orthogonality
-    b : :obj:`np.ndarray`, optional
+    b : :obj:`numpy.ndarray`, optional
         Vector
     alpha : :obj:`float`, optional
         Positive coefficient for partial orthogonality. It will be ignored if
@@ -65,7 +65,7 @@ class Orthogonal(ProxOperator):
         f: ProxOperator,
         Q: "LinearOperator",
         partial: bool = False,
-        b: Optional[NDArray] = None,
+        b: NDArray | None = None,
         alpha: float = 1.0,
     ) -> None:
         super().__init__(None, False)
@@ -73,7 +73,7 @@ class Orthogonal(ProxOperator):
         self.Q = Q
         self.partial = partial
         self.alpha = alpha
-        self.b = b if b is not None else 0
+        self.b = b if b is not None else 0.0
 
     def __call__(self, x: NDArray) -> bool | float | int:
         y = self.Q.matvec(x)

@@ -1,5 +1,6 @@
 import time
-from typing import TYPE_CHECKING, Callable, Optional, Tuple, Union
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import numpy as np
 from pylops.utils.backend import get_array_module, to_numpy
@@ -16,18 +17,18 @@ def PrimalDual(
     proxg: ProxOperator,
     A: "LinearOperator",
     x0: NDArray,
-    tau: Union[float, NDArray],
-    mu: Union[float, NDArray],
-    y0: Optional[NDArray] = None,
-    z: Optional[NDArray] = None,
+    tau: float | NDArray,
+    mu: float | NDArray,
+    y0: NDArray | None = None,
+    z: NDArray | None = None,
     theta: float = 1.0,
     niter: int = 10,
     gfirst: bool = True,
-    callback: Optional[Callable[..., None]] = None,
+    callback: Callable[..., None] | None = None,
     callbacky: bool = False,
     returny: bool = False,
     show: bool = False,
-) -> Union[NDArray, Tuple[NDArray, NDArray]]:
+) -> NDArray | tuple[NDArray, NDArray]:
     r"""Primal-dual algorithm
 
     Solves the following (possibly) nonlinear minimization problem using
@@ -63,10 +64,10 @@ def PrimalDual(
         Linear operator of g
     x0 : :obj:`numpy.ndarray`
         Initial vector
-    tau : :obj:`float` or :obj:`np.ndarray`
+    tau : :obj:`float` or :obj:`numpy.ndarray`
         Stepsize of subgradient of :math:`f`. This can be constant
         or function of iterations (in the latter cases provided as np.ndarray)
-    mu : :obj:`float` or :obj:`np.ndarray`
+    mu : :obj:`float` or :obj:`numpy.ndarray`
         Stepsize of subgradient of :math:`g^*`. This can be constant
         or function of iterations (in the latter cases provided as np.ndarray)
     y0 : :obj:`numpy.ndarray`
@@ -231,12 +232,12 @@ def AdaptivePrimalDual(
     eta: float = 0.95,
     s: float = 1.0,
     delta: float = 1.5,
-    z: Optional[NDArray] = None,
+    z: NDArray | None = None,
     niter: int = 10,
     tol: float = 1e-10,
-    callback: Optional[Callable[[NDArray], None]] = None,
+    callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
-) -> Tuple[NDArray, Tuple[NDArray, NDArray, NDArray]]:
+) -> tuple[NDArray, tuple[NDArray, NDArray, NDArray]]:
     r"""Adaptive Primal-dual algorithm
 
     Solves the minimization problem in
@@ -351,7 +352,6 @@ def AdaptivePrimalDual(
 
     iiter = 0
     while iiter < niter and p > tol and d > tol:
-
         # store old values
         xold = x.copy()
         yold = y.copy()

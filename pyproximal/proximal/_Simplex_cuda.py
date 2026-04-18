@@ -18,7 +18,7 @@ def bisect_jit_cuda(
     """Bisection method (See _Simplex_numba for details)."""
     a, b = bisect_lower, bisect_upper
     fa = fun_jit_cuda(a, x, coeffs, scalar, lower, upper)
-    for iiter in range(maxiter):
+    for _ in range(maxiter):
         c = (a + b) / 2.0
         if (b - a) / 2 < xtol:
             return c
@@ -39,15 +39,15 @@ def simplex_jit_cuda(x, coeffs, scalar, lower, upper, maxiter, ftol, xtol, y):
 
     Parameters
     ----------
-    x : :obj:`np.ndarray`
+    x : :obj:`numpy.ndarray`
         Input vector
-    coeffs : :obj:`np.ndarray`
+    coeffs : :obj:`numpy.ndarray`
         Vector of coefficients used in the definition of the hyperplane
     scalar : :obj:`float`
         Scalar used in the definition of the hyperplane
-    lower : :obj:`float` or :obj:`np.ndarray`, optional
+    lower : :obj:`float` or :obj:`numpy.ndarray`, optional
         Lower bound of Box
-    upper : :obj:`float` or :obj:`np.ndarray`, optional
+    upper : :obj:`float` or :obj:`numpy.ndarray`, optional
         Upper bound of Box
     maxiter : :obj:`int`, optional
         Maximum number of iterations
@@ -55,7 +55,7 @@ def simplex_jit_cuda(x, coeffs, scalar, lower, upper, maxiter, ftol, xtol, y):
         Function tolerance
     xtol : :obj:`float`, optional
         Solution absolute tolerance
-    y : :obj:`np.ndarray`
+    y : :obj:`numpy.ndarray`
         Output vector
 
     """

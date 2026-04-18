@@ -22,13 +22,13 @@ class Quadratic(ProxOperator):
     ----------
     Op : :obj:`pylops.LinearOperator`, optional
         Linear operator (must be square)
-    b : :obj:`np.ndarray`, optional
+    b : :obj:`numpy.ndarray`, optional
         Vector
     c : :obj:`float`, optional
         Scalar
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme used to compute the proximal
-    x0 : :obj:`np.ndarray`, optional
+    x0 : :obj:`numpy.ndarray`, optional
         Initial vector
     warm : :obj:`bool`, optional
         Warm start (``True``) or not (``False``). Uses estimate from previous
@@ -72,15 +72,16 @@ class Quadratic(ProxOperator):
     def __init__(
         self,
         Op: Optional["LinearOperator"] = None,
-        b: Optional[NDArray] = None,
+        b: NDArray | None = None,
         c: float = 0.0,
         niter: int = 10,
-        x0: Optional[NDArray] = None,
+        x0: NDArray | None = None,
         warm: bool = True,
     ) -> None:
         if Op is not None:
             if Op.shape[0] != Op.shape[1]:
-                raise ValueError("Op must be square")
+                msg = "Op must be square"
+                raise ValueError(msg)
         super().__init__(Op, True)
         self.b = b
         if self.Op is not None and self.b is None:
@@ -107,7 +108,7 @@ class Quadratic(ProxOperator):
                 Op1 = MatrixMult(np.eye(self.Op.shape[0]) + tau * self.Op.A)
                 x = Op1.div(y)
             else:
-                Op1 = Identity(self.Op.shape[0], dtype=self.Op.dtype) + tau * self.Op.A
+                Op1 = Identity(self.Op.shape[0], dtype=self.Op.dtype) + tau * self.Op
                 x = lsqr(Op1, y, iter_lim=self.niter, x0=self.x0)[0]
             if self.warm:
                 self.x0 = x
@@ -120,19 +121,19 @@ class Quadratic(ProxOperator):
 
         Parameters
         ----------
-        x : :obj:`np.ndarray`
+        x : :obj:`numpy.ndarray`
             Vector
 
         Returns
         -------
-        g : :obj:`np.ndarray`
+        g : :obj:`numpy.ndarray`
             Gradient vector
 
         """
         if self.Op is not None and self.b is not None:
-            g = self.Op.matvec(x) / 2.0 + x
+            g = self.Op.matvec(x) + self.b
         elif self.b is not None:
-            g = x
+            g = self.b
         else:
             g = 0.0
         return g

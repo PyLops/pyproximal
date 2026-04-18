@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pylops
@@ -41,7 +41,7 @@ def _lsqr(
         Data
     iter_lim: :obj:`int`
         Maximum number of iterations
-    z_old: :obj:`np.ndarray`
+    z_old: :obj:`numpy.ndarray`
         The previous outer iteration
     x0: :obj:`numpy.ndarray`
        initial guess
@@ -49,7 +49,7 @@ def _lsqr(
         The regularization parameter for the inner iteration
     eps: :obj:`float`
         The regularization parameter for the outer iteration
-    Reg: :obj:`np.ndarray`
+    Reg: :obj:`numpy.ndarray`
         The regularization operator L
 
     Returns
@@ -98,7 +98,7 @@ def SR3(
     data: NDArray,
     kappa: float,
     eps: float,
-    x0: Optional[NDArray] = None,
+    x0: NDArray | None = None,
     adaptive: bool = True,
     iter_lim_outer: int = 100,
     iter_lim_inner: int = 100,

@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 from pylops.utils.typing import NDArray
 from scipy.optimize import bisect
@@ -10,9 +8,9 @@ class BoxProj:
 
     Parameters
     ----------
-    lower : :obj:`float` or :obj:`np.ndarray`, optional
+    lower : :obj:`float` or :obj:`numpy.ndarray`, optional
         Lower bound
-    upper : :obj:`float` or :obj:`np.ndarray`, optional
+    upper : :obj:`float` or :obj:`numpy.ndarray`, optional
         Upper bound
 
     Notes
@@ -41,8 +39,8 @@ class BoxProj:
 
     def __init__(
         self,
-        lower: Union[float, NDArray] = -np.inf,
-        upper: Union[float, NDArray] = np.inf,
+        lower: float | NDArray = -np.inf,
+        upper: float | NDArray = np.inf,
     ) -> None:
         self.lower = lower
         self.upper = upper
@@ -58,13 +56,13 @@ class HyperPlaneBoxProj:
 
     Parameters
     ----------
-    coeffs : :obj:`np.ndarray`
+    coeffs : :obj:`numpy.ndarray`
         Vector of coefficients used in the definition of the hyperplane
     scalar : :obj:`float`
         Scalar used in the definition of the hyperplane
-    lower : :obj:`float` or :obj:`np.ndarray`, optional
+    lower : :obj:`float` or :obj:`numpy.ndarray`, optional
         Lower bound of Box
-    upper : :obj:`float` or :obj:`np.ndarray`, optional
+    upper : :obj:`float` or :obj:`numpy.ndarray`, optional
         Upper bound of Box
     maxiter : :obj:`int`, optional
         Maximum number of iterations used by :func:`scipy.optimize.bisect`
@@ -107,8 +105,8 @@ class HyperPlaneBoxProj:
         self,
         coeffs: NDArray,
         scalar: float,
-        lower: Union[float, NDArray] = -np.inf,
-        upper: Union[float, NDArray] = np.inf,
+        lower: float | NDArray = -np.inf,
+        upper: float | NDArray = np.inf,
         maxiter: int = 100,
         xtol: float = 1e-5,
     ) -> None:
@@ -125,7 +123,7 @@ class HyperPlaneBoxProj:
 
         Parameters
         ----------
-        x : :obj:`np.ndarray`
+        x : :obj:`numpy.ndarray`
             Vector
 
         """

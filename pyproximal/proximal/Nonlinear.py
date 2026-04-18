@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
 
 from pylops.utils.typing import NDArray
 
@@ -30,7 +29,7 @@ class Nonlinear(ABC, ProxOperator):
 
     Parameters
     ----------
-    x0 : :obj:`np.ndarray`
+    x0 : :obj:`numpy.ndarray`
         Initial vector
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme used to compute the proximal
@@ -84,13 +83,13 @@ class Nonlinear(ABC, ProxOperator):
     def _gradprox(self, x: NDArray, tau: float) -> NDArray:
         return self.grad(x) + 1.0 / tau * (x - self.y)
 
-    def _fungradprox(self, x: NDArray, tau: float) -> Tuple[float, NDArray]:
+    def _fungradprox(self, x: NDArray, tau: float) -> tuple[float, NDArray]:
         f, g = self.fungrad(x)
         f = f + 1.0 / (2 * tau) * ((x - self.y) ** 2).sum()
         g = g + 1.0 / tau * (x - self.y)
         return f, g
 
-    def fungrad(self, x: NDArray) -> Tuple[float, NDArray]:
+    def fungrad(self, x: NDArray) -> tuple[float, NDArray]:
         f = self.fun(x)
         g = self.grad(x)
         return f, g

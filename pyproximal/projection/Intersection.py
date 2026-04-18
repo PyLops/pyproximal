@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 from pylops.utils.typing import NDArray
 
@@ -13,7 +11,7 @@ class IntersectionProj:
         Size of vector to be projected
     n : :obj:`int`
         Number of vectors to be projected simultaneously
-    sigma : :obj:`np.ndarray`
+    sigma : :obj:`numpy.ndarray`
         Matrix of distances of size :math:`k \times k`
     niter : :obj:`int`, optional
         Number of iterations
@@ -41,7 +39,7 @@ class IntersectionProj:
         self,
         k: int,
         n: int,
-        sigma: Union[float, NDArray],
+        sigma: float | NDArray,
         niter: int = 100,
         tol: float = 1e-5,
     ) -> None:
@@ -56,7 +54,7 @@ class IntersectionProj:
     def __call__(self, x: NDArray) -> NDArray:
         x = x.reshape(self.k, self.n)
         x12 = np.zeros((self.k, self.k, self.n))
-        for iiter in range(self.niter):
+        for _ in range(self.niter):
             xold = x.copy()
             for i1 in range(self.k - 1):
                 for i2 in range(i1 + 1, self.k):

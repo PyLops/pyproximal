@@ -1,7 +1,19 @@
 .. _changlog:
 
-Changelog
-=========
+|:newspaper_roll:| Changelog
+############################
+
+Version 0.12.1
+--------------
+*Released on: 18/04/2026*
+
+* Added :py:class:`pyproximal.optimization.primal.ConsensusADMM`
+  and :py:class:`pyproximal.optimization.primal.PPXA` solvers
+* Modified role of x and y in 
+  :py:class:`pyproximal.optimization.primal.DouglasRachfordSplitting`
+* Fix norm computation in :py:class:`pyproximal.proximal.L1` for 
+  2D-arrays
+
 
 Version 0.11.1
 --------------

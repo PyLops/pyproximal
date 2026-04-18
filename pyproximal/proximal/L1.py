@@ -1,4 +1,5 @@
-from typing import Any, Callable, Optional, Union
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 from pylops.utils.typing import NDArray
@@ -40,7 +41,7 @@ def _softthreshold(x: NDArray, thresh: float) -> NDArray:
 def _current_sigma(
     sigma: FloatCallableLike,
     count: int,
-) -> Union[float, NDArray]:
+) -> float | NDArray:
     if not callable(sigma):
         return sigma
     else:
@@ -51,17 +52,21 @@ class L1(ProxOperator):
     r"""L1 norm proximal operator.
 
     Proximal operator of the :math:`\ell_1` norm:
-    :math:`\sigma\|\mathbf{x} - \mathbf{g}\|_1 = \sigma \sum |x_i - g_i|`.
+
+    - :math:`\sigma\|\mathbf{x} - \mathbf{g}\|_1 = \sigma \sum_i |x_i - g_i|` for
+      1-dimensional arrays;
+    - :math:`\sum_j \sigma_j \|\mathbf{X}_j - \mathbf{g}\|_1 = \sum_j \sigma_j \sum_i |x_{i,j} - g_i|`
+      for 2-dimensional arrays.
 
     Parameters
     ----------
-    sigma : :obj:`float` or :obj:`np.ndarray` or :obj:`func`, optional
+    sigma : :obj:`float` or :obj:`numpy.ndarray` or :obj:`func`, optional
         Multiplicative coefficient of L1 norm. This can be a constant number, a list
-        of values (for multidimensional inputs, acting on the second dimension) or
+        of values (for 2-dimensional inputs, acting on the second dimension) or
         a function that is called passing a counter which keeps track of how many
         times the ``prox`` method has been invoked before and returns a scalar (or a list of)
         ``sigma`` to be used.
-    g : :obj:`np.ndarray`, optional
+    g : :obj:`numpy.ndarray`, optional
         Vector to be subtracted
 
     Notes
@@ -102,7 +107,7 @@ class L1(ProxOperator):
     def __init__(
         self,
         sigma: FloatCallableLike = 1.0,
-        g: Optional[NDArray] = None,
+        g: NDArray | None = None,
     ) -> None:
         super().__init__(None, False)
         self.sigma = sigma
@@ -117,8 +122,8 @@ class L1(ProxOperator):
     def __call__(self, x: NDArray) -> float:
         sigma = _current_sigma(self.sigma, self.count)
         if self.g is None:
-            return float(sigma * np.sum(np.abs(x)))
-        return float(sigma * np.sum(np.abs(x - self.g)))
+            return float(np.sum(sigma * np.sum(np.abs(x), axis=0)))
+        return float(np.sum(sigma * np.sum(np.abs(x - self.g), axis=0)))
 
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
         """Increment counter"""

@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 from pylops.optimization.cls_sparsity import _hardthreshold
 from pylops.utils.typing import IntNDArray, NDArray, ShapeLike
@@ -165,7 +163,7 @@ class QuadraticEnvelopeCardIndicator(ProxOperator):
 
     """
 
-    def __init__(self, r0: Union[int, IntNDArray]) -> None:
+    def __init__(self, r0: int | IntNDArray) -> None:
         super().__init__(None, False)
         self.r0 = r0
 
@@ -311,7 +309,6 @@ class QuadraticEnvelopeRankL2(ProxOperator):
         zk[self.r0 :] = (1 + rho) * yk[self.r0 :]
 
         for k, ii in enumerate(ind):
-
             if ii < self.r0:
                 a = a + (rho + 1) / rho
                 b = b + (rho + 1) / rho * yk[ii]

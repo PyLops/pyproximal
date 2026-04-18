@@ -1,10 +1,9 @@
 [build-system]
 requires = [
-    "setuptools >= 65",
-    "setuptools_scm[toml]",
-    "wheel",
+    "hatchling",
+    "hatch-vcs"
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
 
 [project]
 name = "pyproximal"
@@ -29,11 +28,12 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
+requires-python = ">=3.10"
 dependencies = [
     "numpy >= 1.21.0",
     "scipy >= 1.11.0",
-    "pylops >= 2.0.0",
-    "typing_extensions",
+    "pylops >= 2.4.0",
+    "typing_extensions >= 4.0.0",
 ]
 dynamic = ["version"]
 
@@ -43,23 +43,98 @@ advanced = [
     "numba",
 ]
 
-[tool.setuptools.packages.find]
-exclude = ["pytests"]
+[dependency-groups]
+dev = [
+    "pytest",
+    "pre-commit",
+    "autopep8",
+    "ruff",
+    "mypy",
+    "coverage"
+]
+doc = [
+    "matplotlib",
+    "scikit-image",
+    "bm3d",
+    "bm4d",
+    "pooch",
+    "sphinx",
+    "sphinx-design",
+    "sphinx-gallery",
+    "sphinx-iconify",
+    "shibuya",
+    "sphinxemoji",
+    "numpydoc",
+    "nbsphinx",
+    "image",
+]
 
-[tool.setuptools_scm]
-version_file = "pyproximal/version.py"
+[project.urls]
+Homepage = "https://github.com/PyLops/pyproximal"
+Documentation = "https://pyproximal.readthedocs.io/en/stable"
+Discussions = "https://github.com/PyLops/pyproximal/discussions"
+Issues = "https://github.com/PyLops/pyproximal/issues"
+
+[tool.hatch]
+version.source = "vcs"
+build.hooks.vcs.version-file = "pyproximal/version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pyproximal"]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/.github", "/testdata"]
+
+[tool.pytest.ini_options]
+addopts = "--verbose"
+python_files = ["pytests/*.py"]
+
+[tool.ruff]
+src = ["pyproximal"]
+exclude = ["pyproximal/version.py", ]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle errors
+  "F",   # pyflakes
+  "W",   # pycodestyle warnings
+  "B",   # flake8-bugbear
+  "EM",  # flake8-errmsg
+  "UP",  # pyupgrade
+  "I"    # isort
+]
+ignore = [
+  "E501",  # line too long (for comments and strings)
+  "UP031", # use of old '%' formatting instead of f-strings
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [
+  "F401",  # imported but unused (re-exports)
+  "F403",  # star import used for public API
+  "F405",  # name may be undefined from star import
+  "I001",  # allow usorted imports
+]
+"tutorials/*.py" = [
+  "E731",  # do not assign a lambda expression, use def
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pyproximal"]
 
 [tool.mypy]
 files = ["pyproximal", ]
-python_version = "3.10"
+python_version = "3.11"
 mypy_path = "pyproximal"
 strict = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
-warn_unreachable = true
+disable_error_code = ["untyped-decorator"]
 allow_redefinition = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
-plugins = ["numpy.typing.mypy_plugin"]
+warn_unreachable = false
 
 [[tool.mypy.overrides]]
 module = ["cupy.*", "numpy.*", "numba.*", "pylops.*", "scipy.*", "scooby.*", "pyproximal.*"]

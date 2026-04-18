@@ -1,4 +1,5 @@
-from typing import Any, Callable, List, Sequence, TypeVar
+from collections.abc import Callable, Sequence
+from typing import Any, TypeVar
 
 from pylops.utils.backend import get_array_module
 from pylops.utils.typing import NDArray
@@ -20,7 +21,8 @@ def _select_impl_by_arity(
 ) -> ProxOpOrProj:
     """Choose implementation by ``len(items)`` and ``use_parallel``."""
     if not items:
-        raise ValueError("items must not be empty")
+        msg = "items must not be empty"
+        raise ValueError(msg)
     if len(items) == 1:
         return single
     if len(items) == 2 and not use_parallel:
@@ -59,7 +61,7 @@ def dykstra_two(
 
 def parallel_dykstra_projection(
     x0: NDArray,
-    proj_ops: List[Proj],
+    proj_ops: list[Proj],
     *,
     niter: int,
     tol: float,
@@ -88,10 +90,10 @@ def parallel_dykstra_projection(
 
 def parallel_dykstra_prox(
     x0: NDArray,
-    prox_ops: List[ProxOp],
+    prox_ops: list[ProxOp],
     *,
-    weights: NDArray | List[float],
-    taus: NDArray | List[float],
+    weights: NDArray | list[float],
+    taus: NDArray | list[float],
     niter: int,
     tol: float,
 ) -> NDArray:

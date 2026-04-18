@@ -48,7 +48,7 @@ n_signal = 5
 t = np.linspace(-1, 1, 200)
 f_gt = np.zeros_like(t)
 
-for i in range(n_signal):
+for _ in range(n_signal):
     d = np.random.uniform(-1, 1)
     phi = np.random.uniform(-40 * np.pi, 40 * np.pi)
     t0 = np.random.uniform(-1, 1)

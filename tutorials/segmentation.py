@@ -60,7 +60,7 @@ isegcl, iseg = pyproximal.optimization.segmentation.Segment(
     sigma,
     alpha,
     niter=10,
-    kwargs_simplex=dict(maxiter=20, engine="numba", call=False),
+    kwargs_simplex=dict(maxiter=30, engine="numba", call=False),
     show=False,
 )
 

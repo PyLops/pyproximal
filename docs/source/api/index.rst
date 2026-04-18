@@ -1,7 +1,7 @@
 .. _api:
 
-PyProximal API
-==============
+|:wrench:| PyProximal API
+=========================
 
 The Application Programming Interface (API) of PyProximal is composed of 3 elements:
 
@@ -171,6 +171,8 @@ Primal
     ProximalPoint
     TwIST
     DouglasRachfordSplitting
+    PPXA
+    ConsensusADMM
 
 .. currentmodule:: pyproximal.optimization.palm
 

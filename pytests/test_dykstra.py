@@ -1,4 +1,5 @@
-from typing import Any, Callable, Dict
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import pytest
@@ -27,8 +28,15 @@ par1prox = {"nx": 10, "ny": 10, "sigma": 1.0, "dtype": "float32"}  # even float3
 par2prox = {"nx": 11, "ny": 14, "sigma": 2.0, "dtype": "float64"}  # odd float64
 
 
+def test_GenericIntersectionProx_empty():
+    """Test GenericIntersectionProx raises an error when the list of
+    projections is empty"""
+    with pytest.raises(ValueError, match="items must not be empty"):
+        GenericIntersectionProx([])
+
+
 @pytest.mark.parametrize("par", [(par1proj), (par2proj)])
-def test_GenericIntersectionProx(par: Dict[str, Any]) -> None:
+def test_GenericIntersectionProx(par: dict[str, Any]) -> None:
     """GenericIntersectionProx and proximal/dual proximal of related indicator"""
     rng = np.random.default_rng(10)
 
@@ -72,11 +80,8 @@ def test_GenericIntersectionProx(par: Dict[str, Any]) -> None:
         [box, eucl, half_space],
     ]
     for proj in projections:
-
         # different torelance for float32 and float64
-        tol = (
-            float(np.finfo(par["dtype"]).resolution) * 10.0
-        )  # pylint: disable=no-member
+        tol = float(np.finfo(par["dtype"]).resolution) * 10.0  # pylint: disable=no-member
 
         d = GenericIntersectionProx(proj, tol=tol, niter=1000)
 
@@ -103,7 +108,30 @@ def test_GenericIntersectionProx(par: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("par", [(par1prox), (par2prox)])
-def test_Sum_l1_l1(par: Dict[str, Any]) -> None:
+def test_Sum_l1(par: dict[str, Any]) -> None:
+    """Check Sum for single L1 operator (edge-case)"""
+
+    atol = 1e-6
+    tau = 1.0
+    rng = np.random.default_rng(10)
+
+    x = rng.normal(0.0, 3.5, par["nx"]).astype(par["dtype"])
+    sigma = rng.uniform(0.1, 1.0)
+
+    l1 = L1(sigma=sigma)
+
+    d = Sum(
+        [
+            l1,
+        ]
+    )
+    assert np.allclose(l1(x), d(x), atol=atol)
+    assert np.allclose(l1.prox(x, tau), d.prox(x, tau), atol=atol)
+    assert moreau(d, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1prox), (par2prox)])
+def test_Sum_l1_l1(par: dict[str, Any]) -> None:
     """Check Sum for L1 + L1"""
 
     atol = 1e-6
@@ -137,7 +165,7 @@ def test_Sum_l1_l1(par: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("par", [(par1prox), (par2prox)])
-def test_Sum_l2_l2(par: Dict[str, Any]) -> None:
+def test_Sum_l2_l2(par: dict[str, Any]) -> None:
     """Check Sum for L2 + L2"""
 
     atol = 1e-6
@@ -171,7 +199,7 @@ def test_Sum_l2_l2(par: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("par", [(par1prox), (par2prox)])
-def test_Sum_l21_l1(par: Dict[str, Any]) -> None:
+def test_Sum_l21_l1(par: dict[str, Any]) -> None:
     """Check Sum for L21 + L1"""
 
     atol = 1e-5
@@ -204,7 +232,7 @@ def test_Sum_l21_l1(par: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("par", [(par1prox), (par2prox)])
-def test_Sum_f1f2f3f4(par: Dict[str, Any]) -> None:
+def test_Sum_f1f2f3f4(par: dict[str, Any]) -> None:
     """Check Sum for f1+f2+f3+f4"""
 
     tau = 1.0
@@ -231,7 +259,7 @@ def test_Sum_f1f2f3f4(par: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("par", [(par1prox), (par2prox)])
-def test_Sum_numeric_projection(par: Dict[str, Any]) -> None:
+def test_Sum_numeric_projection(par: dict[str, Any]) -> None:
     """Check Sum for numeric prox + indicator function"""
 
     rng = np.random.default_rng(10)

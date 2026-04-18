@@ -1,28 +1,67 @@
 # This workflow uploads PyProx on PyPI using Twine when a release is created
-# For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
-name: PyProx-deploy
+# For more information see: https://github.com/python-attrs/attrs/blob/main/.github/workflows/pypi-package.yml
+name: PyProximal-deploy
 
 on:
+  push:
+    tags: ["*"]
   release:
-    types: [published]
+    types:
+      - published
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  build-package:
+    name: Build & verify package
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Check out source repository
+        uses: actions/checkout@v6
         with:
-          python-version: '3.x'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build
-      - name: Build package
-        run: python -m build
-      - name: Publish package
-        uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+          fetch-depth: 0
+      - name: Build and inspect package
+        uses: hynek/build-and-inspect-python-package@v2
+
+  release-test-pypi:
+    name: Publish in-dev package to test.pypi.org
+    if: github.repository_owner == 'PyLops' && github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    needs: build-package
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download package
+        uses: actions/download-artifact@v8
         with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          name: Packages
+          path: dist
+
+      - name: Upload package to Test PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          attestations: true
+          repository-url: https://test.pypi.org/legacy/
+
+  release-pypi:
+    name: Publish released package to pypi.org
+    if: github.repository_owner == 'PyLops' && github.event.action == 'published'
+    runs-on: ubuntu-latest
+    needs: build-package
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download package
+        uses: actions/download-artifact@v8
+        with:
+          name: Packages
+          path: dist
+
+      - name: Upload package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          attestations: true

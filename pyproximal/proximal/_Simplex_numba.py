@@ -1,7 +1,9 @@
 import os
+from typing import Any
 
 import numpy as np
 from numba import jit
+from pylops.utils.typing import NDArray
 
 # detect whether to use parallel or not
 numba_threads = int(os.getenv("NUMBA_NUM_THREADS", "1"))
@@ -9,7 +11,9 @@ parallel = True if numba_threads != 1 else False
 
 
 @jit(nopython=True)
-def fun_jit(mu, x, coeffs, scalar, lower, upper):
+def fun_jit(
+    mu: int, x: NDArray, coeffs: NDArray, scalar: float, lower: float, upper: float
+) -> Any:
     """Bisection function"""
     return (
         np.dot(coeffs, np.minimum(np.maximum(x - mu * coeffs, lower), upper)) - scalar
@@ -18,25 +22,34 @@ def fun_jit(mu, x, coeffs, scalar, lower, upper):
 
 @jit(nopython=True, nogil=True)
 def bisect_jit(
-    x, coeffs, scalar, lower, upper, bisect_lower, bisect_upper, maxiter, ftol, xtol
-):
+    x: NDArray,
+    coeffs: NDArray,
+    scalar: float,
+    lower: float,
+    upper: float,
+    bisect_lower: float,
+    bisect_upper: float,
+    maxiter: int,
+    ftol: float,
+    xtol: float,
+) -> Any:
     """Bisection method
 
     Parameters
     ----------
-    x : :obj:`np.ndarray`
+    x : :obj:`numpy.ndarray`
         Input vector
-    coeffs : :obj:`np.ndarray`
+    coeffs : :obj:`numpy.ndarray`
         Vector of coefficients used in the definition of the hyperplane
     scalar : :obj:`float`
         Scalar used in the definition of the hyperplane
-    lower : :obj:`float` or :obj:`np.ndarray`, optional
+    lower : :obj:`float` or :obj:`numpy.ndarray`, optional
         Lower bound of Box
-    upper : :obj:`float` or :obj:`np.ndarray`, optional
+    upper : :obj:`float` or :obj:`numpy.ndarray`, optional
         Upper bound of Box
-    bisect_lower : :obj:`float` or :obj:`np.ndarray`, optional
+    bisect_lower : :obj:`float` or :obj:`numpy.ndarray`, optional
         Lower end of bisection
-    bisect_upper : :obj:`float` or :obj:`np.ndarray`, optional
+    bisect_upper : :obj:`float` or :obj:`numpy.ndarray`, optional
         Upper end of bisection
     maxiter : :obj:`int`, optional
         Maximum number of iterations
@@ -48,7 +61,7 @@ def bisect_jit(
     """
     a, b = bisect_lower, bisect_upper
     fa = fun_jit(a, x, coeffs, scalar, lower, upper)
-    for iiter in range(maxiter):
+    for _ in range(maxiter):
         c = (a + b) / 2.0
         if (b - a) / 2 < xtol:
             return c
@@ -64,20 +77,29 @@ def bisect_jit(
 
 
 @jit(nopython=True, parallel=parallel, nogil=True)
-def simplex_jit(x, coeffs, scalar, lower, upper, maxiter, ftol, xtol):
+def simplex_jit(
+    x: NDArray,
+    coeffs: NDArray,
+    scalar: float,
+    lower: float,
+    upper: float,
+    maxiter: int,
+    ftol: float,
+    xtol: float,
+) -> NDArray:
     """Simplex proximal
 
     Parameters
     ----------
-    x : :obj:`np.ndarray`
+    x : :obj:`numpy.ndarray`
         Input vector
-    coeffs : :obj:`np.ndarray`
+    coeffs : :obj:`numpy.ndarray`
         Vector of coefficients used in the definition of the hyperplane
     scalar : :obj:`float`
         Scalar used in the definition of the hyperplane
-    lower : :obj:`float` or :obj:`np.ndarray`, optional
+    lower : :obj:`float` or :obj:`numpy.ndarray`, optional
         Lower bound of Box
-    upper : :obj:`float` or :obj:`np.ndarray`, optional
+    upper : :obj:`float` or :obj:`numpy.ndarray`, optional
         Upper bound of Box
     maxiter : :obj:`int`, optional
         Maximum number of iterations

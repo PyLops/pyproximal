@@ -3,9 +3,9 @@ __all__ = [
     "IntCallableLike",
 ]
 
-from typing import Callable, Union
+from collections.abc import Callable
 
 from pylops.utils.typing import NDArray
 
-FloatCallableLike = Union[float, NDArray, Callable[[int], Union[float, NDArray]]]
-IntCallableLike = Union[int, Callable[[int], int]]
+FloatCallableLike = float | NDArray | Callable[[int], float | NDArray]
+IntCallableLike = int | Callable[[int], int]

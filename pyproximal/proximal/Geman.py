@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import numpy as np
 from pylops.utils.typing import NDArray
 
@@ -50,9 +48,11 @@ class Geman(ProxOperator):
     def __init__(self, sigma: float, gamma: float = 1.3) -> None:
         super().__init__(None, False)
         if sigma < 0:
-            raise ValueError('Variable "sigma" must be positive.')
+            msg = 'Variable "sigma" must be positive.'
+            raise ValueError(msg)
         if gamma <= 0:
-            raise ValueError('Variable "gamma" must be strictly positive.')
+            msg = 'Variable "gamma" must be strictly positive.'
+            raise ValueError(msg)
         self.sigma = sigma
         self.gamma = gamma
 
@@ -80,7 +80,7 @@ class Geman(ProxOperator):
     @staticmethod
     def _find_local_minima(
         b: NDArray, c: NDArray, d: NDArray
-    ) -> Tuple[NDArray, NDArray]:
+    ) -> tuple[NDArray, NDArray]:
         f = -((c - b**2.0 / 3.0) ** 3.0) / 27.0
         g = (2.0 * b**3.0 - 9.0 * b * c + 27.0 * d) / 27.0
         idx = g**2.0 / 4.0 - f <= 0

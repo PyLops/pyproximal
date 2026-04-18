@@ -1,4 +1,5 @@
-from typing import Any, Callable, Union
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 from pylops.utils.typing import NDArray
@@ -31,16 +32,6 @@ def _l2(x: NDArray, alpha: float) -> NDArray:
     return y
 
 
-def _current_kappa(
-    kappa: FloatCallableLike,
-    count: int,
-) -> Union[float, NDArray]:
-    if not callable(kappa):
-        return kappa
-    else:
-        return kappa(count)
-
-
 class RelaxedMumfordShah(ProxOperator):
     r"""Relaxed Mumford-Shah norm proximal operator.
 
@@ -49,13 +40,13 @@ class RelaxedMumfordShah(ProxOperator):
 
     Parameters
     ----------
-    sigma : :obj:`float` or :obj:`np.ndarray` or :obj:`func`, optional
+    sigma : :obj:`float` or :obj:`numpy.ndarray` or :obj:`func`, optional
         Multiplicative coefficient of L2 norm that controls the smoothness of the solutuon.
         This can be a constant number, a list of values (for multidimensional inputs, acting
         on the second dimension) or a function that is called passing a counter which keeps
         track of how many times the ``prox`` method has been invoked before and returns a
         scalar (or a list of) ``sigma`` to be used.
-    kappa : :obj:`float` or :obj:`np.ndarray` or :obj:`func`, optional
+    kappa : :obj:`float` or :obj:`numpy.ndarray` or :obj:`func`, optional
         Constant value in the rMS norm which essentially controls when the norm allows a jump. This can be a
         constant number, a list of values (for multidimensional inputs, acting on the second dimension) or
         a function that is called passing a counter which keeps track of how many
@@ -67,10 +58,10 @@ class RelaxedMumfordShah(ProxOperator):
     The :math:`rMS` proximal operator is defined as [1]_:
 
     .. math::
-        \text{prox}_{\tau \text{rMS}}(x) =
+        \text{prox}_{\tau \text{rMS}}(\mathbf{x}) =
         \begin{cases}
-        \frac{1}{1+2\tau\alpha}x & \text{ if } & \vert x\vert \leq \sqrt{\frac{\kappa}{\alpha}(1 + 2\tau\alpha)} \\
-        \kappa & \text{ else }
+        \frac{1}{1+2\tau\alpha}x_i & \text{ if } & \vert x_i\vert \leq \sqrt{\frac{\kappa}{\alpha}(1 + 2\tau\alpha)} \\
+        x_i & \text{ else }
         \end{cases}.
 
     .. [1] Strekalovskiy, E., and D. Cremers, 2014, Real-time minimization of the piecewise smooth

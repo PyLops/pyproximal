@@ -17,10 +17,11 @@ build
 dist
 pyproximal.egg-info/
 
-# setuptools_scm generated  #
+# hatchling generated  #
 pyproximal/version.py
 
 # Development #
+.codacy
 .vscode
 .ipynb_checkpoints/
 notebooks

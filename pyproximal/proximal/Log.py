@@ -73,9 +73,11 @@ class Log(ProxOperator):
     def __init__(self, sigma: float, gamma: float = 1.3) -> None:
         super().__init__(None, False)
         if sigma < 0:
-            raise ValueError('Variable "sigma" must be positive.')
+            msg = 'Variable "sigma" must be positive.'
+            raise ValueError(msg)
         if gamma < 0:
-            raise ValueError('Variable "gamma" must be positive.')
+            msg = 'Variable "gamma" must be positive.'
+            raise ValueError(msg)
         self.sigma = sigma
         self.gamma = gamma
 
@@ -146,7 +148,8 @@ class Log1(ProxOperator):
     def __init__(self, sigma: float, delta: float = 1e-10) -> None:
         super().__init__(None, False)
         if delta < 0:
-            raise ValueError('Variable "delta" must be positive.')
+            msg = 'Variable "delta" must be positive.'
+            raise ValueError(msg)
         self.sigma = sigma
         self.delta = delta
 
