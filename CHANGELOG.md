@@ -1,6 +1,15 @@
 Changelog
 =========
 
+# 0.12.0
+
+* Added ``pyproximal.optimization.primal.ConsensusADMM``
+  and ``pyproximal.optimization.primal.PPXA`` solvers
+* Modified role of x and y in
+  ``pyproximal.optimization.primal.DouglasRachfordSplitting``
+* Fix norm computation in ``pyproximal.proximal.L1`` for
+  2D-arrays
+
 # 0.11.1
 * Added ``typing_extensions`` to dependencies
 
