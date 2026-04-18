@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 from pylops.basicoperators import Identity, MatrixMult
+from pylops.optimization.leastsquares import regularized_inversion
 from pylops.optimization.sparsity import fista, ista
 
 from pyproximal.optimization.primal import (
@@ -272,6 +273,57 @@ def test_PG_GPG(par):
     )
 
     assert_array_almost_equal(xpg, xgpg, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_HQS_ADMM_L2(par):
+    """Check that HQS/ADMM can be used to solved a pure L2-based objective function
+    (and compare with LSQR - note that despite the trajectory will be different,
+    they should converge to the same solution)
+    """
+    np.random.seed(0)
+    n, m = par["n"], par["m"]
+
+    # Define sparse model
+    x = np.random.normal(0.0, 1.0, m).astype(par["dtype"])
+
+    # Random mixing matrix
+    R = np.random.normal(0.0, 1.0, (n, m)).astype(par["dtype"])
+    Rop = MatrixMult(R, dtype=par["dtype"])
+
+    y = Rop @ x
+
+    # Step size
+    L = (Rop.H * Rop).eigs(1).real
+    tau = 0.99 / L
+    eps = 1e-1
+
+    # L2
+    Iop = Identity(m, dtype=par["dtype"])
+    xl2 = regularized_inversion(
+        Rop,
+        y,
+        Regs=[
+            Iop,
+        ],
+        epsRs=[
+            np.sqrt(eps),
+        ],
+        iter_lim=1000,
+    )[0]
+
+    # HQS
+    l2 = L2(Op=Rop, b=y, niter=10, warm=True)
+    l2reg = L2(sigma=eps)
+    xhqs = HQS(l2, l2reg, x0=np.zeros(m), tau=tau, niter=1000)[0]
+
+    # ADMM
+    l2 = L2(Op=Rop, b=y, niter=10, warm=True)
+    l2reg = L2(sigma=eps)
+    xadmm = ADMM(l2, l2reg, x0=np.zeros(m), tau=tau, niter=1000)[0]
+
+    assert_array_almost_equal(xl2, xhqs, decimal=2)
+    assert_array_almost_equal(xl2, xadmm, decimal=2)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
