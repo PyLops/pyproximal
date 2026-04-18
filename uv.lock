@@ -1928,7 +1928,7 @@ requires-dist = [
     { name = "llvmlite", marker = "extra == 'advanced'" },
     { name = "numba", marker = "extra == 'advanced'" },
     { name = "numpy", specifier = ">=1.21.0" },
-    { name = "pylops", specifier = ">=2.0.0" },
+    { name = "pylops", specifier = ">=2.4.0" },
     { name = "scipy", specifier = ">=1.11.0" },
     { name = "typing-extensions", specifier = ">=4.0.0" },
 ]
