@@ -218,7 +218,7 @@ class ProximalPoint(Solver):
 
         # create variables to track the objective function and iterations
         self.pf, self.pfold = np.inf, np.inf
-        self.pfs: list[float] = []
+        self.cost: list[float] = []
         self.tolbreak = False
         self.iiter = 0
 
@@ -258,7 +258,7 @@ class ProximalPoint(Solver):
         if show:
             self._print_step(x)
         if self.tol is not None or show:
-            self.pfs.append(float(self.pf))
+            self.cost.append(float(self.pf))
         return x
 
     def run(
@@ -325,6 +325,7 @@ class ProximalPoint(Solver):
         """
         self.tend = time.time()
         self.telapsed = self.tend - self.tstart
+
         if show:
             self._print_finalize(nbar=60)
 
@@ -366,14 +367,14 @@ class ProximalPoint(Solver):
             Estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        pfs : :obj:`numpy.ndarray`
+        cost : :obj:`list`
             History of the objective function
 
         """
         x = self.setup(prox=prox, x0=x0, tau=tau, niter=niter, tol=tol, show=show)
         x = self.run(x, niter, show=show, itershow=itershow)
         self.finalize(show)
-        return x, self.iiter, self.pfs
+        return x, self.iiter, self.cost
 
 
 class ProximalGradient(Solver):
@@ -580,8 +581,7 @@ class ProximalGradient(Solver):
 
         # create variables to track the objective function and iterations
         self.pfg, self.pfgold = np.inf, np.inf
-        self.pfs: list[float] = []
-        self.pfgs: list[float] = []
+        self.cost: list[float] = []
         self.tolbreak = False
         self.iiter = 0
 
@@ -679,7 +679,7 @@ class ProximalGradient(Solver):
         if show:
             self._print_step(x, pf, pg)
         if self.tol is not None or show:
-            self.pfgs.append(float(self.pfg))
+            self.cost.append(float(self.pfg))
         return x, y
 
     def run(
@@ -752,6 +752,7 @@ class ProximalGradient(Solver):
         """
         self.tend = time.time()
         self.telapsed = self.tend - self.tstart
+
         if show:
             self._print_finalize(nbar=81)
 
@@ -823,7 +824,7 @@ class ProximalGradient(Solver):
             Additional estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        pfgs : :obj:`numpy.ndarray`
+        cost : :obj:`list`
             History of the objective function
 
         """
@@ -845,7 +846,7 @@ class ProximalGradient(Solver):
 
         x, y = self.run(x, y, niter, show=show, itershow=itershow)
         self.finalize(show)
-        return x, y, self.iiter, self.pfgs
+        return x, y, self.iiter, self.cost
 
 
 class AndersonProximalGradient(Solver):
@@ -1023,10 +1024,8 @@ class AndersonProximalGradient(Solver):
 
         # create variables to track the objective function and iterations
         self.pf = self.proxf(x)
-        print("Initial pf: %10.3e" % self.pf)
         self.pfg, self.pfgold = np.inf, np.inf
-        self.pfs: list[float] = []
-        self.pfgs: list[float] = []
+        self.cost: list[float] = []
         self.tolbreak = False
         self.iiter = 0
 
@@ -1120,7 +1119,7 @@ class AndersonProximalGradient(Solver):
         if show:
             self._print_step(x, pg)
         if self.tol is not None or show:
-            self.pfgs.append(float(self.pfg))
+            self.cost.append(float(self.pfg))
         return x, y
 
     def run(
@@ -1193,6 +1192,7 @@ class AndersonProximalGradient(Solver):
         """
         self.tend = time.time()
         self.telapsed = self.tend - self.tstart
+
         if show:
             self._print_finalize(nbar=81)
 
@@ -1255,7 +1255,7 @@ class AndersonProximalGradient(Solver):
             Additional estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        pfgs : :obj:`numpy.ndarray`
+        cost : :obj:`list`
             History of the objective function
 
         """
@@ -1275,7 +1275,7 @@ class AndersonProximalGradient(Solver):
 
         x, y = self.run(x, y, niter, show=show, itershow=itershow)
         self.finalize(show)
-        return x, y, self.iiter, self.pfgs
+        return x, y, self.iiter, self.cost
 
 
 class GeneralizedProximalGradient(Solver):
@@ -1454,7 +1454,7 @@ class GeneralizedProximalGradient(Solver):
 
         # create variables to track the objective function and iterations
         self.pfg, self.pfgold = np.inf, np.inf
-        self.pfgs: list[float] = []
+        self.cost: list[float] = []
         self.tolbreak = False
         self.iiter = 0
 
@@ -1534,7 +1534,7 @@ class GeneralizedProximalGradient(Solver):
         if show:
             self._print_step(x, pf, pg)
         if self.tol is not None or show:
-            self.pfgs.append(float(self.pfg))
+            self.cost.append(float(self.pfg))
         return x, y
 
     def run(
@@ -1607,6 +1607,7 @@ class GeneralizedProximalGradient(Solver):
         """
         self.tend = time.time()
         self.telapsed = self.tend - self.tstart
+
         if show:
             self._print_finalize(nbar=65)
 
@@ -1668,7 +1669,7 @@ class GeneralizedProximalGradient(Solver):
             Additional estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        pfgs : :obj:`numpy.ndarray`
+        cost : :obj:`list`
             History of the objective function
 
         """
@@ -1688,4 +1689,374 @@ class GeneralizedProximalGradient(Solver):
 
         x, y = self.run(x, y, niter, show=show, itershow=itershow)
         self.finalize(show)
-        return x, y, self.iiter, self.pfgs
+        return x, y, self.iiter, self.cost
+
+
+class HQS(Solver):
+    r"""Half Quadratic splitting
+
+    Solves the following minimization problem using Half Quadratic splitting
+    algorithm:
+
+    .. math::
+
+        \mathbf{x},\mathbf{z}  = \argmin_{\mathbf{x},\mathbf{z}}
+        f(\mathbf{x}) + g(\mathbf{z}) \\
+        s.t. \; \mathbf{x}=\mathbf{z}
+
+    where :math:`f(\mathbf{x})` and :math:`g(\mathbf{z})` are any convex
+    function that has a known proximal operator.
+
+    Notes
+    -----
+    The HQS algorithm can be expressed by the following recursion [1]_:
+
+    .. math::
+
+        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{x}^{k}) \\
+        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{z}^{k+1})
+
+    for ``gfirst=False``, or
+
+    .. math::
+
+        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{z}^{k}) \\
+        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{x}^{k+1})
+
+    for ``gfirst=False``. Note that ``x`` and ``z`` converge to each other,
+    however if iterations are stopped too early ``x`` is guaranteed to belong to
+    the domain of ``f`` while ``z`` is guaranteed to belong to the domain of ``g``.
+    Depending on the problem either of the two may be the best solution.
+
+    .. [1] D., Geman, and C., Yang, "Nonlinear image recovery with halfquadratic
+         regularization", IEEE Transactions on Image Processing,
+         4, 7, pp. 932-946, 1995.
+
+    """
+
+    def _print_setup(self, tau_print: str, xcomplex: bool = False) -> None:
+        self._print_solver(nbar=65)
+
+        strpar = (
+            f"Proximal operator (f): {type(self.proxf).__name__}\n"
+            f"Proximal operator (g): {type(self.proxg).__name__}\n"
+        )
+        strpar1 = f"tau = {tau_print}\tniter = {self.niter}"
+        print(strpar)
+        print(strpar1)
+        print("-" * 65 + "\n")
+        if not xcomplex:
+            head1 = "    Itn           x[0]              f           g         J=f+g"
+        else:
+            head1 = (
+                "    Itn              x[0]                  f           g         J=f+g"
+            )
+        print(head1)
+
+    def _print_step(self, x: NDArray, pf: float | None, pg: float | None) -> None:
+        if self.tol is None:
+            pf, pg = self.proxf(x), self.proxg(x)
+            self.pfg = pf + pg
+        x0 = to_numpy(x[0]) if x.ndim == 1 else to_numpy(x[0, 0])
+        strx = f"{x0:1.2e}     " if np.iscomplexobj(x) else f"{x0:11.4e}      "
+        msg = (
+            f"{self.iiter:6g}        "
+            + strx
+            + f"{pf:10.3e}  {pg:10.3e}  {self.pfg:10.3e}"
+        )
+        print(msg)
+
+    def memory_usage(
+        self,
+        show: bool = False,
+        unit: Tmemunit = "B",
+    ) -> None:
+        pass
+
+    def setup(  # type: ignore[override]
+        self,
+        proxf: ProxOperator,
+        proxg: ProxOperator,
+        x0: NDArray,
+        tau: float | NDArray,
+        z0: NDArray | None = None,
+        niter: int = 10,
+        gfirst: bool = True,
+        tol: float | None = None,
+        show: bool = False,
+    ) -> tuple[NDArray, NDArray]:
+        r"""Setup solver
+
+        Parameters
+        ----------
+        proxf : :obj:`pyproximal.ProxOperator`
+            Proximal operator of f function
+        proxg : :obj:`pyproximal.ProxOperator`
+            Proximal operator of g function
+        x0 : :obj:`numpy.ndarray`
+            Initial vector (not required when ``gfirst=False``, can pass ``None``)
+        tau : :obj:`float` or :obj:`numpy.ndarray`
+            Positive scalar weight, which should satisfy the following condition
+            to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
+            the Lipschitz constant of :math:`\nabla f`. Finally note that
+            :math:`\tau` can be chosen to be a vector of size ``niter`` such that
+            different :math:`\tau` is used at different iterations (i.e., continuation
+            strategy)
+        z0 : :obj:`numpy.ndarray`, optional
+            Initial z vector (not required when ``gfirst=True``)
+        niter : :obj:`int`
+            Number of iterations of iterative scheme
+        gfirst : :obj:`bool`, optional
+            Apply Proximal of operator ``g`` first (``True``) or Proximal of
+            operator ``f`` first (``False``)
+        tol : :obj:`float`, optional
+            Tolerance on change of objective function (used as stopping criterion). If
+            ``tol=None``, run until ``niter`` is reached
+        show : :obj:`bool`, optional
+            Display iterations log
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Initial guess
+        z : :obj:`numpy.ndarray`
+            Initial guess for the auxiliary variable
+
+        Raises
+        ------
+        ValueError
+            If both ``x0`` and ``z0`` are set to ``None``
+
+        """
+        self.proxf = proxf
+        self.proxg = proxg
+        self.niter = niter
+        self.gfirst = gfirst
+        self.tol = tol
+
+        self.ncp = get_array_module(x0)
+
+        # check if tau is a vector
+        self.tau = self.ncp.asarray(tau, dtype=float)
+        if tau.size == 1:
+            tau_print = str(self.tau)
+            self.tau = self.tau * np.ones(niter)
+        else:
+            tau_print = "Variable"
+
+        # set initial vectors
+        x, z = _x0z0_init(x0, z0)
+
+        # for accelaration
+        self.t = 1.0
+
+        # create variables to track the objective function and iterations
+        self.pfg, self.pfgold = np.inf, np.inf
+        self.cost: list[float] = []
+        self.tolbreak = False
+        self.iiter = 0
+
+        # print setup
+        if show:
+            self._print_setup(tau_print, np.iscomplexobj(x0))
+        return x, z
+
+    def step(
+        self, x: NDArray, z: NDArray, show: bool = False
+    ) -> tuple[NDArray, NDArray]:
+        r"""Run one step of solver
+
+        Parameters
+        ----------
+        x : :obj:`numpy.ndarray`
+            Current model vector to be updated by a step of the
+            proximal gradient algorithm
+        z : :obj:`numpy.ndarray`
+            Additional model vector to be updated by a step of the
+            proximal gradient algorithm
+        show : :obj:`bool`, optional
+            Display iteration log
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Updated model vector
+        z : :obj:`numpy.ndarray`
+            Updated additional model vector
+
+        """
+        # proximal steps
+        if self.gfirst:
+            z = self.proxg.prox(x, self.tau[self.iiter])
+            x = self.proxf.prox(z, self.tau[self.iiter])
+        else:
+            x = self.proxf.prox(z, self.tau[self.iiter])
+            z = self.proxg.prox(x, self.tau[self.iiter])
+
+        # tolerance check: break iterations if overall
+        # objective does not decrease below tolerance
+        if self.tol is not None:
+            self.pfgold = self.pfg
+            pf = self.proxf(x)
+            pg = self.proxg(x)
+            self.pfg = pf + pg
+            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+                self.tolbreak = True
+        else:
+            pf, pg = 0.0, 0.0
+
+        self.iiter += 1
+        if show:
+            self._print_step(x, pf, pg)
+        if self.tol is not None or show:
+            self.cost.append(float(self.pfg))
+        return x, z
+
+    def run(
+        self,
+        x: NDArray,
+        z: NDArray,
+        niter: int | None = None,
+        show: bool = False,
+        itershow: tuple[int, int, int] = (10, 10, 10),
+    ) -> tuple[NDArray, NDArray]:
+        r"""Run solver
+
+        Parameters
+        ----------
+        x : :obj:`numpy.ndarray`
+            Current model vector to be updated by multiple steps of
+            the proximal gradient algorithm
+        z : :obj:`numpy.ndarray`
+            Additional model vector to be updated by multiple steps of
+            the proximal gradient algorithm
+        niter : :obj:`int`, optional
+            Number of iterations. Can be set to ``None`` if already
+            provided in the setup call
+        show : :obj:`bool`, optional
+            Display logs
+        itershow : :obj:`tuple`, optional
+            Display set log for the first N1 steps, last N2 steps,
+            and every N3 steps in between where N1, N2, N3 are the
+            three element of the list.
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Estimated model
+        z : :obj:`numpy.ndarray`
+            Additional estimated model
+
+        """
+        niter = self.niter if niter is None else niter
+        if niter is None:
+            msg = "`niter` must not be None"
+            raise ValueError(msg)
+        while self.iiter < niter and not self.tolbreak:
+            showstep = (
+                True
+                if show
+                and (
+                    self.iiter < itershow[0]
+                    or niter - self.iiter < itershow[1]
+                    or self.iiter % itershow[2] == 0
+                )
+                else False
+            )
+            x, z = self.step(x, z, showstep)
+            self.callback(x)
+            # check if any callback has raised a stop flag
+            stop = _callback_stop(self.callbacks)
+            if stop:
+                break
+        return x, z
+
+    def finalize(self, show: bool = False) -> None:
+        r"""Finalize solver
+
+        Parameters
+        ----------
+        show : :obj:`bool`, optional
+            Display finalize log
+
+        """
+        self.tend = time.time()
+        self.telapsed = self.tend - self.tstart
+
+        if show:
+            self._print_finalize(nbar=65)
+
+    def solve(  # type: ignore[override]
+        self,
+        proxf: ProxOperator,
+        proxg: ProxOperator,
+        x0: NDArray,
+        tau: float | NDArray,
+        z0: NDArray | None = None,
+        niter: int = 10,
+        gfirst: bool = True,
+        tol: float | None = None,
+        show: bool = False,
+        itershow: tuple[int, int, int] = (10, 10, 10),
+    ) -> tuple[NDArray, NDArray, int, NDArray]:
+        r"""Run entire solver
+
+        Parameters
+        ----------
+        proxf : :obj:`pyproximal.ProxOperator`
+            Proximal operator of f function
+        proxg : :obj:`pyproximal.ProxOperator`
+            Proximal operator of g function
+        x0 : :obj:`numpy.ndarray`
+            Initial vector (not required when ``gfirst=False``, can pass ``None``)
+        tau : :obj:`float` or :obj:`numpy.ndarray`
+            Positive scalar weight, which should satisfy the following condition
+            to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
+            the Lipschitz constant of :math:`\nabla f`. Finally note that
+            :math:`\tau` can be chosen to be a vector of size ``niter`` such that
+            different :math:`\tau` is used at different iterations (i.e., continuation
+            strategy)
+        z0 : :obj:`numpy.ndarray`, optional
+            Initial z vector (not required when ``gfirst=True``)
+        niter : :obj:`int`
+            Number of iterations of iterative scheme
+        gfirst : :obj:`bool`, optional
+            Apply Proximal of operator ``g`` first (``True``) or Proximal of
+            operator ``f`` first (``False``)
+        tol : :obj:`float`, optional
+            Tolerance on change of objective function (used as stopping
+            criterion). If ``tol=None``, run until ``niter`` is reached
+        show : :obj:`bool`, optional
+            Display logs
+        itershow : :obj:`tuple`, optional
+            Display set log for the first N1 steps, last N2 steps,
+            and every N3 steps in between where N1, N2, N3 are the
+            three element of the list.
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Estimated model
+        y : :obj:`numpy.ndarray`
+            Additional estimated model
+        iiter : :obj:`int`
+            Number of executed iterations
+        cost : :obj:`list`
+            History of the objective function
+
+        """
+        x, z = self.setup(
+            proxf=proxf,
+            proxg=proxg,
+            x0=x0,
+            tau=tau,
+            z0=z0,
+            niter=niter,
+            gfirst=gfirst,
+            tol=tol,
+            show=show,
+        )
+
+        x, z = self.run(x, z, niter, show=show, itershow=itershow)
+        self.finalize(show)
+        return x, z, self.iiter, self.cost

@@ -332,6 +332,7 @@ def ProximalGradient(
     if acceleration not in [None, "None", "vandenberghe", "fista"]:
         msg = "Acceleration should be None, vandenberghe or fista"
         raise NotImplementedError(msg)
+
     if show:
         tstart = time.time()
         print(
