@@ -1839,7 +1839,7 @@ class HQS(Solver):
 
         # check if tau is a vector
         self.tau = self.ncp.asarray(tau, dtype=float)
-        if tau.size == 1:
+        if self.tau.size == 1:
             tau_print = str(self.tau)
             self.tau = self.tau * np.ones(niter)
         else:
