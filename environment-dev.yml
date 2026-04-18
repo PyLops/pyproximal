@@ -23,7 +23,6 @@ dependencies:
     - bm4d
     - bm3d
     - pytest-runner
-    - setuptools_scm
     - pooch
     - shibuya
     - sphinx-design

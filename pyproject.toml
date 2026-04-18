@@ -1,10 +1,9 @@
 [build-system]
 requires = [
-    "setuptools >= 65",
-    "setuptools_scm[toml]",
-    "wheel",
+    "hatchling",
+    "hatch-vcs"
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
 
 [project]
 name = "pyproximal"
@@ -70,11 +69,21 @@ doc = [
     "image",
 ]
 
-[tool.setuptools.packages.find]
-exclude = ["pytests"]
+[project.urls]
+Homepage = "https://github.com/PyLops/pyproximal"
+Documentation = "https://pyproximal.readthedocs.io/en/stable"
+Discussions = "https://github.com/PyLops/pyproximal/discussions"
+Issues = "https://github.com/PyLops/pyproximal/issues"
 
-[tool.setuptools_scm]
-version_file = "pyproximal/version.py"
+[tool.hatch]
+version.source = "vcs"
+build.hooks.vcs.version-file = "pyproximal/version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pyproximal"]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/.github", "/testdata"]
 
 [tool.pytest.ini_options]
 addopts = "--verbose"

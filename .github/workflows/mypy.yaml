@@ -9,7 +9,9 @@ jobs:
     name: MyPy
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - name: Install uv with Python
         uses: astral-sh/setup-uv@v6
         with:
