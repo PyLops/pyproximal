@@ -4,6 +4,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 from pylops.basicoperators import Identity, MatrixMult
+from pylops.optimization.leastsquares import regularized_inversion
+from pylops.optimization.sparsity import fista, ista
 
 from pyproximal.optimization.primal import (
     ADMM,
@@ -15,11 +17,20 @@ from pyproximal.optimization.primal import (
     GeneralizedProximalGradient,
     LinearizedADMM,
     ProximalGradient,
+    ProximalPoint,
 )
-from pyproximal.proximal import L1, L2
+from pyproximal.proximal import L1, L2, Quadratic
 
 par1 = {"n": 8, "m": 10, "dtype": "float32"}  # float64
 par2 = {"n": 8, "m": 10, "dtype": "float64"}  # float32
+
+
+def test_ProximalGradient_unknown_acceleration():
+    """Check that an error is raised if an unknown acceleration
+    method is provided to ProximalGradient solver
+    """
+    with pytest.raises(NotImplementedError, match="Acceleration should "):
+        _ = ProximalGradient(proxf=L2(), proxg=L1(), x0=None, acceleration="unknown")
 
 
 def test_HQS_noinitial():
@@ -138,6 +149,85 @@ def test_GPG_weights(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
+def test_ProximalPoint(par):
+    """Check solution of ProximalPoint for quadratic function equals the solution of the
+    associated system of linear equations
+    """
+    np.random.seed(10)
+    m = par["m"]
+
+    # Random mixing matrix
+    A = np.random.normal(0.0, 1.0, (m, m))
+    A = A.T @ A
+
+    # Model and data
+    x = np.linspace(-5.0, 5.0, par["m"])
+    y = A @ x
+
+    # Proximal point algorithm with quadatic function
+    quad = Quadratic(Op=MatrixMult(A), b=-y, niter=2)
+    xpp = ProximalPoint(quad, x0=np.zeros_like(x), tau=0.1, niter=1000, tol=0)
+
+    assert_array_almost_equal(xpp, x, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_PG_ISTA(par):
+    """Check equivalency of ProximalGradient and ISTA/FISTA (PyLops)"""
+    np.random.seed(0)
+    n, m = par["n"], par["m"]
+
+    # Define sparse model
+    x = np.zeros(m)
+    x[2], x[4] = 1, 0.5
+
+    # Random mixing matrix
+    R = np.random.normal(0.0, 1.0, (n, m))
+    Rop = MatrixMult(R)
+
+    y = Rop @ x
+
+    # Step size
+    L = (Rop.H * Rop).eigs(1).real
+    tau = 0.99 / L
+
+    for solver, acceleration in zip(
+        [ista, fista],
+        [None, "fista"],
+        strict=True,
+    ):
+        # ISTA/FISTA
+        eps = 5e-1
+        xista = solver(
+            Rop,
+            y,
+            niter=100,
+            alpha=tau,
+            eps=eps,
+            tol=1e-8,
+            monitorres=False,
+            show=False,
+        )[0]
+
+        # PG
+        l2 = L2(Op=Rop, b=y)
+        l1 = L1()
+        epsg = eps * 0.5  # to compensate for 0.5 in ISTA: thresh = eps * alpha * 0.5
+        xpg = ProximalGradient(
+            l2,
+            l1,
+            x0=np.zeros(m),
+            tau=tau,
+            epsg=epsg,
+            acceleration=acceleration,
+            niter=100,
+            tol=1e-8,
+        )
+
+        assert_array_almost_equal(xpg, xista, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
 def test_PG_GPG(par):
     """Check equivalency of ProximalGradient and GeneralizedProximalGradient when using
     a single regularization term
@@ -186,6 +276,57 @@ def test_PG_GPG(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
+def test_HQS_ADMM_L2(par):
+    """Check that HQS/ADMM can be used to solved a pure L2-based objective function
+    (and compare with LSQR - note that despite the trajectory will be different,
+    they should converge to the same solution)
+    """
+    np.random.seed(0)
+    n, m = par["n"], par["m"]
+
+    # Define sparse model
+    x = np.random.normal(0.0, 1.0, m).astype(par["dtype"])
+
+    # Random mixing matrix
+    R = np.random.normal(0.0, 1.0, (n, m)).astype(par["dtype"])
+    Rop = MatrixMult(R, dtype=par["dtype"])
+
+    y = Rop @ x
+
+    # Step size
+    L = (Rop.H * Rop).eigs(1).real
+    tau = 0.99 / L
+    eps = 1e-1
+
+    # L2
+    Iop = Identity(m, dtype=par["dtype"])
+    xl2 = regularized_inversion(
+        Rop,
+        y,
+        Regs=[
+            Iop,
+        ],
+        epsRs=[
+            np.sqrt(eps),
+        ],
+        iter_lim=1000,
+    )[0]
+
+    # HQS
+    l2 = L2(Op=Rop, b=y, niter=10, warm=True)
+    l2reg = L2(sigma=eps)
+    xhqs = HQS(l2, l2reg, x0=np.zeros(m), tau=tau, niter=1000)[0]
+
+    # ADMM
+    l2 = L2(Op=Rop, b=y, niter=10, warm=True)
+    l2reg = L2(sigma=eps)
+    xadmm = ADMM(l2, l2reg, x0=np.zeros(m), tau=tau, niter=1000)[0]
+
+    assert_array_almost_equal(xl2, xhqs, decimal=2)
+    assert_array_almost_equal(xl2, xadmm, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
 def test_ADMM_DRS(par):
     """Check equivalency of ADMM and DouglasRachfordSplitting
     when using a single regularization term
@@ -210,20 +351,20 @@ def test_ADMM_DRS(par):
     # ADMM
     l2 = L2(Op=Rop, b=y, niter=10, warm=True)
     l1 = L1(sigma=5e-1)
-    xadmm, zadmm = ADMM(l2, l1, x0=np.zeros(m), tau=tau, niter=100, show=True)
+    xadmm, zadmm = ADMM(l2, l1, x0=np.zeros(m), tau=tau, niter=100)
 
     # DRS with g first
     l2 = L2(Op=Rop, b=y, niter=10, warm=True)
     l1 = L1(sigma=5e-1)
     xdrs_g, ydrs_g = DouglasRachfordSplitting(
-        l2, l1, x0=np.zeros(m), tau=tau, niter=100, show=True, gfirst=True
+        l2, l1, x0=np.zeros(m), tau=tau, niter=100, gfirst=True
     )
 
     # DRS with f first
     l2 = L2(Op=Rop, b=y, niter=10, warm=True)
     l1 = L1(sigma=5e-1)
     xdrs_f, ydrs_f = DouglasRachfordSplitting(
-        l2, l1, x0=np.zeros(m), tau=tau, niter=100, show=True, gfirst=False
+        l2, l1, x0=np.zeros(m), tau=tau, niter=100, gfirst=False
     )
 
     assert_array_almost_equal(xadmm, xdrs_g, decimal=2)
@@ -262,13 +403,11 @@ def test_PPXA_with_ADMM(par: dict[str, Any]) -> None:
         x0=np.zeros(m),
         tau=tau,
         niter=2000,  # niter=1500 makes this test fail for seeds 0 to 499
-        show=True,
     )
     xppxa = PPXA(
         [l2, l1],
         x0=np.zeros(m),
         tau=np.random.uniform(3 * tau, 5 * tau),
-        show=True,
     )
 
     assert_array_almost_equal(xppxa, xadmm, decimal=2)
@@ -312,13 +451,11 @@ def test_PPXA_with_GPG(par: dict[str, Any]) -> None:
         x0=np.zeros(m),
         tau=tau,
         niter=200,  # niter=150 makes this test fail for seeds 0 to 499
-        show=True,
     )
     xppxa = PPXA(
         [l2_1, l2_2, l1_1, l1_2],
         x0=np.zeros(m),
         tau=np.random.uniform(3 * tau, 5 * tau),
-        show=True,
     )
 
     assert_array_almost_equal(xppxa, xgpg, decimal=2)
@@ -356,13 +493,11 @@ def test_ConsensusADMM_with_ADMM(par: dict[str, Any]) -> None:
         x0=np.zeros(m),
         tau=tau,
         niter=2000,  # niter=1500 makes this test fail for seeds 0 to 499
-        show=True,
     )
     xcadmm = ConsensusADMM(
         [l2, l1],
         x0=np.random.normal(0.0, 1.0, m),  # x0=np.zeros(m),
         tau=np.random.uniform(3 * tau, 5 * tau),
-        show=True,
     )
 
     assert_array_almost_equal(xcadmm, xadmm, decimal=2)
@@ -416,7 +551,6 @@ def test_ConsensusADMM_with_ADMM_for_Lasso(par: dict[str, Any]) -> None:
         x0=np.random.normal(0.0, 1.0, m),  # x0=np.zeros(m),
         tau=np.random.uniform(3 * tau, 5 * tau),
         niter=20000,  # niter=15000 makes this test fail for seeds 0 to 499
-        show=True,
     )
 
     # 1/2 || [R1; R2; R3] ||_2^2 + ||x||_1
@@ -426,7 +560,6 @@ def test_ConsensusADMM_with_ADMM_for_Lasso(par: dict[str, Any]) -> None:
         x0=np.zeros(m),
         tau=tau,
         niter=15000,  # niter=10000 makes this test fail for seeds 0 to 499
-        show=True,
     )
 
     assert_array_almost_equal(xcadmm, xadmm, decimal=2)
@@ -471,13 +604,11 @@ def test_ConsensusADMM_with_GPG(par: dict[str, Any]) -> None:
         x0=np.zeros(m),
         tau=tau,
         niter=200,  # niter=150 makes this test fail for seeds 0 to 499
-        show=True,
     )
     xppxa = ConsensusADMM(
         [l2_1, l2_2, l1_1, l1_2],
         x0=np.zeros(m),
         tau=np.random.uniform(3 * tau, 5 * tau),
-        show=True,
     )
 
     assert_array_almost_equal(xppxa, xgpg, decimal=2)
