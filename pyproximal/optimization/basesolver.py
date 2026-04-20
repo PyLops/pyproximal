@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from pylops.optimization.basesolver import Solver as pSolver
 from pylops.optimization.callback import Callbacks
+from pylops.utils.typing import NDArray
 
 if TYPE_CHECKING:
     from pyproximal.ProxOperator import ProxOperator
@@ -131,6 +132,64 @@ class Solver(pSolver, metaclass=ABCMeta):  # type: ignore[misc]
             Proximal operator for the regularization term (if None, no regularization is used)
         show : :obj:`bool`, optional
             Display finalize log
+
+        """
+        pass
+
+    def finalize(self, nbar: int = 60, show: bool = False) -> None:
+        r"""Finalize solver
+
+        Parameters
+        ----------
+        nbar : :obj:`int`, optional
+            Number of ``-`` in the bar dividing iterations
+            from finalize messages in the print message of
+            the solver
+        show : :obj:`bool`, optional
+            Display finalize log
+
+        """
+        self.tend = time.time()
+        self.telapsed = self.tend - self.tstart
+
+        if show:
+            self._print_finalize(nbar=nbar)
+
+    def callback(  # noqa: B027
+        self,
+        x: NDArray,
+        z: NDArray | None = None,
+        *args,
+        **kwargs,
+    ) -> None:
+        """Callback routine
+
+        This routine must be passed by the user. Its function signature must contain
+        either a single input that contains the current solution or two inputs
+        that contain the current solutions for methods that apply splitting
+        (when using the `solve` method it will be automatically invoked after
+        each step of the solve)
+
+        Parameters
+        ----------
+        x : :obj:`numpy.ndarray`
+            Current solution
+        z : :obj:`numpy.ndarray`
+            Current additional solution
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pyproximal.optimization.cls_primal import ADMM
+        >>> def callback(x, z):
+        ...     print(f"Running callback, current solutions {x} - {z}")
+        ...
+        >>> admmsolve.callback = callback
+
+        >>> x = np.ones(2)
+        >>> z = np.zeros(2)
+        >>> admmsolve.callback(x, z)
+        Running callback, current solutions [1. 1.] - [0. 0.]
 
         """
         pass
