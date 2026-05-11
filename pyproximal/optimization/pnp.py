@@ -15,7 +15,8 @@ class _Denoise(ProxOperator):
     denoiser : :obj:`func`
         Denoiser (must be a function with two inputs, the first is the signal
         to be denoised, the second is the `tau` constant of the y-update in
-        the PnP optimization)
+        the PnP optimization, which should be interpreted as the strenght of
+        the denoiser)
     dims : :obj:`tuple`
         Dimensions used to reshape the vector ``x`` in the ``prox`` method
         prior to calling the ``denoiser``

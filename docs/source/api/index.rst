@@ -100,6 +100,7 @@ Non-Convex
     Log1
     QuadraticEnvelopeCard
     QuadraticEnvelopeCardIndicator
+    RED
     RelaxedMumfordShah
     SCAD
 

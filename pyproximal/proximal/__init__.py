@@ -43,6 +43,7 @@ The subpackage proximal contains a number of proximal operators:
     HalfSpace                       Half space indicator
     GenericIntersectionProx         Indicator of projection onto a union of given sets
     Sum                             Proximal operator of the sum of proximable functions
+    RED                             Regularization by Denoising
 """
 
 from .Box import *
@@ -73,6 +74,7 @@ from .Hankel import *
 from .HalfSpace import *
 from .GenericIntersection import *
 from .Sum import *
+from .RED import *
 
 
 __all__ = [
@@ -115,4 +117,5 @@ __all__ = [
     "HalfSpace",
     "GenericIntersectionProx",
     "Sum",
+    "RED",
 ]
