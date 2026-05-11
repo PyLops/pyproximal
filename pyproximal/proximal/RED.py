@@ -51,8 +51,8 @@ class RED(ProxOperator):
         Denoiser (must be a function with one input corresponding to
         the signal to be denoised)
     dims : :obj:`tuple`
-        Dimensions used to reshape the vector ``x`` in the ``prox`` method
-        prior to calling the ``denoiser``
+        Dimensions used to reshape the vector ``x`` in the ``denoiser``
+        method prior to applying the denoiser
     sigma : :obj:`float`, optional
         Multiplicative coefficient of RED term
     sigmad : :obj:`float` or :obj:`numpy.ndarray` or :obj:`func`, optional
