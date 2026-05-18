@@ -100,6 +100,7 @@ Non-Convex
     Log1
     QuadraticEnvelopeCard
     QuadraticEnvelopeCardIndicator
+    RED
     RelaxedMumfordShah
     SCAD
 
@@ -148,7 +149,6 @@ Utility functions
     gradtest_bilinear
 
 
-
 Solvers
 -------
 
@@ -188,6 +188,13 @@ Primal
    :toctree: generated/
 
     PlugAndPlay
+
+.. currentmodule:: pyproximal.optimization.red
+
+.. autosummary::
+   :toctree: generated/
+
+    RED
 
 .. currentmodule:: pyproximal.optimization.sr3
 

@@ -18,9 +18,8 @@ operators:
     ADMML2                          ADMM with L2 misfit term
     LinearizedADMM                  Linearized ADMM
     TwIST                           Two-step Iterative Shrinkage/Threshold
-    PlugAndPlay                     Plug-and-Play Prior with ADMM
     DouglasRachfordSplitting        Douglas-Rachford algorithm
-    PPXA                            Parallel Proximal Algorithm
+    PPXA                            Parallel Proximal algorithm
     ConsensusADMM                   Consensus problem with ADMM
 
 A list of solvers in ``pyproximal.optimization.proximaldual`` using both proximal
@@ -34,7 +33,13 @@ with any of the above solvers to solve each subproblem in its inner loop)
 
     Bregman                         Bregman iterations
 
-Additional solvers are in ``pyproximal.optimization.sr3`` amd
+Similarly, solvers leveraging denoisers are in ``pyproximal.optimization.pnp`` and
+``pyproximal.optimization.red``:
+
+    PlugAndPlay                     Plug-and-Play Prior algorithm
+    RED                             Regularization by Denoising algorithm
+
+Additional solvers are in ``pyproximal.optimization.sr3`` and
 ``pyproximal.optimization.palm``:
 
     SR3                             Sparse Relaxed Regularized algorithm
@@ -48,4 +53,4 @@ on a special use of the Primal-Dual algorithm:
 
 """
 
-from . import primal, primaldual, bregman, segmentation, sr3, palm, pnp
+from . import primal, primaldual, bregman, segmentation, sr3, palm, pnp, red
