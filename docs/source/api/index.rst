@@ -149,7 +149,6 @@ Utility functions
     gradtest_bilinear
 
 
-
 Solvers
 -------
 
@@ -189,6 +188,13 @@ Primal
    :toctree: generated/
 
     PlugAndPlay
+
+.. currentmodule:: pyproximal.optimization.red
+
+.. autosummary::
+   :toctree: generated/
+
+    RED
 
 .. currentmodule:: pyproximal.optimization.sr3
 
