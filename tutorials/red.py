@@ -46,7 +46,7 @@ set_ndarray_multiplication(False)
 ###############################################################################
 # We start by loading the famous Shepp logan phantom and creating the
 # modelling operator
-x = np.load("../../pyproximal/testdata/shepp_logan_phantom.npy")
+x = np.load("../testdata/shepp_logan_phantom.npy")
 x = x / x.max()
 ny, nx = x.shape
 
