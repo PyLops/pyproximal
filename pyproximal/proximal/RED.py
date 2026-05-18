@@ -41,7 +41,7 @@ class _Denoise:
 class RED(ProxOperator):
     r"""Regularization by Denoising (RED)
 
-    Regularization by Denoising loss:
+    Regularization by Denoising loss [1]_:
     :math:`RED(\mathbf{x}) = \sigma\mathbf{x}^T (\mathbf{x} -
     f_{\sigma_d}(\mathbf{x}))`
 
@@ -55,7 +55,7 @@ class RED(ProxOperator):
         method prior to applying the denoiser
     sigma : :obj:`float`, optional
         Multiplicative coefficient of RED term
-    sigmad : :obj:`float` or :obj:`numpy.ndarray` or :obj:`func`, optional
+    sigmad : :obj:`float` or :obj:`func`, optional
         Strenght of the denoiser. This can be a constant number or a function
         that is called passing a counter which keeps track of how many
         times the ``grad`` or ``prox`` methods has been invoked before and
