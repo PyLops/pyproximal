@@ -36,7 +36,6 @@ import numpy as np
 import pylops
 from pylops.config import set_ndarray_multiplication
 from pylops.utils.metrics import snr
-from scipy.sparse.linalg import lsqr
 
 import pyproximal
 
@@ -44,37 +43,10 @@ plt.close("all")
 np.random.seed(0)
 set_ndarray_multiplication(False)
 
-
-###############################################################################
-# Let's first write a simple gradient descent solver and a fixed-point solver
-def GradientDescent(f, g, x0, xtrue, alpha=1.0, niter=100):
-    x = x0.copy()
-    errhist = []
-    for _ in range(niter):
-        grad = f.grad(x).real + g.grad(x)
-        x -= alpha * grad
-        errhist.append(np.linalg.norm(x - xtrue))
-    return x, errhist
-
-
-def FixedPoint(Op, y, denoiser, x0, xtrue, sigma, sigmad, niter=100, niter_inner=10):
-    x = x0.copy()
-    yy = Op.H @ y
-    sigmad = sigmad * np.ones(niter) if isinstance(sigmad, float) else sigmad
-    errhist = []
-    for i in range(niter):
-        xden = denoiser(x, sigmad(i))
-        Op1 = Op1 = sigma * pylops.Identity(Op.shape[1], dtype=Op.dtype) + Op.H * Op
-        y1 = yy + sigma * xden
-        x = x = lsqr(Op1, y1, iter_lim=niter_inner, x0=x)[0]
-        errhist.append(np.linalg.norm(x - xtrue))
-    return x, errhist
-
-
 ###############################################################################
 # We start by loading the famous Shepp logan phantom and creating the
 # modelling operator
-x = np.load("../testdata/shepp_logan_phantom.npy")
+x = np.load("../../pyproximal/testdata/shepp_logan_phantom.npy")
 x = x / x.max()
 ny, nx = x.shape
 
@@ -83,6 +55,7 @@ nxsub = int(np.round(ny * nx * perc_subsampling))
 iava = np.sort(np.random.permutation(np.arange(ny * nx))[:nxsub])
 Rop = pylops.Restriction(ny * nx, iava, dtype=np.complex128)
 Fop = pylops.signalprocessing.FFT2D(dims=(ny, nx))
+Op = Rop * Fop
 
 ###############################################################################
 # We now create and display the data alongside the model
@@ -112,6 +85,10 @@ plt.tight_layout()
 # the gradient descent solver that we wrote at the start
 
 
+def callback(x, xtrue, errhist):
+    errhist.append(np.linalg.norm(x - xtrue))
+
+
 def sigmad(iiter):
     return 0.1 * 0.99**iiter
 
@@ -121,28 +98,25 @@ denoiser = lambda x, sigma: bm3d.bm3d(
     np.real(x), sigma_psd=sigma, stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING
 )
 
-l2 = pyproximal.proximal.L2(Op=Rop * Fop, b=y.ravel())
+l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel())
 red = pyproximal.proximal.RED(denoiser, x.shape, sigma=0.4, sigmad=sigmad, call=False)
 
-xredgd, errhistgd = GradientDescent(
+errhistgd = []
+xredgd = pyproximal.optimization.red.RED(
     l2,
     red,
     x0=np.zeros(x.size),
-    xtrue=x.ravel(),
+    solver="gradientdescent",
     alpha=0.5,
     niter=50,
+    callback=lambda xx: callback(xx, x.ravel(), errhistgd),
+    show=True,
 )
 xredgd = np.real(xredgd.reshape(x.shape))
 
-###############################################################################
+################################################################################
 # And now we use the ADMM solver
 
-
-def callback(x, xtrue, errhist):
-    errhist.append(np.linalg.norm(x - xtrue))
-
-
-Op = Rop * Fop
 L = np.real((Op.H * Op).eigs(neigs=1, which="LM")[0])
 tau = 1.0 / L
 
@@ -158,11 +132,12 @@ red = pyproximal.proximal.RED(
 )
 
 errhistadmm = []
-xredadmm = pyproximal.optimization.pnp.ADMM(
+xredadmm = pyproximal.optimization.red.RED(
     l2,
     red,
-    tau=1.0,
     x0=np.zeros(x.size),
+    solver=pyproximal.optimization.primal.ADMM,
+    tau=tau,
     niter=50,
     show=True,
     callback=lambda xx: callback(xx, x.ravel(), errhistadmm),
@@ -174,21 +149,26 @@ xredadmm = np.real(xredadmm.reshape(x.shape))
 
 # BM3D
 xshape = x.shape
-den = lambda x, sigma: bm3d.bm3d(
+denoiser = lambda x, sigma: bm3d.bm3d(
     x.real.reshape(xshape), sigma_psd=sigma, stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING
 ).ravel()
 
 # FP-RED
-xredfp, errhistfp = FixedPoint(
-    Rop * Fop,
-    y.ravel(),
-    den,
+l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel())
+red = pyproximal.proximal.RED(
+    denoiser, x.shape, sigma=0.4, sigmad=sigmad, niter=5, warm=True, call=False
+)
+
+errhistfp = []
+xredfp = pyproximal.optimization.red.RED(
+    l2,
+    red,
     x0=np.zeros(x.size),
-    xtrue=x.ravel(),
-    sigma=0.4,
-    sigmad=sigmad,
+    solver="fixedpoint",
     niter=50,
     niter_inner=10,
+    callback=lambda xx: callback(xx, x.ravel(), errhistfp),
+    show=True,
 )
 xredfp = np.real(xredfp.reshape(x.shape))
 
