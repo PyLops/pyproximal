@@ -159,8 +159,8 @@ class Solver(pSolver, metaclass=ABCMeta):  # type: ignore[misc]
         self,
         x: NDArray,
         z: NDArray | None = None,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         """Callback routine
 
