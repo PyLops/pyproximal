@@ -107,32 +107,36 @@ This repository is organized as follows:
 ## Getting started
 You need **Python 3.10 or greater**.
 
-#### From Conda
-
-To get the most out of PyLops straight out of the box, we recommend `conda` to install PyLops:
-```bash
-conda install -c conda-forge pyproximal
-```
-
 #### From PyPI
-You can also install pyproximal with `pip`:
-```bash
-pip install pyproximal
-```
-or via `uv`:
+To get the most out of PyProximal straight out of the box, we recommend using
+the PyPI distribution via `uv`:
+
 ```bash
 uv pip install pyproximal
 ```
 
-#### From Github
-Finally, you can also directly install from the main branch (although this is not recommended):
+or directly via `pip`:
 
+```bash
+pip install pyproximal
 ```
-pip install git+https://git@github.com/PyLops/pyproximal.git@main
+
+#### From Conda
+You can also install PyProximal via `conda`:
+
+```bash
+conda install -c conda-forge pyproximal
 ```
-or via `uv`:
+
+#### From Github
+Finally, you can also directly install from the main branch (although this is not recommended) via `uv`:
+
 ```bash
 uv add git+https://github.com/PyLops/pyproximal.git --branch main
+```
+or via `pip`:
+```bash
+pip install git+https://git@github.com/PyLops/pyproximal.git@main
 ```
 
 ## Contributing
@@ -150,8 +154,8 @@ Execute the following command in your terminal:
 git clone https://github.com/your_name_here/pyproximal.git
 ```
 
-### 2. Install PyLops in a new Conda environment
-To ensure that further development of PyLops is performed within the same environment (i.e.,
+### 2. Install PyProximal in a new Conda environment
+To ensure that further development of PyProximal is performed within the same environment (i.e.,
 same dependencies) as that defined by ``environment-dev.yml``/``environment-dev-arm.yml`` files,
 we suggest to work off a new Conda enviroment.
 

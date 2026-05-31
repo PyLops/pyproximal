@@ -82,6 +82,9 @@ def Segment(
     :math:`\mathbf{\sigma}=[\sigma_1, ..., \sigma_{N_{cl}}]^T` are vectors
     representing the optimal mean and standard deviations for each class.
 
+    References
+    ----------
+
     .. [1] Chambolle, and A., Pock, "A first-order primal-dual algorithm for
         convex problems with applications to imaging", Journal of Mathematical
         Imaging and Vision, 40, 8pp. 120–145. 2011.

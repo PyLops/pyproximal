@@ -10,8 +10,10 @@ jobs:
     name: Lint
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
-      - name: ruff Lint
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Lint with ruff
         uses: astral-sh/ruff-action@v3
         with:
            src: "./pyproximal"

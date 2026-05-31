@@ -4,7 +4,7 @@ UV := $(shell command -v uv 2> /dev/null || command which uv 2> /dev/null)
 NOX := $(shell command -v nox 2> /dev/null || command which nox 2> /dev/null)
 
 .PHONY: install_conda dev-install_conda dev-install_conda_arm dev-install_uv
-.PHONY: tests tests_uv tests_nox doc doc_uv docupdate docupdate_uv servedoc
+.PHONY: tests tests_uv tests_nox doc doc_uv docupdate docupdate_uv servedoc servedoc_uv
 .PHONY: lint lint_uv typeannot typeannot_uv coverage coverage_uv
 
 pipcheck:
@@ -57,7 +57,7 @@ tests_nox:
 	$(NOX) -s tests
 
 doc:
-	cd docs  && rm -rf source/api/generated && rm -rf source/gallery &&\
+	cd docs && rm -rf source/api/generated && rm -rf source/gallery &&\
 	rm -rf source/tutorials && rm -rf source/examples &&\
 	rm -rf build && make html && cd ..
 
@@ -68,6 +68,7 @@ doc_uv:
 	rm -rf build && $(UV) run make html && cd ..
 
 docupdate:
+	make pythoncheck
 	cd docs && make html && cd ..
 
 docupdate_uv:

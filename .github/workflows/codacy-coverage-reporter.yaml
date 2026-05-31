@@ -9,41 +9,28 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        platform: [ubuntu-latest]
-        python-version: ["3.11"]
-
-    runs-on: ${{ matrix.platform }}
-
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Get history and tags for SCM versioning to work
-        run: |
-          git fetch --prune --unshallow
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-
-      - name: Install uv with Python ${{ matrix.python-version }}
+      - name: Check out source repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install uv with Python
         uses: astral-sh/setup-uv@v6
         with:
-          python-version: ${{ matrix.python-version }}
-
+          python-version: "3.11"
       - name: Install dependencies and pyproximal
         run: uv sync --locked --all-extras --all-groups
-
       - name: Coverage with pytest
         run: |
           uv run coverage run -m pytest
           uv run coverage xml
           uv run coverage html
-
       - name: Upload HTML coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-html
           path: htmlcov/
-
       - name: Run codacy-coverage-reporter
         if: github.event_name == 'push'
         uses: codacy/codacy-coverage-reporter-action@v1
