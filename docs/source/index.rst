@@ -117,6 +117,7 @@ subclassing the :py:class:`pyproximal.ProxOperator` class and by implementing
    :caption: Getting involved:
 
    adding.rst
+   addingsolver.rst
    contributing.rst
    changelog.rst
    credits.rst
