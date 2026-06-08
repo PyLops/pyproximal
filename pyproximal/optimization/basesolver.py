@@ -6,9 +6,12 @@ import time
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Any
 
+import numpy as np
 from pylops.optimization.basesolver import Solver as pSolver
 from pylops.optimization.callback import Callbacks
 from pylops.utils.typing import NDArray
+
+from pyproximal.utils.typing import Tmemunit
 
 if TYPE_CHECKING:
     from pyproximal.ProxOperator import ProxOperator
@@ -84,6 +87,17 @@ class Solver(pSolver, metaclass=ABCMeta):  # type: ignore[misc]
         )
         print("-" * nbar + "\n")
 
+    def memory_usage(
+        self,
+        show: bool = False,
+        unit: Tmemunit = "B",
+    ) -> float:
+        """Compute memory usage of the solver
+
+        Currently not implemented in PyProximal and therefore just overwritten here.
+        """
+        pass
+
     @abstractmethod
     def setup(
         self,
@@ -92,7 +106,7 @@ class Solver(pSolver, metaclass=ABCMeta):  # type: ignore[misc]
         *args: Any,
         show: bool = False,
         **kwargs: Any,
-    ) -> None:
+    ) -> NDArray | tuple[NDArray, NDArray]:
         """Setup solver
 
         This method is used to setup the solver. Users can change the function signature
@@ -151,7 +165,7 @@ class Solver(pSolver, metaclass=ABCMeta):  # type: ignore[misc]
         """
         self.tend = time.time()
         self.telapsed = self.tend - self.tstart
-
+        self.cost = np.array(self.cost)
         if show:
             self._print_finalize(nbar=nbar)
 
