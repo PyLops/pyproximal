@@ -18,11 +18,13 @@ from pyproximal.optimization.primal import (
     LinearizedADMM,
     ProximalGradient,
     ProximalPoint,
+    TwIST,
 )
 from pyproximal.proximal import L1, L2, Quadratic
 
-par1 = {"n": 8, "m": 10, "dtype": "float32"}  # float64
-par2 = {"n": 8, "m": 10, "dtype": "float64"}  # float32
+par1 = {"n": 10, "m": 10, "dtype": "float64"}  # square, float64
+par2 = {"n": 8, "m": 10, "dtype": "float64"}  # underdetermined, float64
+par3 = {"n": 8, "m": 10, "dtype": "float32"}  # underdetermined, float32
 
 
 def test_ProximalGradient_unknown_acceleration():
@@ -63,7 +65,7 @@ def test_ADMM_noinitial():
 
 def test_ADMML2_noinitial():
     """Check that an error is raised if no initial value
-    is provided to PrimalDual solver
+    is provided to ADMML2 solver
     """
     with pytest.raises(ValueError, match="Both x0 or"):
         # Both None
@@ -117,7 +119,7 @@ def test_LinearizedADMM_noinitial():
         )
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
 def test_GPG_weights(par):
     """Check GPG raises error if weight is not summing to 1"""
     with pytest.raises(ValueError, match="must be an array of size"):
@@ -148,7 +150,7 @@ def test_GPG_weights(par):
         )
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
 def test_ProximalPoint(par):
     """Check solution of ProximalPoint for quadratic function equals the solution of the
     associated system of linear equations
@@ -171,7 +173,7 @@ def test_ProximalPoint(par):
     assert_array_almost_equal(xpp, x, decimal=2)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
 def test_PG_ISTA(par):
     """Check equivalency of ProximalGradient and ISTA/FISTA (PyLops)"""
     np.random.seed(0)
@@ -227,7 +229,7 @@ def test_PG_ISTA(par):
         assert_array_almost_equal(xpg, xista, decimal=2)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
 def test_PG_GPG(par):
     """Check equivalency of ProximalGradient and GeneralizedProximalGradient when using
     a single regularization term
@@ -275,9 +277,55 @@ def test_PG_GPG(par):
     assert_array_almost_equal(xpg, xgpg, decimal=2)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
+def test_PG_TwiST(par):
+    """Check that PG/TwiST can be used to solve a sparsity regularized objective function
+    (note that despite the trajectory will be different, they should converge to the
+    same solution)
+    """
+    np.random.seed(0)
+    n, m = par["n"], par["m"]
+
+    # Define sparse model
+    x = np.zeros(m)
+    x[2], x[4] = 1, 0.5
+
+    # Random mixing matrix
+    R = np.random.normal(0.0, 1.0, (n, m))
+    Rop = MatrixMult(R)
+
+    y = Rop @ x
+
+    # Step size
+    L = (Rop.H * Rop).eigs(1).real
+    tau = 0.99 / L
+
+    # PG
+    l2 = L2(Op=Rop, b=y, niter=10, warm=True)
+    l1 = L1(sigma=5e-1)
+    xpg = ProximalGradient(
+        l2, l1, x0=np.zeros(m), tau=tau, niter=100, acceleration="fista"
+    )
+
+    # TwiST
+    l1 = L1(sigma=5e-1)
+    eigs = np.linalg.eig(R.T @ R)[0]
+    eigs = (np.abs(eigs[0]), max(1e-1, np.abs(eigs[-1])))
+    xtwist = TwIST(
+        l1,
+        Rop,
+        y,
+        x0=np.zeros(m),
+        eigs=eigs,
+        niter=100,
+    )
+
+    assert_array_almost_equal(xpg, xtwist, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
 def test_HQS_ADMM_L2(par):
-    """Check that HQS/ADMM can be used to solved a pure L2-based objective function
+    """Check that HQS/ADMM can be used to solve a pure L2-based objective function
     (and compare with LSQR - note that despite the trajectory will be different,
     they should converge to the same solution)
     """
@@ -326,7 +374,85 @@ def test_HQS_ADMM_L2(par):
     assert_array_almost_equal(xl2, xadmm, decimal=2)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
+def test_ADMM_ADMML2(par):
+    """Check equivalency of ADMM and ADMML2
+    when the f function is a L2 term
+    """
+    np.random.seed(0)
+    n, m = par["n"], par["m"]
+
+    # Define sparse model
+    x = np.random.normal(0.0, 1.0, m).astype(par["dtype"])
+
+    # Random mixing matrix
+    R = np.random.normal(0.0, 1.0, (n, m)).astype(par["dtype"])
+    Rop = MatrixMult(R, dtype=par["dtype"])
+
+    y = Rop @ x
+
+    # Step size
+    Aop = Identity(m)
+    L = 1.0  # Lipshitz constant of Aop
+    tau = 0.99 / L
+    eps = 1e-1
+
+    # ADMM
+    l2 = L2(Op=Rop, b=y, niter=10, warm=True)
+    l2reg = L2(sigma=eps)
+    xadmm = ADMM(l2, l2reg, x0=np.zeros(m), tau=tau, niter=100)[0]
+
+    # ADMML2
+    l2reg = L2(sigma=eps)
+    xadmml2 = ADMML2(
+        l2reg, Rop, y, Aop, x0=np.zeros(m), tau=tau, niter=100, iter_lim=10
+    )[0]
+
+    assert_array_almost_equal(xadmm, xadmml2, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
+def test_ADMM_LinearizedADMM(par):
+    """Check equivalency of ADMM and LinearizedADMM
+    when the f function is a L2 term
+    """
+    np.random.seed(0)
+    n, m = par["n"], par["m"]
+
+    # Define sparse model
+    x = np.random.normal(0.0, 1.0, m).astype(par["dtype"])
+
+    # Random mixing matrix
+    R = np.random.normal(0.0, 1.0, (n, m)).astype(par["dtype"])
+    Rop = MatrixMult(R, dtype=par["dtype"])
+
+    y = Rop @ x
+
+    # Step size
+    Aop = Identity(m)
+    L = 1.0  # Lipshitz constant of Aop
+    tau = 0.99 / L
+    mu = 0.99 / L  # optimal mu<=tau/maxeig(Dop^H Dop)
+
+    eps = 1e-1
+
+    # ADMM
+    l2 = L2(Op=Rop, b=y, niter=10, warm=True)
+    l2reg = L2(sigma=eps)
+    xadmm = ADMM(l2, l2reg, x0=np.zeros(m), tau=tau, niter=100)[0]
+
+    # LinearizedADMM
+    l2 = L2(Op=Rop, b=y, niter=10, warm=True)
+    l2reg = L2(sigma=eps)
+    Aop = Identity(m)
+    xladmm = LinearizedADMM(l2, l2reg, Aop, x0=np.zeros(m), tau=tau, mu=mu, niter=100)[
+        0
+    ]
+
+    assert_array_almost_equal(xadmm, xladmm, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
 def test_ADMM_DRS(par):
     """Check equivalency of ADMM and DouglasRachfordSplitting
     when using a single regularization term
@@ -371,7 +497,7 @@ def test_ADMM_DRS(par):
     assert_array_almost_equal(xadmm, xdrs_f, decimal=2)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
 def test_PPXA_with_ADMM(par: dict[str, Any]) -> None:
     """Check equivalency of PPXA and ADMM
     when using a single regularization term
@@ -413,7 +539,7 @@ def test_PPXA_with_ADMM(par: dict[str, Any]) -> None:
     assert_array_almost_equal(xppxa, xadmm, decimal=2)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
 def test_PPXA_with_GPG(par: dict[str, Any]) -> None:
     """Check equivalency of PPXA and GeneralizedProximalGradient"""
     np.random.seed(0)
@@ -461,7 +587,7 @@ def test_PPXA_with_GPG(par: dict[str, Any]) -> None:
     assert_array_almost_equal(xppxa, xgpg, decimal=2)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
 def test_ConsensusADMM_with_ADMM(par: dict[str, Any]) -> None:
     """Check equivalency of ConsensusADMM and ADMM
     when two proximable functions
@@ -503,7 +629,7 @@ def test_ConsensusADMM_with_ADMM(par: dict[str, Any]) -> None:
     assert_array_almost_equal(xcadmm, xadmm, decimal=2)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
 def test_ConsensusADMM_with_ADMM_for_Lasso(par: dict[str, Any]) -> None:
     """Check equivalency of ConsensusADMM and ADMM
     when more than two proximable functions for lasso
@@ -565,7 +691,7 @@ def test_ConsensusADMM_with_ADMM_for_Lasso(par: dict[str, Any]) -> None:
     assert_array_almost_equal(xcadmm, xadmm, decimal=2)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
 def test_ConsensusADMM_with_GPG(par: dict[str, Any]) -> None:
     """Check equivalency of ConsensusADMM and GeneralizedProximalGradient"""
 
