@@ -1,20 +1,30 @@
 __all__ = [
     "ProximalPoint",
+    "ProximalGradient",
+    "AndersonProximalGradient",
+    "GeneralizedProximalGradient",
+    "HQS",
+    "ADMM",
+    "ADMML2",
+    "LinearizedADMM",
+    "TwIST",
 ]
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Optional, cast
+from math import sqrt
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 import numpy as np
 import pylops
 from pylops.optimization.callback import Callbacks
+from pylops.optimization.leastsquares import regularized_inversion
 from pylops.utils.backend import get_array_module, to_numpy
 from pylops.utils.typing import NDArray
 
 from pyproximal.optimization.basesolver import Solver
+from pyproximal.proximal import L2
 from pyproximal.ProxOperator import ProxOperator
 from pyproximal.utils.bilinear import BilinearOperator
-from pyproximal.utils.typing import Tmemunit
 
 if TYPE_CHECKING:
     from pylops.linearoperator import LinearOperator
@@ -166,13 +176,6 @@ class ProximalPoint(Solver):
         strx = f"{x[0]:1.2e}        " if np.iscomplexobj(x) else f"{x[0]:11.4e}        "
         msg = f"{self.iiter:6g}        " + strx + f"{self.pf:11.4e}"
         print(msg)
-
-    def memory_usage(
-        self,
-        show: bool = False,
-        unit: Tmemunit = "B",
-    ) -> None:
-        pass
 
     def setup(  # type: ignore[override]
         self,
@@ -453,13 +456,6 @@ class ProximalGradient(Solver):
             + f"{pf:10.3e}  {pg:10.3e}  {self.pfg:10.3e}  {self.tau:11.2e}"
         )
         print(msg)
-
-    def memory_usage(
-        self,
-        show: bool = False,
-        unit: Tmemunit = "B",
-    ) -> None:
-        pass
 
     def setup(  # type: ignore[override]
         self,
@@ -897,13 +893,6 @@ class AndersonProximalGradient(Solver):
         )
         print(msg)
 
-    def memory_usage(
-        self,
-        show: bool = False,
-        unit: Tmemunit = "B",
-    ) -> None:
-        pass
-
     def setup(  # type: ignore[override]
         self,
         proxf: ProxOperator,
@@ -1013,10 +1002,10 @@ class AndersonProximalGradient(Solver):
         ----------
         x : :obj:`numpy.ndarray`
             Current model vector to be updated by a step of the
-            proximal gradient algorithm
+            Andersonproximal gradient algorithm
         y : :obj:`numpy.ndarray`
             Additional model vector to be updated by a step of the
-            proximal gradient algorithm
+            Anderson proximal gradient algorithm
         show : :obj:`bool`, optional
             Display iteration log
 
@@ -1109,7 +1098,7 @@ class AndersonProximalGradient(Solver):
             the Anderson proximal gradient algorithm
         y : :obj:`numpy.ndarray`
             Additional model vector to be updated by multiple steps of
-            the proximal gradient algorithm
+            the Anderson proximal gradient algorithm
         niter : :obj:`int`, optional
             Number of iterations. Can be set to ``None`` if already
             provided in the setup call
@@ -1306,13 +1295,6 @@ class GeneralizedProximalGradient(Solver):
         )
         print(msg)
 
-    def memory_usage(
-        self,
-        show: bool = False,
-        unit: Tmemunit = "B",
-    ) -> None:
-        pass
-
     def setup(  # type: ignore[override]
         self,
         proxfs: list[ProxOperator],
@@ -1427,10 +1409,10 @@ class GeneralizedProximalGradient(Solver):
         ----------
         x : :obj:`numpy.ndarray`
             Current model vector to be updated by a step of the
-            proximal gradient algorithm
+            generalized proximal gradient algorithm
         y : :obj:`numpy.ndarray`
             Additional model vector to be updated by a step of the
-            proximal gradient algorithm
+            generalized proximal gradient algorithm
         show : :obj:`bool`, optional
             Display iteration log
 
@@ -1506,10 +1488,10 @@ class GeneralizedProximalGradient(Solver):
         ----------
         x : :obj:`numpy.ndarray`
             Current model vector to be updated by multiple steps of
-            the proximal gradient algorithm
+            the generalized proximal gradient algorithm
         y : :obj:`numpy.ndarray`
             Additional model vector to be updated by multiple steps of
-            the proximal gradient algorithm
+            the generalized proximal gradient algorithm
         niter : :obj:`int`, optional
             Number of iterations. Can be set to ``None`` if already
             provided in the setup call
@@ -1699,7 +1681,7 @@ class HQS(Solver):
         if self.tol is None:
             pf, pg = self.proxf(x), self.proxg(x)
             self.pfg = pf + pg
-        x0 = to_numpy(x[0]) if x.ndim == 1 else to_numpy(x[0, 0])
+        x0 = to_numpy(x[0])
         strx = f"{x0:1.2e}     " if np.iscomplexobj(x) else f"{x0:11.4e}      "
         msg = (
             f"{self.iiter:6g}        "
@@ -1707,13 +1689,6 @@ class HQS(Solver):
             + f"{pf:10.3e}  {pg:10.3e}  {self.pfg:10.3e}"
         )
         print(msg)
-
-    def memory_usage(
-        self,
-        show: bool = False,
-        unit: Tmemunit = "B",
-    ) -> None:
-        pass
 
     def setup(  # type: ignore[override]
         self,
@@ -1812,10 +1787,10 @@ class HQS(Solver):
         ----------
         x : :obj:`numpy.ndarray`
             Current model vector to be updated by a step of the
-            proximal gradient algorithm
+            HQS algorithm
         z : :obj:`numpy.ndarray`
             Additional model vector to be updated by a step of the
-            proximal gradient algorithm
+            HQS algorithm
         show : :obj:`bool`, optional
             Display iteration log
 
@@ -1868,10 +1843,10 @@ class HQS(Solver):
         ----------
         x : :obj:`numpy.ndarray`
             Current model vector to be updated by multiple steps of
-            the proximal gradient algorithm
+            the HQS algorithm
         z : :obj:`numpy.ndarray`
             Additional model vector to be updated by multiple steps of
-            the proximal gradient algorithm
+            the HQS algorithm
         niter : :obj:`int`, optional
             Number of iterations. Can be set to ``None`` if already
             provided in the setup call
@@ -2073,7 +2048,7 @@ class ADMM(Solver):
         if self.tol is None:
             pf, pg = self.proxf(x), self.proxg(x)
             self.pfg = pf + pg
-        x0 = to_numpy(x[0]) if x.ndim == 1 else to_numpy(x[0, 0])
+        x0 = to_numpy(x[0])
         strx = f"{x0:1.2e}     " if np.iscomplexobj(x) else f"{x0:11.4e}      "
         msg = (
             f"{self.iiter:6g}        "
@@ -2082,19 +2057,12 @@ class ADMM(Solver):
         )
         print(msg)
 
-    def memory_usage(
-        self,
-        show: bool = False,
-        unit: Tmemunit = "B",
-    ) -> None:
-        pass
-
     def setup(  # type: ignore[override]
         self,
         proxf: ProxOperator,
         proxg: ProxOperator,
         x0: NDArray,
-        tau: float | NDArray,
+        tau: float,
         z0: NDArray | None = None,
         niter: int = 10,
         gfirst: bool = False,
@@ -2178,10 +2146,10 @@ class ADMM(Solver):
         ----------
         x : :obj:`numpy.ndarray`
             Current model vector to be updated by a step of the
-            proximal gradient algorithm
+            ADDM algorithm
         z : :obj:`numpy.ndarray`
             Additional model vector to be updated by a step of the
-            proximal gradient algorithm
+            ADDM algorithm
         show : :obj:`bool`, optional
             Display iteration log
 
@@ -2235,10 +2203,10 @@ class ADMM(Solver):
         ----------
         x : :obj:`numpy.ndarray`
             Current model vector to be updated by multiple steps of
-            the proximal gradient algorithm
+            the ADDM algorithm
         z : :obj:`numpy.ndarray`
             Additional model vector to be updated by multiple steps of
-            the proximal gradient algorithm
+            the ADDM algorithm
         niter : :obj:`int`, optional
             Number of iterations. Can be set to ``None`` if already
             provided in the setup call
@@ -2288,7 +2256,7 @@ class ADMM(Solver):
         proxf: ProxOperator,
         proxg: ProxOperator,
         x0: NDArray,
-        tau: float | NDArray,
+        tau: float,
         z0: NDArray | None = None,
         niter: int = 10,
         gfirst: bool = False,
@@ -2351,9 +2319,1143 @@ class ADMM(Solver):
             niter=niter,
             gfirst=gfirst,
             tol=tol,
+            callbackz=callbackz,
             show=show,
         )
 
         x, z = self.run(x, z, niter, show=show, itershow=itershow)
         self.finalize(65, show)
         return x, z, self.iiter, self.cost
+
+
+class ADMML2(Solver):
+    r"""Alternating Direction Method of Multipliers for L2 misfit term
+
+    Solves the following minimization problem using Alternating Direction
+    Method of Multipliers:
+
+    .. math::
+
+        \mathbf{x},\mathbf{z}  = \argmin_{\mathbf{x},\mathbf{z}}
+        \frac{1}{2}||\mathbf{Op}\mathbf{x} - \mathbf{b}||_2^2 + g(\mathbf{z}) \\
+        s.t. \; \mathbf{Ax}=\mathbf{z}
+
+    where :math:`g(\mathbf{z})` is any convex function that has a known proximal operator.
+
+    See Also
+    --------
+    ADMM: ADMM
+    LinearizedADMM: Linearized ADMM
+
+    Notes
+    -----
+    The ADMM algorithm with L2 misfit term can be expressed by the following recursion:
+
+    .. math::
+
+        \mathbf{x}^{k+1} = \argmin_{\mathbf{x}} \frac{1}{2}||\mathbf{Op}\mathbf{x}
+        - \mathbf{b}||_2^2 + \frac{1}{2\tau} ||\mathbf{Ax} - \mathbf{z}^k + \mathbf{u}^k||_2^2\\
+        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{Ax}^{k+1} + \mathbf{u}^{k})\\
+        \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{Ax}^{k+1} - \mathbf{z}^{k+1}
+
+    .. [1] S. Boyd, N. Parikh, E. Chu, B. Peleato, and J. Eckstein. 2011.
+        Distributed optimization and statistical learning via the alternating
+        direction method of multipliers. Foundations and Trends in Machine
+        Learning, 3 (1), 1-122. https://doi.org/10.1561/2200000016.
+
+    """
+
+    def _print_setup(self, xcomplex: bool = False) -> None:
+        self._print_solver(nbar=65)
+
+        strpar = (
+            f"Proximal operator (g): {type(self.proxg).__name__}\n"
+            f"Linear operator (Op): {type(self.Op).__name__}\n"
+            f"Linear operator (A): {type(self.A).__name__}\n"
+        )
+        strpar1 = f"tau = {self.tau:6e}\tniter = {self.niter}\ttol = {self.tol}"
+        print(strpar)
+        print(strpar1)
+
+        print("-" * 65 + "\n")
+        if not xcomplex:
+            head1 = "    Itn           x[0]              f           g         J=f+g"
+        else:
+            head1 = (
+                "    Itn              x[0]                  f           g         J=f+g"
+            )
+        print(head1)
+
+    def _print_step(
+        self, x: NDArray, Ax: NDArray, pf: float | None, pg: float | None
+    ) -> None:
+        if self.tol is None:
+            pf, pg = (
+                0.5 * self.ncp.linalg.norm(self.Op @ x - self.b) ** 2,
+                self.proxg(Ax),
+            )
+            self.pfg = pf + pg
+        x0 = to_numpy(x[0])
+        strx = f"{x0:1.2e}     " if np.iscomplexobj(x) else f"{x0:11.4e}      "
+        msg = (
+            f"{self.iiter:6g}        "
+            + strx
+            + f"{pf:10.3e}  {pg:10.3e}  {self.pfg:10.3e}"
+        )
+        print(msg)
+
+    def setup(  # type: ignore[override]
+        self,
+        proxg: ProxOperator,
+        Op: "LinearOperator",
+        b: NDArray,
+        A: "LinearOperator",
+        x0: NDArray,
+        tau: float,
+        z0: NDArray | None = None,
+        niter: int = 10,
+        gfirst: bool = False,
+        tol: float | None = None,
+        callbackz: bool = False,
+        show: bool = False,
+    ) -> tuple[NDArray, NDArray]:
+        r"""Setup solver
+
+        Parameters
+        ----------
+        proxg : :obj:`pyproximal.ProxOperator`
+            Proximal operator of g function
+        Op : :obj:`pylops.LinearOperator`
+            Linear operator of data misfit term
+        b : :obj:`numpy.ndarray`
+            Data
+        A : :obj:`pylops.LinearOperator`
+            Linear operator of regularization term
+        x0 : :obj:`numpy.ndarray`
+            Initial vector
+        tau : :obj:`float`
+            Positive scalar weight, which should satisfy the following condition
+            to guarantees convergence: :math:`\tau \in (0, 1/\lambda_{max}(\mathbf{A}^H\mathbf{A})]`.
+        z0 : :obj:`numpy.ndarray`
+            Initial auxiliary vector. If ``None``, initialized to ``A @ x0``.
+        niter : :obj:`int`, optional
+            Number of iterations of iterative scheme
+        gfirst : :obj:`bool`, optional
+            Apply Proximal of operator ``g`` first (``True``) or Proximal of
+            operator ``f`` first (``False``)
+        tol : :obj:`float`, optional
+            Tolerance on change of objective function (used as stopping criterion). If
+            ``tol=None``, run until ``niter`` is reached
+        callbackz : :obj:`bool`, optional
+            Modify callback signature to (``callback(x, z)``) when ``callbackz=True``
+        show : :obj:`bool`, optional
+            Display iterations log
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Initial guess
+        z : :obj:`numpy.ndarray`
+            Initial guess for the auxiliary variable
+
+        Raises
+        ------
+        ValueError
+            If both ``x0`` and ``z0`` are set to ``None`` or ``x0`` is set to None
+
+        """
+        self.proxg = proxg
+        self.Op = Op
+        self.b = b
+        self.A = A
+        self.tau = tau
+        self.niter = niter
+        self.gfirst = gfirst
+        self.tol = tol
+        self.callbackz = callbackz
+
+        self.ncp = get_array_module(x0)
+
+        # initialize solver
+        x, z = _x0z0_init(x0, z0, A, Opname="A")
+        self.u = self.ncp.zeros_like(x)
+
+        # other parameters
+        self.sqrttau = 1.0 / sqrt(self.tau)
+
+        # create variables to track the objective function and iterations
+        self.pfg, self.pfgold = np.inf, np.inf
+        self.cost: list[float] = []
+        self.tolbreak = False
+        self.iiter = 0
+
+        # print setup
+        if show:
+            self._print_setup(np.iscomplexobj(x0))
+        return x, z
+
+    def step(
+        self,
+        x: NDArray,
+        z: NDArray,
+        show: bool = False,
+        **kwargs_solver: dict[str, Any],
+    ) -> tuple[NDArray, NDArray]:
+        r"""Run one step of solver
+
+        Parameters
+        ----------
+        x : :obj:`numpy.ndarray`
+            Current model vector to be updated by a step of the
+            ADMML2 algorithm
+        z : :obj:`numpy.ndarray`
+            Additional model vector to be updated by a step of the
+            ADMML2 algorithm
+        show : :obj:`bool`, optional
+            Display iteration log
+        **kwargs_solver
+            Arbitrary keyword arguments for :py:func:`scipy.sparse.linalg.lsqr` used
+            to solve the x-update
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Updated model vector
+        z : :obj:`numpy.ndarray`
+            Updated additional model vector
+
+        """
+        if self.gfirst:
+            Ax = self.A @ x
+            z = self.proxg.prox(Ax + self.u, self.tau)
+
+            # solve augumented system
+            x = regularized_inversion(
+                self.Op,
+                self.b,
+                [
+                    self.A,
+                ],
+                x0=x,
+                dataregs=[
+                    z - self.u,
+                ],
+                epsRs=[
+                    self.sqrttau,
+                ],
+                **kwargs_solver,
+            )[0]
+        else:
+            # solve augumented system
+            x = regularized_inversion(
+                self.Op,
+                self.b,
+                [
+                    self.A,
+                ],
+                x0=x,
+                dataregs=[
+                    z - self.u,
+                ],
+                epsRs=[
+                    self.sqrttau,
+                ],
+                **kwargs_solver,
+            )[0]
+            Ax = self.A @ x
+            z = self.proxg.prox(Ax + self.u, self.tau)
+        self.u = self.u + Ax - z
+
+        # tolerance check: break iterations if overall
+        # objective does not decrease below tolerance
+        if self.tol is not None:
+            self.pfgold = self.pfg
+            pf = 0.5 * self.ncp.linalg.norm(self.Op @ x - self.b) ** 2
+            pg = self.proxg(Ax)
+            self.pfg = pf + pg
+            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+                self.tolbreak = True
+        else:
+            pf, pg = 0.0, 0.0
+
+        self.iiter += 1
+        if show:
+            self._print_step(x, Ax, pf, pg)
+        if self.tol is not None or show:
+            self.cost.append(float(self.pfg))
+        return x, z
+
+    def run(
+        self,
+        x: NDArray,
+        z: NDArray,
+        niter: int | None = None,
+        show: bool = False,
+        itershow: tuple[int, int, int] = (10, 10, 10),
+        **kwargs_solver: dict[str, Any],
+    ) -> tuple[NDArray, NDArray]:
+        r"""Run solver
+
+        Parameters
+        ----------
+        x : :obj:`numpy.ndarray`
+            Current model vector to be updated by multiple steps of
+            the ADDML2 algorithm
+        z : :obj:`numpy.ndarray`
+            Additional model vector to be updated by multiple steps of
+            the ADDML2 algorithm
+        niter : :obj:`int`, optional
+            Number of iterations. Can be set to ``None`` if already
+            provided in the setup call
+        show : :obj:`bool`, optional
+            Display logs
+        itershow : :obj:`tuple`, optional
+            Display set log for the first N1 steps, last N2 steps,
+            and every N3 steps in between where N1, N2, N3 are the
+            three element of the list.
+        **kwargs_solver
+            Arbitrary keyword arguments for :py:func:`scipy.sparse.linalg.lsqr` used
+            to solve the x-update
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Estimated model
+        z : :obj:`numpy.ndarray`
+            Additional estimated model
+
+        """
+        niter = self.niter if niter is None else niter
+        if niter is None:
+            msg = "`niter` must not be None"
+            raise ValueError(msg)
+        while self.iiter < niter and not self.tolbreak:
+            showstep = (
+                True
+                if show
+                and (
+                    self.iiter < itershow[0]
+                    or niter - self.iiter < itershow[1]
+                    or self.iiter % itershow[2] == 0
+                )
+                else False
+            )
+            x, z = self.step(x, z, showstep, **kwargs_solver)
+            if self.callbackz:
+                self.callback(x, z)
+            else:
+                self.callback(x)
+            # check if any callback has raised a stop flag
+            stop = _callback_stop(self.callbacks)
+            if stop:
+                break
+        return x, z
+
+    def solve(  # type: ignore[override]
+        self,
+        proxg: ProxOperator,
+        Op: "LinearOperator",
+        b: NDArray,
+        A: "LinearOperator",
+        x0: NDArray,
+        tau: float,
+        z0: NDArray | None = None,
+        niter: int = 10,
+        gfirst: bool = False,
+        tol: float | None = None,
+        callbackz: bool = False,
+        show: bool = False,
+        itershow: tuple[int, int, int] = (10, 10, 10),
+        **kwargs_solver: dict[str, Any],
+    ) -> tuple[NDArray, NDArray, int, NDArray]:
+        r"""Run entire solver
+
+        Parameters
+        ----------
+        proxg : :obj:`pyproximal.ProxOperator`
+            Proximal operator of g function
+        Op : :obj:`pylops.LinearOperator`
+            Linear operator of data misfit term
+        b : :obj:`numpy.ndarray`
+            Data
+        A : :obj:`pylops.LinearOperator`
+            Linear operator of regularization term
+        x0 : :obj:`numpy.ndarray`
+            Initial vector (not required when ``gfirst=False``, can pass ``None``)
+        tau : :obj:`float`
+            Positive scalar weight, which should satisfy the following condition
+            to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
+            the Lipschitz constant of :math:`\nabla f`.
+        z0 : :obj:`numpy.ndarray`, optional
+            Initial z vector (not required when ``gfirst=True``)
+        niter : :obj:`int`
+            Number of iterations of iterative scheme
+        gfirst : :obj:`bool`, optional
+            Apply Proximal of operator ``g`` first (``True``) or Proximal of
+            operator ``f`` first (``False``)
+        tol : :obj:`float`, optional
+            Tolerance on change of objective function (used as stopping
+            criterion). If ``tol=None``, run until ``niter`` is reached
+        callbackz : :obj:`bool`, optional
+            Modify callback signature to (``callback(x, z)``) when ``callbackz=True``
+        show : :obj:`bool`, optional
+            Display logs
+        itershow : :obj:`tuple`, optional
+            Display set log for the first N1 steps, last N2 steps,
+            and every N3 steps in between where N1, N2, N3 are the
+            three element of the list.
+        **kwargs_solver
+            Arbitrary keyword arguments for :py:func:`scipy.sparse.linalg.lsqr` used
+            to solve the x-update
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Estimated model
+        z : :obj:`numpy.ndarray`
+            Additional estimated model
+        iiter : :obj:`int`
+            Number of executed iterations
+        cost : :obj:`list`
+            History of the objective function
+
+        """
+        x, z = self.setup(
+            proxg=proxg,
+            Op=Op,
+            b=b,
+            A=A,
+            x0=x0,
+            tau=tau,
+            z0=z0,
+            niter=niter,
+            gfirst=gfirst,
+            tol=tol,
+            callbackz=callbackz,
+            show=show,
+        )
+
+        x, z = self.run(
+            x,
+            z,
+            niter,
+            show=show,
+            itershow=itershow,
+            **kwargs_solver,
+        )
+        self.finalize(65, show)
+        return x, z, self.iiter, self.cost
+
+
+class LinearizedADMM(Solver):
+    r"""Linearized Alternating Direction Method of Multipliers
+
+    Solves the following minimization problem using Linearized Alternating
+    Direction Method of Multipliers:
+
+    .. math::
+
+        \mathbf{x} = \argmin_\mathbf{x} f(\mathbf{x}) + g(\mathbf{A}\mathbf{x})
+
+    where :math:`f(\mathbf{x})` and :math:`g(\mathbf{x})` are any convex
+    function that has a known proximal operator and :math:`\mathbf{A}` is a
+    linear operator.
+
+    See Also
+    --------
+    ADMM: ADMM
+    ADMML2: ADMM with L2 misfit function
+
+    Notes
+    -----
+    The Linearized-ADMM algorithm can be expressed by the following recursion [1]_:
+
+    .. math::
+
+        \mathbf{x}^{k+1} = \prox_{\mu f}(\mathbf{x}^{k} - \frac{\mu}{\tau}
+        \mathbf{A}^H(\mathbf{A} \mathbf{x}^k - \mathbf{z}^k + \mathbf{u}^k))\\
+        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{A} \mathbf{x}^{k+1} +
+        \mathbf{u}^k)\\
+        \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{A}\mathbf{x}^{k+1} -
+        \mathbf{z}^{k+1}
+
+    .. [1] N., Parikh, "Proximal Algorithms", Foundations and Trends
+        in Optimization. 2013.
+
+    """
+
+    def _print_setup(self, xcomplex: bool = False) -> None:
+        self._print_solver(nbar=65)
+
+        strpar = (
+            f"Proximal operator (f): {type(self.proxf).__name__}\n"
+            f"Proximal operator (g): {type(self.proxg).__name__}\n"
+            f"Linear operator (A): {type(self.A).__name__}\n"
+        )
+        strpar1 = f"tau = {self.tau:6e}\tmu = {self.mu:6e}"
+        strpar2 = f"niter = {self.niter}\ttol = {self.tol}"
+        print(strpar)
+        print(strpar1)
+        print(strpar2)
+
+        print("-" * 65 + "\n")
+        if not xcomplex:
+            head1 = "    Itn           x[0]              f           g         J=f+g"
+        else:
+            head1 = (
+                "    Itn              x[0]                  f           g         J=f+g"
+            )
+        print(head1)
+
+    def _print_step(self, x: NDArray, pf: float | None, pg: float | None) -> None:
+        if self.tol is None:
+            pf, pg = self.proxf(x), self.proxg(self.Ax)
+            self.pfg = pf + pg
+        x0 = to_numpy(x[0])
+        strx = f"{x0:1.2e}     " if np.iscomplexobj(x) else f"{x0:11.4e}      "
+        msg = (
+            f"{self.iiter:6g}        "
+            + strx
+            + f"{pf:10.3e}  {pg:10.3e}  {self.pfg:10.3e}"
+        )
+        print(msg)
+
+    def setup(  # type: ignore[override]
+        self,
+        proxf: ProxOperator,
+        proxg: ProxOperator,
+        A: "LinearOperator",
+        x0: NDArray,
+        tau: float,
+        mu: float,
+        z0: NDArray | None = None,
+        niter: int = 10,
+        tol: float | None = None,
+        show: bool = False,
+    ) -> tuple[NDArray, NDArray]:
+        r"""Setup solver
+
+        Parameters
+        ----------
+        proxf : :obj:`pyproximal.ProxOperator`
+            Proximal operator of f function
+        proxg : :obj:`pyproximal.ProxOperator`
+            Proximal operator of g function
+        A : :obj:`pylops.LinearOperator`
+            Linear operator
+        x0 : :obj:`numpy.ndarray`
+            Initial vector
+        tau : :obj:`float`, optional
+            Positive scalar weight, which should satisfy the following
+            condition to guarantee convergence: :math:`\mu \in (0,
+            \tau/\lambda_{max}(\mathbf{A}^H\mathbf{A})]`.
+        mu : :obj:`float`, optional
+            Second positive scalar weight, which should satisfy the following
+            condition to guarantees convergence: :math:`\mu \in (0,
+            \tau/\lambda_{max}(\mathbf{A}^H\mathbf{A})]`.
+        z0 : :obj:`numpy.ndarray`
+            Initial auxiliary vector. If ``None``, initialized to ``A @ x0``.
+        niter : :obj:`int`, optional
+            Number of iterations of iterative scheme
+        tol : :obj:`float`, optional
+            Tolerance on change of objective function (used as stopping criterion). If
+            ``tol=None``, run until ``niter`` is reached
+        show : :obj:`bool`, optional
+            Display iterations log
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Initial guess
+        z : :obj:`numpy.ndarray`
+            Initial guess for the auxiliary variable
+
+        Raises
+        ------
+        ValueError
+            If both ``x0`` and ``z0`` are set to ``None`` or ``x0`` is set to None
+
+        """
+        self.proxf = proxf
+        self.proxg = proxg
+        self.A = A
+        self.tau = tau
+        self.mu = mu
+
+        self.niter = niter
+        self.tol = tol
+
+        self.ncp = get_array_module(x0)
+
+        # initialize solver
+        x, z = _x0z0_init(x0, z0, A, Opname="A")
+        self.Ax = A.matvec(x) if z0 is None else z
+        self.u = self.ncp.zeros_like(x)
+
+        # create variables to track the objective function and iterations
+        self.pfg, self.pfgold = np.inf, np.inf
+        self.cost: list[float] = []
+        self.tolbreak = False
+        self.iiter = 0
+
+        # print setup
+        if show:
+            self._print_setup(np.iscomplexobj(x0))
+        return x, z
+
+    def step(
+        self,
+        x: NDArray,
+        z: NDArray,
+        show: bool = False,
+    ) -> tuple[NDArray, NDArray]:
+        r"""Run one step of solver
+
+        Parameters
+        ----------
+        x : :obj:`numpy.ndarray`
+            Current model vector to be updated by a step of the
+            LinearizedADMM algorithm
+        z : :obj:`numpy.ndarray`
+            Additional model vector to be updated by a step of the
+            LinearizedADMM algorithm
+        show : :obj:`bool`, optional
+            Display iteration log
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Updated model vector
+        z : :obj:`numpy.ndarray`
+            Updated additional model vector
+
+        """
+        x = self.proxf.prox(
+            x - self.mu / self.tau * self.A.rmatvec(self.Ax - z + self.u), self.mu
+        )
+
+        self.Ax = self.A.matvec(x)
+        z = self.proxg.prox(self.Ax + self.u, self.tau)
+        self.u = self.u + self.Ax - z
+
+        # tolerance check: break iterations if overall
+        # objective does not decrease below tolerance
+        if self.tol is not None:
+            self.pfgold = self.pfg
+            pf = self.proxf(x)
+            pg = self.proxg(self.Ax)
+            self.pfg = pf + pg
+            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+                self.tolbreak = True
+        else:
+            pf, pg = 0.0, 0.0
+
+        self.iiter += 1
+        if show:
+            self._print_step(x, pf, pg)
+        if self.tol is not None or show:
+            self.cost.append(float(self.pfg))
+        return x, z
+
+    def run(
+        self,
+        x: NDArray,
+        z: NDArray,
+        niter: int | None = None,
+        show: bool = False,
+        itershow: tuple[int, int, int] = (10, 10, 10),
+    ) -> tuple[NDArray, NDArray]:
+        r"""Run solver
+
+        Parameters
+        ----------
+        x : :obj:`numpy.ndarray`
+            Current model vector to be updated by multiple steps of
+            the LinearizedADDM algorithm
+        z : :obj:`numpy.ndarray`
+            Additional model vector to be updated by multiple steps of
+            the LinearizedADDM algorithm
+        niter : :obj:`int`, optional
+            Number of iterations. Can be set to ``None`` if already
+            provided in the setup call
+        show : :obj:`bool`, optional
+            Display logs
+        itershow : :obj:`tuple`, optional
+            Display set log for the first N1 steps, last N2 steps,
+            and every N3 steps in between where N1, N2, N3 are the
+            three element of the list.
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Estimated model
+        z : :obj:`numpy.ndarray`
+            Additional estimated model
+
+        """
+        niter = self.niter if niter is None else niter
+        if niter is None:
+            msg = "`niter` must not be None"
+            raise ValueError(msg)
+        while self.iiter < niter and not self.tolbreak:
+            showstep = (
+                True
+                if show
+                and (
+                    self.iiter < itershow[0]
+                    or niter - self.iiter < itershow[1]
+                    or self.iiter % itershow[2] == 0
+                )
+                else False
+            )
+            x, z = self.step(x, z, showstep)
+
+            self.callback(x)
+            # check if any callback has raised a stop flag
+            stop = _callback_stop(self.callbacks)
+            if stop:
+                break
+        return x, z
+
+    def solve(  # type: ignore[override]
+        self,
+        proxf: ProxOperator,
+        proxg: ProxOperator,
+        A: "LinearOperator",
+        x0: NDArray,
+        tau: float,
+        mu: float,
+        z0: NDArray | None = None,
+        niter: int = 10,
+        tol: float | None = None,
+        show: bool = False,
+        itershow: tuple[int, int, int] = (10, 10, 10),
+    ) -> tuple[NDArray, NDArray, int, NDArray]:
+        r"""Run entire solver
+
+        Parameters
+        ----------
+        proxf : :obj:`pyproximal.ProxOperator`
+            Proximal operator of f function
+        proxg : :obj:`pyproximal.ProxOperator`
+            Proximal operator of g function
+        A : :obj:`pylops.LinearOperator`
+            Linear operator
+        x0 : :obj:`numpy.ndarray`
+            Initial vector
+        tau : :obj:`float`, optional
+            Positive scalar weight, which should satisfy the following
+            condition to guarantee convergence: :math:`\mu \in (0,
+            \tau/\lambda_{max}(\mathbf{A}^H\mathbf{A})]`.
+        mu : :obj:`float`, optional
+            Second positive scalar weight, which should satisfy the following
+            condition to guarantees convergence: :math:`\mu \in (0,
+            \tau/\lambda_{max}(\mathbf{A}^H\mathbf{A})]`.
+        z0 : :obj:`numpy.ndarray`
+            Initial auxiliary vector. If ``None``, initialized to ``A @ x0``.
+        niter : :obj:`int`, optional
+            Number of iterations of iterative scheme
+        tol : :obj:`float`, optional
+            Tolerance on change of objective function (used as stopping criterion). If
+            ``tol=None``, run until ``niter`` is reached
+        show : :obj:`bool`, optional
+            Display logs
+        itershow : :obj:`tuple`, optional
+            Display set log for the first N1 steps, last N2 steps,
+            and every N3 steps in between where N1, N2, N3 are the
+            three element of the list.
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Estimated model
+        z : :obj:`numpy.ndarray`
+            Additional estimated model
+        iiter : :obj:`int`
+            Number of executed iterations
+        cost : :obj:`list`
+            History of the objective function
+
+        """
+        x, z = self.setup(
+            proxf=proxf,
+            proxg=proxg,
+            A=A,
+            x0=x0,
+            tau=tau,
+            mu=mu,
+            z0=z0,
+            niter=niter,
+            tol=tol,
+            show=show,
+        )
+
+        x, z = self.run(
+            x,
+            z,
+            niter,
+            show=show,
+            itershow=itershow,
+        )
+        self.finalize(65, show)
+        return x, z, self.iiter, self.cost
+
+
+class TwIST(Solver):
+    r"""Two-step Iterative Shrinkage/Threshold
+
+    Solves the following minimization problem using Two-step Iterative
+    Shrinkage/Threshold:
+
+    .. math::
+
+        \mathbf{x} = \argmin_\mathbf{x} \frac{1}{2}
+        ||\mathbf{b} - \mathbf{Ax}||_2^2 + g(\mathbf{x})
+
+    where :math:`\mathbf{A}` is a linear operator and :math:`g(\mathbf{x})`
+    is any convex function that has a known proximal operator.
+
+    Notes
+    -----
+    The TwIST algorithm can be expressed by the following recursion:
+
+    .. math::
+
+        \mathbf{x}^{k+1} = (1-\alpha) \mathbf{x}^{k-1} +
+        (\alpha-\beta) \mathbf{x}^k +
+        \beta \prox_{g} (\mathbf{x}^k + \mathbf{A}^H
+        (\mathbf{b} - \mathbf{A}\mathbf{x}^k)).
+
+    where :math:`\mathbf{x}^{1} = \prox_{g} (\mathbf{x}^0 + \mathbf{A}^T
+    (\mathbf{b} - \mathbf{A}\mathbf{x}^0))`.
+
+    The optimal weighting parameters :math:`\alpha` and :math:`\beta` are
+    linked to the smallest and largest eigenvalues of
+    :math:`\mathbf{A}^H\mathbf{A}` as follows:
+
+    .. math::
+
+        \alpha = 1 + \rho^2 \\
+        \beta =\frac{2 \alpha}{\Lambda_{max} + \lambda_{min}}
+
+    where :math:`\rho=\frac{1-\sqrt{k}}{1+\sqrt{k}}` with
+    :math:`k=\frac{\lambda_{min}}{\Lambda_{max}}` and
+    :math:`\Lambda_{max}=max(1, \lambda_{max})`.
+
+    Experimentally, it has been observed that TwIST is robust to the
+    choice of such parameters. Finally, note that in the case of
+    :math:`\alpha=1` and :math:`\beta=1`, TwIST is identical to IST.
+
+    """
+
+    def _print_setup(self, xcomplex: bool = False) -> None:
+        self._print_solver(nbar=65)
+
+        strpar = (
+            f"Proximal operator (f): {type(self.proxf).__name__}\n"
+            f"Linear operator (A): {type(self.A).__name__}\n"
+        )
+        strpar1 = f"alpha = {self.alpha:6e}\tbeta = {self.beta:6e}"
+        strpar2 = f"niter = {self.niter}\ttol = {self.tol}"
+        print(strpar)
+        print(strpar1)
+        print(strpar2)
+
+        print("-" * 65 + "\n")
+        if not xcomplex:
+            head1 = "    Itn           x[0]              f           g         J=f+g"
+        else:
+            head1 = (
+                "    Itn              x[0]                  f           g         J=f+g"
+            )
+        print(head1)
+
+    def _print_step(self, x: NDArray, pf: float | None, pg: float | None) -> None:
+        if self.tol is None:
+            pf, pg = self.proxf(x), self.proxg(x)
+            self.pfg = pf + pg
+        x0 = to_numpy(x[0])
+        strx = f"{x0:1.2e}     " if np.iscomplexobj(x) else f"{x0:11.4e}      "
+        msg = (
+            f"{self.iiter:6g}        "
+            + strx
+            + f"{pf:10.3e}  {pg:10.3e}  {self.pfg:10.3e}"
+        )
+        print(msg)
+
+    def setup(  # type: ignore[override]
+        self,
+        proxg: ProxOperator,
+        A: "LinearOperator",
+        b: NDArray,
+        x0: NDArray,
+        alpha: float | None = None,
+        beta: float | None = None,
+        eigs: tuple[float, float] | None = None,
+        niter: int = 10,
+        tol: float | None = None,
+        show: bool = False,
+    ) -> NDArray:
+        r"""Setup solver
+
+        Parameters
+        ----------
+        proxg : :obj:`pyproximal.ProxOperator`
+            Proximal operator of g function
+        A : :obj:`pylops.LinearOperator`
+            Linear operator
+        b : :obj:`numpy.ndarray`
+            Data
+        x0 : :obj:`numpy.ndarray`
+            Initial vector
+        alpha : :obj:`float`, optional
+            Positive scalar weight (if ``None``, estimated based on the
+            eigenvalues of :math:`\mathbf{A}`, see Notes for details)
+        beta : :obj:`float`, optional
+            Positive scalar weight (if ``None``, estimated based on the
+            eigenvalues of :math:`\mathbf{A}`, see Notes for details)
+        eigs : :obj:`tuple`, optional
+            Largest and smallest eigenvalues of :math:`\mathbf{A}^H \mathbf{A}`.
+            If passed, computes `alpha` and `beta` based on them.
+        niter : :obj:`int`, optional
+            Number of iterations of iterative scheme
+        tol : :obj:`float`, optional
+            Tolerance on change of objective function (used as stopping criterion). If
+            ``tol=None``, run until ``niter`` is reached
+        show : :obj:`bool`, optional
+            Display iterations log
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Initial guess
+
+        """
+        self.proxf = L2(Op=A, b=b)
+        self.proxg = proxg
+        self.A = A
+        self.niter = niter
+        self.tol = tol
+
+        self.ncp = get_array_module(x0)
+
+        # find alpha and beta based on the eigenvalues of A if not provided
+        if alpha is None or beta is None:
+            if eigs is None:
+                emin = A.eigs(neigs=1, which="SM")
+                emax = max([1, A.eigs(neigs=1, which="LM")])
+            else:
+                emax, emin = eigs
+            k = emin / emax
+            rho = (1 - sqrt(k)) / (1 + sqrt(k))
+            self.alpha = 1 + rho**2
+            self.beta = 2 * self.alpha / (emax + emin)
+        else:
+            self.alpha, self.beta = alpha, beta
+
+        # compute proximal of g on initial guess (x_1)
+        x = self.proxg.prox(x0 - self.proxf.grad(x0), 1.0)
+
+        # create variables to track the objective function and iterations
+        self.pfg, self.pfgold = np.inf, np.inf
+        self.cost: list[float] = []
+        self.tolbreak = False
+        self.iiter = 0
+
+        # print setup
+        if show:
+            self._print_setup(np.iscomplexobj(x0))
+        return x
+
+    def step(
+        self,
+        x: NDArray,
+        xold: NDArray,
+        show: bool = False,
+    ) -> tuple[NDArray, NDArray]:
+        r"""Run one step of solver
+
+        Parameters
+        ----------
+        x : :obj:`numpy.ndarray`
+            Current model vector to be updated by a step of the
+            TwisT algorithm
+        xold : :obj:`numpy.ndarray`
+            Previous model vector
+        show : :obj:`bool`, optional
+            Display iteration log
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Updated model vector
+        xold : :obj:`numpy.ndarray`
+            Previous model vector
+
+        """
+        # compute new x
+        xnew = (
+            (1 - self.alpha) * xold
+            + (self.alpha - self.beta) * x
+            + self.beta * self.proxg.prox(x - self.proxf.grad(x), 1.0)
+        )
+        # save current x as old (x_i -> x_i-1)
+        xold = x.copy()
+        # save new x as current (x_i+1 -> x_i)
+        x = xnew.copy()
+
+        # tolerance check: break iterations if overall
+        # objective does not decrease below tolerance
+        if self.tol is not None:
+            self.pfgold = self.pfg
+            pf = self.proxf(x)
+            pg = self.proxg(self.Ax)
+            self.pfg = pf + pg
+            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+                self.tolbreak = True
+        else:
+            pf, pg = 0.0, 0.0
+
+        self.iiter += 1
+        if show:
+            self._print_step(x, pf, pg)
+        if self.tol is not None or show:
+            self.cost.append(float(self.pfg))
+        return x, xold
+
+    def run(
+        self,
+        x: NDArray,
+        xold: NDArray,
+        niter: int | None = None,
+        show: bool = False,
+        itershow: tuple[int, int, int] = (10, 10, 10),
+    ) -> NDArray:
+        r"""Run solver
+
+        Parameters
+        ----------
+        x : :obj:`numpy.ndarray`
+            Current model vector to be updated by multiple steps of
+            the TwisT algorithm
+        xold : :obj:`numpy.ndarray`
+            Previous estimated model
+        niter : :obj:`int`, optional
+            Number of iterations. Can be set to ``None`` if already
+            provided in the setup call
+        show : :obj:`bool`, optional
+            Display logs
+        itershow : :obj:`tuple`, optional
+            Display set log for the first N1 steps, last N2 steps,
+            and every N3 steps in between where N1, N2, N3 are the
+            three element of the list.
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Estimated model
+
+        """
+        niter = self.niter if niter is None else niter
+        if niter is None:
+            msg = "`niter` must not be None"
+            raise ValueError(msg)
+        while self.iiter < niter and not self.tolbreak:
+            showstep = (
+                True
+                if show
+                and (
+                    self.iiter < itershow[0]
+                    or niter - self.iiter < itershow[1]
+                    or self.iiter % itershow[2] == 0
+                )
+                else False
+            )
+            x, xold = self.step(x, xold, showstep)
+
+            self.callback(x)
+            # check if any callback has raised a stop flag
+            stop = _callback_stop(self.callbacks)
+            if stop:
+                break
+        return x
+
+    def solve(  # type: ignore[override]
+        self,
+        proxg: ProxOperator,
+        A: "LinearOperator",
+        b: NDArray,
+        x0: NDArray,
+        alpha: float | None = None,
+        beta: float | None = None,
+        eigs: tuple[float, float] | None = None,
+        niter: int = 10,
+        tol: float | None = None,
+        show: bool = False,
+        itershow: tuple[int, int, int] = (10, 10, 10),
+    ) -> tuple[NDArray, int, NDArray]:
+        r"""Run entire solver
+
+        Parameters
+        ----------
+        proxg : :obj:`pyproximal.ProxOperator`
+            Proximal operator of g function
+        A : :obj:`pylops.LinearOperator`
+            Linear operator
+        b : :obj:`numpy.ndarray`
+            Data
+        x0 : :obj:`numpy.ndarray`
+            Initial vector
+        alpha : :obj:`float`, optional
+            Positive scalar weight (if ``None``, estimated based on the
+            eigenvalues of :math:`\mathbf{A}`, see Notes for details)
+        beta : :obj:`float`, optional
+            Positive scalar weight (if ``None``, estimated based on the
+            eigenvalues of :math:`\mathbf{A}`, see Notes for details)
+        eigs : :obj:`tuple`, optional
+            Largest and smallest eigenvalues of :math:`\mathbf{A}^H \mathbf{A}`.
+            If passed, computes `alpha` and `beta` based on them.
+        niter : :obj:`int`, optional
+            Number of iterations of iterative scheme
+        tol : :obj:`float`, optional
+            Tolerance on change of objective function (used as stopping criterion). If
+            ``tol=None``, run until ``niter`` is reached
+        show : :obj:`bool`, optional
+            Display logs
+        itershow : :obj:`tuple`, optional
+            Display set log for the first N1 steps, last N2 steps,
+            and every N3 steps in between where N1, N2, N3 are the
+            three element of the list.
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Estimated model
+        iiter : :obj:`int`
+            Number of executed iterations
+        cost : :obj:`list`
+            History of the objective function
+
+        """
+        x = self.setup(
+            proxg=proxg,
+            A=A,
+            b=b,
+            x0=x0,
+            alpha=alpha,
+            beta=beta,
+            eigs=eigs,
+            niter=niter,
+            tol=tol,
+            show=show,
+        )
+
+        x = self.run(
+            x,
+            x0,
+            niter,
+            show=show,
+            itershow=itershow,
+        )
+        self.finalize(65, show)
+        return x, self.iiter, self.cost
