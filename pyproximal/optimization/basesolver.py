@@ -11,8 +11,6 @@ from pylops.optimization.basesolver import Solver as pSolver
 from pylops.optimization.callback import Callbacks
 from pylops.utils.typing import NDArray
 
-from pyproximal.utils.typing import Tmemunit
-
 if TYPE_CHECKING:
     from pyproximal.ProxOperator import ProxOperator
 
@@ -87,14 +85,11 @@ class Solver(pSolver, metaclass=ABCMeta):  # type: ignore[misc]
         )
         print("-" * nbar + "\n")
 
-    def memory_usage(
-        self,
-        show: bool = False,
-        unit: Tmemunit = "B",
-    ) -> float:
+    def memory_usage(self) -> None:
         """Compute memory usage of the solver
 
-        Currently not implemented in PyProximal and therefore just overwritten here.
+        Currently not implemented in PyProximal's solvers
+        and therefore just overwritten here.
         """
         pass
 
@@ -165,7 +160,7 @@ class Solver(pSolver, metaclass=ABCMeta):  # type: ignore[misc]
         """
         self.tend = time.time()
         self.telapsed = self.tend - self.tstart
-        self.cost = np.array(self.cost)
+        self.cost: NDArray = np.array(self.cost)
         if show:
             self._print_finalize(nbar=nbar)
 
