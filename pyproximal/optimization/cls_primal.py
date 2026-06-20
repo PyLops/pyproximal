@@ -9,6 +9,8 @@ __all__ = [
     "LinearizedADMM",
     "TwIST",
     "DouglasRachfordSplitting",
+    "PPXA",
+    "ConsensusADMM",
 ]
 
 from collections.abc import Sequence
@@ -184,7 +186,7 @@ class ProximalPoint(Solver):
         x0: NDArray,
         tau: float,
         niter: int | None = None,
-        tol: float = 1e-4,
+        tol: float | None = None,
         show: bool = False,
     ) -> NDArray:
         r"""Setup solver
@@ -324,7 +326,7 @@ class ProximalPoint(Solver):
         x0: NDArray,
         tau: float,
         niter: int = 10,
-        tol: float = 1e-4,
+        tol: float | None = None,
         show: bool = False,
         itershow: tuple[int, int, int] = (10, 10, 10),
     ) -> tuple[NDArray, int, NDArray]:
@@ -431,13 +433,11 @@ class ProximalGradient(Solver):
         )
 
         strpar1 = f"tau = {self.tau:4.2e}\t\tbacktrack = {self.backtracking}"
+        strpar2 = f"beta = {self.beta}\t\tepsg = {epsg_print}\t\tacceleration = {self.acceleration}"
         if self.niter is not None:
-            strpar2 = f"beta = {self.beta}\tepsg = {epsg_print}\t\tniter = {self.niter}\t\ttol = {str(self.tol)}"
+            strpar3 = f"niter = {self.niter}\t\tniterback = {self.niterback}\t\ttol = {str(self.tol)}"
         else:
-            strpar2 = (
-                f"beta = {self.beta}\t epsg = {epsg_print}\t\ttol = {str(self.tol)}"
-            )
-        strpar3 = f"niterback = {self.niterback}\t\tacceleration = {self.acceleration}"
+            strpar3 = f"niterback = {self.niterback}\t\ttol = {str(self.tol)}"
         print(strpar)
         print(strpar1)
         print(strpar2)
@@ -3899,7 +3899,6 @@ class PPXA(Solver):
     def _print_step(self, x: NDArray) -> None:
         if self.tol is None:
             self.pf = self.ncp.sum([self.proxfs[i](x) for i in range(self.nprox)])
-            self.pf = self.ncp.sum([self.proxfs[i](x) for i in range(self.nprox)])
         x0 = to_numpy(x[0])
         strx = f"{x0:1.2e}     " if np.iscomplexobj(x) else f"{x0:11.4e}      "
         msg = f"{self.iiter:6g}        " + strx + f"{self.pf:10.3e}"
@@ -3913,7 +3912,7 @@ class PPXA(Solver):
         eta: float = 1.0,
         weights: NDArray | list[float] | None = None,
         niter: int = 1000,
-        tol: float | None = 1e-7,
+        tol: float | None = None,
         show: bool = False,
     ) -> tuple[NDArray, NDArray]:
         r"""Setup solver
@@ -3937,8 +3936,8 @@ class PPXA(Solver):
         niter : :obj:`int`, optional
             Number of iterations of iterative scheme.
         tol : :obj:`float`, optional
-            Tolerance on change of the solution (used as stopping criterion).
-            If ``tol=0``, run until ``niter`` is reached.
+            Tolerance on change of objective function (used as stopping criterion). If
+            ``tol=None``, run until ``niter`` is reached
         show : :obj:`bool`, optional
             Display iterations log
 
@@ -4010,8 +4009,6 @@ class PPXA(Solver):
             Updated additional model vector
 
         """
-        x_old = x.copy()
-
         # proximal steps
         p = self.ncp.stack(
             [self.proxfs[i].prox(y[i], self.tau / self.w[i]) for i in range(self.nprox)]
@@ -4022,19 +4019,13 @@ class PPXA(Solver):
 
         # tolerance check: break iterations if overall
         # objective does not decrease below tolerance
-        # if self.tol is not None:
-        #     self.pfold = self.pf
-        #     self.pf = self.ncp.sum([self.proxfs[i](x) for i in range(self.nprox)])
-        #     if np.abs(1.0 - self.pf / self.pfold) < self.tol:
-        #         self.tolbreak = True
-        # else:
-        #     self.pf = 0.0
-
-        # tolerance check: break iterations if solution does
-        # not changeabove tolerance
         if self.tol is not None:
-            if self.ncp.abs(x - x_old).max() < self.tol:
+            self.pfold = self.pf
+            self.pf = self.ncp.sum([self.proxfs[i](x) for i in range(self.nprox)])
+            if np.abs(1.0 - self.pf / self.pfold) < self.tol:
                 self.tolbreak = True
+        else:
+            self.pf = 0.0
 
         self.iiter += 1
         if show:
@@ -4095,7 +4086,7 @@ class PPXA(Solver):
                 else False
             )
             x, y = self.step(x, y, showstep)
-            self.callback(x, y)
+            self.callback(x)
             # check if any callback has raised a stop flag
             stop = _callback_stop(self.callbacks)
             if stop:
@@ -4110,7 +4101,7 @@ class PPXA(Solver):
         eta: float = 1.0,
         weights: NDArray | list[float] | None = None,
         niter: int = 1000,
-        tol: float | None = 1e-7,
+        tol: float | None = None,
         show: bool = False,
         itershow: tuple[int, int, int] = (10, 10, 10),
     ) -> tuple[NDArray, NDArray, int, NDArray]:
@@ -4135,8 +4126,8 @@ class PPXA(Solver):
         niter : :obj:`int`, optional
             Number of iterations of iterative scheme.
         tol : :obj:`float`, optional
-            Tolerance on change of the solution (used as stopping criterion).
-            If ``tol=0``, run until ``niter`` is reached.
+            Tolerance on change of objective function (used as stopping criterion). If
+            ``tol=None``, run until ``niter`` is reached
         show : :obj:`bool`, optional
             Display logs
         itershow : :obj:`tuple`, optional
@@ -4172,6 +4163,328 @@ class PPXA(Solver):
         return x, y, self.iiter, self.cost
 
 
+class ConsensusADMM(Solver):
+    r"""Consensus ADMM
+
+    Solves the following global consensus problem using ADMM:
+
+    .. math::
+
+        \argmin_{\mathbf{x_1}, \mathbf{x_2}, \ldots, \mathbf{x_m}}
+        \sum_{i=1}^m f_i(\mathbf{x}_i) \quad \text{s.t.}
+        \quad \mathbf{x_1} = \mathbf{x_2} = \cdots = \mathbf{x_m}
+
+    where :math:`f_i(\mathbf{x})` are any convex
+    functions that has known proximal operators.
+
+    See Also
+    --------
+    ADMM: Alternating Direction Method of Multipliers
+    PPXA: Parallel Proximal Algorithm
+
+    Notes
+    -----
+    The ADMM for the consensus problem can be expressed by the following
+    recursion [1]_, [2]_:
+
+    * :math:`\bar{\mathbf{x}}^{0} = \mathbf{x}`
+    * for :math:`k = 1, \ldots`
+
+      * for :math:`i = 1, \ldots, m`
+
+        * :math:`\mathbf{x}_i^{k+1} = \mathrm{prox}_{\tau f_i} \left(\bar{\mathbf{x}}^{k} - \mathbf{y}_i^{k}\right)`
+
+      * :math:`\bar{\mathbf{x}}^{k+1} = \frac{1}{m} \sum_{i=1}^m \mathbf{x}_i^{k}`
+
+      * for :math:`i = 1, \ldots, m`
+
+        * :math:`\mathbf{y}_i^{k+1} = \mathbf{y}_i^{k} + \mathbf{x}_i^{k+1} - \bar{\mathbf{x}}^{k+1}`
+
+    The current implementation returns :math:`\bar{\mathbf{x}}`.
+
+    References
+    ----------
+    .. [1] Boyd, S., Parikh, N., Chu, E., Peleato, B., Eckstein, J., 2011.
+        Distributed Optimization and Statistical Learning via the Alternating
+        Direction Method of Multipliers. Foundations and Trends in Machine Learning,
+        Vol. 3, No. 1, pp 1-122. Section 7.1. https://doi.org/10.1561/2200000016
+        https://stanford.edu/~boyd/papers/pdf/admm_distr_stats.pdf
+    .. [2] Parikh, N., Boyd, S., 2014. Proximal Algorithms. Foundations and
+        Trends in Optimization, Vol. 1, No. 3, pp 127-239.
+        Section 5.2.1. https://doi.org/10.1561/2400000003
+        https://web.stanford.edu/~boyd/papers/pdf/prox_algs.pdf
+
+    """
+
+    def _print_setup(self, xcomplex: bool = False) -> None:
+        self._print_solver(nbar=65)
+
+        strpar = "\n".join(
+            [
+                f"Proximal operator (f{i}): {type(proxf).__name__}"
+                for i, proxf in enumerate(self.proxfs)
+            ]
+        )
+        strpar1 = f"tau = {self.tau:6e}\tniter = {self.niter}\ttol = {self.tol}"
+        print(strpar)
+        print(strpar1)
+
+        print("-" * 65 + "\n")
+        if not xcomplex:
+            head1 = "    Itn           x[0]         J=sum_i f_i"
+        else:
+            head1 = "    Itn              x[0]             J=sum_i f_i"
+        print(head1)
+
+    def _print_step(self, x: NDArray) -> None:
+        if self.tol is None:
+            self.pf = self.ncp.sum([self.proxfs[i](x) for i in range(self.nprox)])
+        x0 = to_numpy(x[0])
+        strx = f"{x0:1.2e}     " if np.iscomplexobj(x) else f"{x0:11.4e}      "
+        msg = f"{self.iiter:6g}        " + strx + f"{self.pf:10.3e}"
+        print(msg)
+
+    def setup(  # type: ignore[override]
+        self,
+        proxfs: list[ProxOperator],
+        x0: NDArray,
+        tau: float,
+        niter: int = 1000,
+        tol: float | None = None,
+        show: bool = False,
+    ) -> tuple[NDArray, NDArray, NDArray]:
+        r"""Setup solver
+
+        Parameters
+        ----------
+        proxfs : :obj:`list`
+            A list of proximable functions :math:`f_1, \ldots, f_m`.
+        x0 : :obj:`numpy.ndarray`
+            Initial vector
+        tau : :obj:`float`
+            Positive scalar weight
+        niter : :obj:`int`, optional
+            Number of iterations of iterative scheme.
+        tol : :obj:`float`, optional
+            Tolerance on change of objective function (used as stopping criterion). If
+            ``tol=None``, run until ``niter`` is reached
+        show : :obj:`bool`, optional
+            Display iterations log
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Initial guess
+        x_bar : :obj:`numpy.ndarray`
+            Initial guess for averaged model vector
+        y : :obj:`numpy.ndarray`
+            Initial guess for additional model vector
+
+        """
+        self.proxfs = proxfs
+        self.tau = tau
+        self.niter = niter
+        self.tol = tol
+
+        self.ncp = get_array_module(x0)
+
+        # initialize solver
+        self.nprox = len(proxfs)
+        x = x0.copy()
+        x_bar = x0.copy()
+        y = self.ncp.zeros((self.nprox, x0.size), dtype=x0.dtype)
+
+        # create variables to track the objective function and iterations
+        self.pf, self.pfold = np.inf, np.inf
+        self.cost: list[float] = []
+        self.tolbreak = False
+        self.iiter = 0
+
+        # print setup
+        if show:
+            self._print_setup(np.iscomplexobj(x0))
+        return x, x_bar, y
+
+    def step(
+        self, x: NDArray, x_bar: NDArray, y: NDArray, show: bool = False
+    ) -> tuple[NDArray, NDArray, NDArray]:
+        r"""Run one step of solver
+
+        Parameters
+        ----------
+        x : :obj:`numpy.ndarray`
+            Current model vector to be updated by a step of the
+            ConsensusADMM algorithm
+        x_bar : :obj:`numpy.ndarray`
+            Current averaged model vector to be updated by a step of the
+            ConsensusADMM algorithm
+        y : :obj:`numpy.ndarray`
+            Additional model vector to be updated by multiple steps of
+            the ConsensusADMM algorithm
+        show : :obj:`bool`, optional
+            Display iteration log
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Updated model vectors
+        x_bar : :obj:`numpy.ndarray`
+            Updated averaged model vector
+        y : :obj:`numpy.ndarray`
+            Updated additional model vector
+
+        """
+        # proximal steps
+        x = self.ncp.stack(
+            [self.proxfs[i].prox(x_bar - y[i], self.tau) for i in range(self.nprox)]
+        )
+        x_bar = self.ncp.mean(x, axis=0)
+        y = y + x - x_bar
+
+        # tolerance check: break iterations if overall
+        # objective does not decrease below tolerance
+        if self.tol is not None:
+            self.pfold = self.pf
+            self.pf = self.ncp.sum([self.proxfs[i](x_bar) for i in range(self.nprox)])
+            if np.abs(1.0 - self.pf / self.pfold) < self.tol:
+                self.tolbreak = True
+        else:
+            self.pf = 0.0
+
+        self.iiter += 1
+        if show:
+            self._print_step(x_bar)
+        if self.tol is not None or show:
+            self.cost.append(float(self.pf))
+        return x, x_bar, y
+
+    def run(
+        self,
+        x: NDArray,
+        x_bar: NDArray,
+        y: NDArray,
+        niter: int | None = None,
+        show: bool = False,
+        itershow: tuple[int, int, int] = (10, 10, 10),
+    ) -> tuple[NDArray, NDArray, NDArray]:
+        r"""Run solver
+
+        Parameters
+        ----------
+        x : :obj:`numpy.ndarray`
+            Current model vector to be updated by multiple steps of
+            the PPXA algorithm
+        x_bar : :obj:`numpy.ndarray`
+            Current averaged model vector to be updated by multiple steps of
+            the PPXA algorithm
+        y : :obj:`numpy.ndarray`
+            Additional model vector to be updated by multiple steps of
+            the PPXA algorithm
+        niter : :obj:`int`, optional
+            Number of iterations. Can be set to ``None`` if already
+            provided in the setup call
+        show : :obj:`bool`, optional
+            Display logs
+        itershow : :obj:`tuple`, optional
+            Display set log for the first N1 steps, last N2 steps,
+            and every N3 steps in between where N1, N2, N3 are the
+            three element of the list.
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Estimated model
+        x_bar : :obj:`numpy.ndarray`
+            Estimated averaged model
+        y : :obj:`numpy.ndarray`
+            Additional estimated model
+
+        """
+        niter = self.niter if niter is None else niter
+        if niter is None:
+            msg = "`niter` must not be None"
+            raise ValueError(msg)
+        while self.iiter < niter and not self.tolbreak:
+            showstep = (
+                True
+                if show
+                and (
+                    self.iiter < itershow[0]
+                    or niter - self.iiter < itershow[1]
+                    or self.iiter % itershow[2] == 0
+                )
+                else False
+            )
+            x, x_bar, y = self.step(x, x_bar, y, showstep)
+            self.callback(x_bar)
+            # check if any callback has raised a stop flag
+            stop = _callback_stop(self.callbacks)
+            if stop:
+                break
+        return x, x_bar, y
+
+    def solve(  # type: ignore[override]
+        self,
+        proxfs: list[ProxOperator],
+        x0: NDArray,
+        tau: float,
+        niter: int = 1000,
+        tol: float | None = None,
+        show: bool = False,
+        itershow: tuple[int, int, int] = (10, 10, 10),
+    ) -> tuple[NDArray, NDArray, NDArray, int, NDArray]:
+        r"""Run entire solver
+
+        Parameters
+        ----------
+        proxfs : :obj:`list`
+            A list of proximable functions :math:`f_1, \ldots, f_m`.
+        x0 : :obj:`numpy.ndarray`
+            Initial vector
+        tau : :obj:`float`
+            Positive scalar weight
+        niter : :obj:`int`, optional
+            Number of iterations of iterative scheme.
+        tol : :obj:`float`, optional
+            Tolerance on change of objective function (used as stopping criterion). If
+            ``tol=None``, run until ``niter`` is reached
+        show : :obj:`bool`, optional
+            Display logs
+        itershow : :obj:`tuple`, optional
+            Display set log for the first N1 steps, last N2 steps,
+            and every N3 steps in between where N1, N2, N3 are the
+            three element of the list.
+
+        Returns
+        -------
+        x : :obj:`numpy.ndarray`
+            Estimated model
+        x_bar : :obj:`numpy.ndarray`
+            Estimated averaged model
+        y : :obj:`numpy.ndarray`
+            Additional estimated model
+        iiter : :obj:`int`
+            Number of executed iterations
+        cost : :obj:`list`
+            History of the objective function
+
+        """
+        x, x_bar, y = self.setup(
+            proxfs=proxfs,
+            x0=x0,
+            tau=tau,
+            niter=niter,
+            tol=tol,
+            show=show,
+        )
+
+        x, x_bar, y = self.run(x, x_bar, y, niter, show=show, itershow=itershow)
+        self.finalize(65, show)
+        return x, x_bar, y, self.iiter, self.cost
+
+
 # TOD0:
 # - make niter optional in setup and fix and prints
 #   in _print_setup to not include if not provided
+# - add the tolerance check on the solution for PPXA and
+#   ConsensunADMM for the function based solvers via callbacks
