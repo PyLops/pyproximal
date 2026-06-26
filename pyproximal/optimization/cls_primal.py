@@ -2549,7 +2549,7 @@ class ADMML2(Solver):
 
         # initialize solver
         x, z = _x0z0_init(x0, z0, A, Opname="A")
-        self.u = self.ncp.zeros_like(x)
+        self.u = self.ncp.zeros_like(z)
 
         # other parameters
         self.sqrttau = 1.0 / sqrt(self.tau)
@@ -2961,7 +2961,7 @@ class LinearizedADMM(Solver):
         # initialize solver
         x, z = _x0z0_init(x0, z0, A, Opname="A")
         self.Ax = A.matvec(x) if z0 is None else z
-        self.u = self.ncp.zeros_like(x)
+        self.u = self.ncp.zeros_like(z)
 
         # create variables to track the objective function and iterations
         self.pfg, self.pfgold = np.inf, np.inf
