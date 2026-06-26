@@ -14,8 +14,6 @@ from pylops.utils.typing import NDArray
 if TYPE_CHECKING:
     from pyproximal.ProxOperator import ProxOperator
 
-_units = {"B": 1, "KB": 1024, "MB": 1024**2, "GB": 1024**3}
-
 
 class Solver(pSolver, metaclass=ABCMeta):  # type: ignore[misc]
     r"""Solver
@@ -163,42 +161,3 @@ class Solver(pSolver, metaclass=ABCMeta):  # type: ignore[misc]
         self.cost: NDArray = np.array(self.cost)
         if show:
             self._print_finalize(nbar=nbar)
-
-    def callback(  # noqa: B027
-        self,
-        x: NDArray,
-        z: NDArray | None = None,
-        *args: Any,
-        **kwargs: Any,
-    ) -> None:
-        """Callback routine
-
-        This routine must be passed by the user. Its function signature must contain
-        either a single input that contains the current solution or two inputs
-        that contain the current solutions for methods that apply splitting
-        (when using the `solve` method it will be automatically invoked after
-        each step of the solve)
-
-        Parameters
-        ----------
-        x : :obj:`numpy.ndarray`
-            Current solution
-        z : :obj:`numpy.ndarray`
-            Current additional solution
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from pyproximal.optimization.cls_primal import ADMM
-        >>> def callback(x, z):
-        ...     print(f"Running callback, current solutions {x} - {z}")
-        ...
-        >>> admmsolve.callback = callback
-
-        >>> x = np.ones(2)
-        >>> z = np.zeros(2)
-        >>> admmsolve.callback(x, z)
-        Running callback, current solutions [1. 1.] - [0. 0.]
-
-        """
-        pass
