@@ -454,10 +454,12 @@ class ProximalGradient(Solver):
             head1 = "    Itn              x[0]                  f           g       J=f+eps*g       tau"
         print(head1)
 
-    def _print_step(self, x: NDArray, pf: float | None, pg: float | None) -> None:
+    def _print_step(
+        self, x: NDArray, pf: float | None, pg: float | None, epsg_prev: int
+    ) -> None:
         if self.tol is None:
             pf, pg = self.proxf(x), self.proxg(x)
-            self.pfg = pf + np.sum(self.epsg[self.iiter - 1] * pg)
+            self.pfg = pf + np.sum(epsg_prev * pg)
         x0 = to_numpy(x[0]) if x.ndim == 1 else to_numpy(x[0, 0])
         strx = f"{x0:1.2e}     " if np.iscomplexobj(x) else f"{x0:11.4e}      "
         tau_str = (
@@ -484,7 +486,7 @@ class ProximalGradient(Solver):
         eta: float = 1.0,
         acceleration: str | None = None,
         niterback: int = 100,
-        niter: int = 10,
+        niter: int | None = None,
         tol: float | None = None,
         show: bool = False,
     ) -> tuple[NDArray, NDArray]:
@@ -520,7 +522,8 @@ class ProximalGradient(Solver):
         niterback : :obj:`int`, optional
             Max number of iterations of backtracking
         niter : :obj:`int`, optional
-            Number of iterations of iterative scheme
+            Number of iterations (default to ``None`` in case a user wants to
+            manually step over the solver)
         tol : :obj:`float`, optional
             Tolerance on change of objective function (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
@@ -550,8 +553,11 @@ class ProximalGradient(Solver):
         # check if epgs is a vector
         self.epsg = self.ncp.asarray(epsg, dtype=np.float32)
         if self.epsg.size == 1:
-            self.epsg = epsg * self.ncp.ones(niter, dtype=np.float32)
-            epsg_print = str(self.epsg[0])
+            if niter is None:
+                epsg_print = str(self.epsg)
+            else:
+                self.epsg = epsg * self.ncp.ones(niter, dtype=np.float32)
+                epsg_print = str(self.epsg[0])
         else:
             epsg_print = "Multi"
 
@@ -576,8 +582,9 @@ class ProximalGradient(Solver):
         self.t = 1.0
 
         # create variables to track the objective function and iterations
+        epsg_ = self.epsg if niter is None else self.epsg[0]
         pf, pg = self.proxf(x), self.proxg(x)
-        pfg = pf + np.sum(self.epsg[self.iiter] * pg)
+        pfg = pf + np.sum(epsg_ * pg)
         self.pfg, self.pfgold = pfg, pfg
 
         self.cost: list[float] = []
@@ -619,17 +626,23 @@ class ProximalGradient(Solver):
         """
         xold = x.copy()
 
+        # define epsg for current iteration
+        if self.epsg.ndim == 0:
+            epsg = self.epsg
+            epsg_prev = self.epsg
+        else:
+            epsg = self.epsg[self.iiter]
+            epsg_prev = self.epsg[self.iiter - 1]
+
         # proximal step
         if not self.backtracking:
             if self.eta == 1.0:
-                x = self.proxg.prox(
-                    y - self.tau * self.proxf.grad(y), self.epsg[self.iiter] * self.tau
-                )
+                x = self.proxg.prox(y - self.tau * self.proxf.grad(y), epsg * self.tau)
             else:
                 x = x + self.eta * (
                     self.proxg.prox(
                         x - self.tau * self.proxf.grad(x),
-                        self.epsg[self.iiter] * self.tau,
+                        epsg * self.tau,
                     )
                     - x
                 )
@@ -639,7 +652,7 @@ class ProximalGradient(Solver):
                 cast(float, self.tau),
                 self.proxf,
                 self.proxg,
-                self.epsg[self.iiter],
+                epsg,
                 beta=self.beta,
                 niterback=self.niterback,
             )
@@ -647,7 +660,7 @@ class ProximalGradient(Solver):
                 x = x + self.eta * (
                     self.proxg.prox(
                         x - self.tau * self.proxf.grad(x),
-                        self.epsg[self.iiter] * self.tau,
+                        epsg * self.tau,
                     )
                     - x
                 )
@@ -672,7 +685,7 @@ class ProximalGradient(Solver):
         if self.tol is not None:
             self.pfgold = self.pfg
             pf, pg = self.proxf(x), self.proxg(x)
-            self.pfg = pf + np.sum(self.epsg[self.iiter] * pg)
+            self.pfg = pf + np.sum(epsg * pg)
             if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
                 self.tolbreak = True
         else:
@@ -680,7 +693,7 @@ class ProximalGradient(Solver):
 
         self.iiter += 1
         if show:
-            self._print_step(x, pf, pg)
+            self._print_step(x, pf, pg, epsg_prev)
         if self.tol is not None or show:
             self.cost.append(float(self.pfg))
         return x, y
@@ -4554,5 +4567,3 @@ class ConsensusADMM(Solver):
 # TOD0:
 # - make niter optional in setup and fix and prints
 #   in _print_setup to not include if not provided
-# - add the tolerance check on the solution for PPXA and
-#   ConsensunADMM for the function based solvers via callbacks
