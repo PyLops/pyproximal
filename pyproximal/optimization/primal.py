@@ -171,7 +171,9 @@ def ProximalGradient(
     x0 : :obj:`numpy.ndarray`
         Initial vector
     epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
-        Scaling factor of g function
+        Scaling factor of g function. Can be a scalar
+        for iteration-independent scaling or a a 1d vector for
+        iteration-dependent scaling
     tau : :obj:`float` or :obj:`numpy.ndarray`, optional
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
@@ -340,7 +342,9 @@ def AndersonProximalGradient(
     x0 : :obj:`numpy.ndarray`
         Initial vector
     epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
-        Scaling factor of g function
+        Scaling factor of g function. Can be a scalar
+        for iteration-independent scaling or a a 1d vector for
+        iteration-dependent scaling
     tau : :obj:`float` or :obj:`numpy.ndarray`, optional
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
@@ -455,7 +459,8 @@ def GeneralizedProximalGradient(
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
         the Lipschitz constant of :math:`\sum_{i=1}^n \nabla f_i`.
     epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
-        Scaling factor(s) of ``g`` function(s)
+        Scaling factor(s) of ``g`` function(s). If a scalar is provided
+        the same scaling factor is applied to every ``g`` function.
     weights : :obj:`float`, optional
         Weighting factors of ``g`` functions. Must sum to 1.
     eta : :obj:`float`, optional

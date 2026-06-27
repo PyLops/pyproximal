@@ -501,7 +501,9 @@ class ProximalGradient(Solver):
         x0 : :obj:`numpy.ndarray`
             Initial vector
         epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
-            Scaling factor of g function
+            Scaling factor of g function. Can be a scalar
+            for iteration-independent scaling or a 1d vector for
+            iteration-dependent scaling
         tau : :obj:`float` or :obj:`numpy.ndarray`, optional
             Positive scalar weight, which should satisfy the following condition
             to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
@@ -550,7 +552,7 @@ class ProximalGradient(Solver):
 
         self.ncp = get_array_module(x0)
 
-        # check if epgs is a vector
+        # check if epsg is a vector
         self.epsg = self.ncp.asarray(epsg, dtype=np.float32)
         if self.epsg.size == 1:
             if niter is None:
@@ -785,7 +787,9 @@ class ProximalGradient(Solver):
         x0 : :obj:`numpy.ndarray`
             Initial vector
         epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
-            Scaling factor of g function
+            Scaling factor of g function. Can be a scalar
+            for iteration-independent scaling or a 1d vector for
+            iteration-dependent scaling
         tau : :obj:`float` or :obj:`numpy.ndarray`, optional
             Positive scalar weight, which should satisfy the following condition
             to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
@@ -919,10 +923,10 @@ class AndersonProximalGradient(Solver):
             head1 = "    Itn              x[0]                  f           g       J=f+eps*g       tau"
         print(head1)
 
-    def _print_step(self, x: NDArray, pg: float | None) -> None:
+    def _print_step(self, x: NDArray, pg: float | None, epsg_prev: int) -> None:
         if self.tol is None:
             self.pf, pg = self.proxf(x), self.proxg(x)
-            self.pfg = self.pf + np.sum(self.epsg[self.iiter - 1] * pg)
+            self.pfg = self.pf + np.sum(epsg_prev * pg)
         x0 = to_numpy(x[0]) if x.ndim == 1 else to_numpy(x[0, 0])
         strx = f"{x0:1.2e}     " if np.iscomplexobj(x) else f"{x0:11.4e}      "
         tau_str = (
@@ -947,7 +951,7 @@ class AndersonProximalGradient(Solver):
         epsr: float = 1e-10,
         safeguard: bool = False,
         nhistory: int = 10,
-        niter: int = 10,
+        niter: int | None = None,
         tol: float | None = None,
         show: bool = False,
     ) -> tuple[NDArray, NDArray]:
@@ -962,7 +966,9 @@ class AndersonProximalGradient(Solver):
         x0 : :obj:`numpy.ndarray`
             Initial vector
         epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
-            Scaling factor of g function
+            Scaling factor of g function. Can be a scalar
+            for iteration-independent scaling or a 1d vector for
+            iteration-dependent scaling
         tau : :obj:`float` or :obj:`numpy.ndarray`, optional
             Positive scalar weight, which should satisfy the following condition
             to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
@@ -976,7 +982,8 @@ class AndersonProximalGradient(Solver):
         nhistory : :obj:`int`, optional
             Number of previous iterates to be kept in memory (to compute the scaling factors)
         niter : :obj:`int`, optional
-            Number of iterations of iterative scheme
+            Number of iterations (default to ``None`` in case a user wants to
+            manually step over the solver)
         tol : :obj:`float`, optional
             Tolerance on change of objective function (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
@@ -1000,11 +1007,14 @@ class AndersonProximalGradient(Solver):
 
         self.ncp = get_array_module(x0)
 
-        # check if epgs is a vector
+        # check if epsg is a vector
         self.epsg = self.ncp.asarray(epsg, dtype=np.float32)
         if self.epsg.size == 1:
-            self.epsg = self.epsg * self.ncp.ones(niter, dtype=np.float32)
-            epsg_print = str(self.epsg[0])
+            if niter is None:
+                epsg_print = str(self.epsg)
+            else:
+                self.epsg = self.epsg * self.ncp.ones(niter, dtype=np.float32)
+                epsg_print = str(self.epsg[0])
         else:
             epsg_print = "Multi"
 
@@ -1012,8 +1022,9 @@ class AndersonProximalGradient(Solver):
         self.tau = self.ncp.atleast_1d(self.ncp.asarray(tau, dtype=np.float32))
 
         # initialize solver
+        epsg_ = self.epsg if niter is None else self.epsg[0]
         y = x0 - self.tau * proxf.grad(x0)
-        x = self.proxg.prox(y, self.epsg[0] * self.tau)
+        x = self.proxg.prox(y, epsg_ * self.tau)
 
         # set history of iterates for Anderson acceleration
         g = y.copy()
@@ -1029,8 +1040,11 @@ class AndersonProximalGradient(Solver):
 
         # create variables to track the objective function and iterations
         self.pf = self.proxf(x)
-        self.pfg, self.pfgold = np.inf, np.inf
+        pg = self.proxg(x)
+        pfg = self.pf + np.sum(epsg_ * pg)
+        self.pfg, self.pfgold = pfg, pfg
         self.cost: list[float] = []
+        self.cost.append(float(self.pfg))
         self.tolbreak = False
         self.iiter = 0
 
@@ -1066,6 +1080,13 @@ class AndersonProximalGradient(Solver):
             Updated additional model vector
 
         """
+        # define epsg for current iteration
+        if self.epsg.ndim == 0:
+            epsg = self.epsg
+            epsg_prev = self.epsg
+        else:
+            epsg = self.epsg[self.iiter]
+            epsg_prev = self.epsg[self.iiter - 1]
 
         # update fix point
         g = x - self.tau * self.proxf.grad(x)
@@ -1092,13 +1113,13 @@ class AndersonProximalGradient(Solver):
             y = np.vstack(self.G).T @ alpha
 
             # update main variable
-            x = self.proxg.prox(y, self.epsg[self.iiter] * self.tau)
+            x = self.proxg.prox(y, epsg * self.tau)
         else:
             # update auxiliary variable
             ytest = np.vstack(self.G).T @ alpha
 
             # update main variable
-            xtest = self.proxg.prox(ytest, self.epsg[self.iiter] * self.tau)
+            xtest = self.proxg.prox(ytest, epsg * self.tau)
 
             # check if function is decreased, otherwise do basic PG step
             pfold, self.pf = self.pf, self.proxf(xtest)
@@ -1109,7 +1130,7 @@ class AndersonProximalGradient(Solver):
                 y = ytest
                 x = xtest
             else:
-                x = self.proxg.prox(g, self.epsg[self.iiter] * self.tau)
+                x = self.proxg.prox(g, epsg * self.tau)
                 y = g
 
         # tolerance check: break iterations if overall
@@ -1117,7 +1138,7 @@ class AndersonProximalGradient(Solver):
         if self.tol is not None:
             self.pfgold = self.pfg
             self.pf, pg = self.proxf(x), self.proxg(x)
-            self.pfg = self.pf + np.sum(self.epsg[self.iiter] * pg)
+            self.pfg = self.pf + np.sum(epsg * pg)
             if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
                 self.tolbreak = True
         else:
@@ -1125,7 +1146,7 @@ class AndersonProximalGradient(Solver):
 
         self.iiter += 1
         if show:
-            self._print_step(x, pg)
+            self._print_step(x, pg, epsg_prev)
         if self.tol is not None or show:
             self.cost.append(float(self.pfg))
         return x, y
@@ -1215,7 +1236,9 @@ class AndersonProximalGradient(Solver):
         x0 : :obj:`numpy.ndarray`
             Initial vector
         epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
-            Scaling factor of g function
+            Scaling factor of g function. Can be a scalar
+            for iteration-independent scaling or a 1d vector for
+            iteration-dependent scaling
         tau : :obj:`float` or :obj:`numpy.ndarray`, optional
             Positive scalar weight, which should satisfy the following condition
             to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
@@ -1356,7 +1379,7 @@ class GeneralizedProximalGradient(Solver):
         weights: NDArray | None = None,
         eta: float = 1.0,
         acceleration: str | None = None,
-        niter: int = 10,
+        niter: int | None = None,
         tol: float | None = None,
         show: bool = False,
     ) -> tuple[NDArray, NDArray]:
@@ -1375,7 +1398,8 @@ class GeneralizedProximalGradient(Solver):
             to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
             the Lipschitz constant of :math:`\sum_{i=1}^n \nabla f_i`.
         epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
-            Scaling factor(s) of ``g`` function(s)
+            Scaling factor(s) of ``g`` function(s). If a scalar is provided
+            the same scaling factor is applied to every ``g`` function.
         weights : :obj:`float`, optional
             Weighting factors of ``g`` functions. Must sum to 1.
         eta : :obj:`float`, optional
@@ -1384,7 +1408,8 @@ class GeneralizedProximalGradient(Solver):
         acceleration:  :obj:`str`, optional
             Acceleration (``None``, ``vandenberghe`` or ``fista``)
         niter : :obj:`int`, optional
-            Number of iterations of iterative scheme
+            Number of iterations (default to ``None`` in case a user wants to
+            manually step over the solver)
         tol : :obj:`float`, optional
             Tolerance on change of objective function (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
@@ -1417,12 +1442,21 @@ class GeneralizedProximalGradient(Solver):
             msg = f"weights={self.weights} must be an array of size {len(self.proxgs)} summing to 1"
             raise ValueError(msg)
 
-        # check if epgs is a vector
-        self.epsg = np.asarray(epsg, dtype=np.float32)
+        # check if epsg is a vector and set same value for all gs otherwise
+        print("epsg", epsg)
+        self.epsg = self.ncp.asarray(epsg, dtype=np.float32)
+        print("self.epsg.size", self.epsg.size)
         if self.epsg.size == 1:
             self.epsg = epsg * self.ncp.ones(len(proxgs), dtype=np.float32)
             epsg_print = str(self.epsg[0])
         else:
+            if self.epsg.size != len(proxgs):
+                msg = (
+                    "epgs must be a scalar or a vector of size "
+                    "equal to the number of g functions, "
+                    f"provided {self.epsg.size} instead"
+                )
+                raise ValueError(msg)
             epsg_print = "Multi"
 
         # check acceleration
@@ -1617,7 +1651,8 @@ class GeneralizedProximalGradient(Solver):
             to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
             the Lipschitz constant of :math:`\sum_{i=1}^n \nabla f_i`.
         epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
-            Scaling factor(s) of ``g`` function(s)
+            Scaling factor(s) of ``g`` function(s). If a scalar is provided
+            the same scaling factor is applied to every ``g`` function.
         weights : :obj:`float`, optional
             Weighting factors of ``g`` functions. Must sum to 1.
         eta : :obj:`float`, optional
@@ -1752,7 +1787,7 @@ class HQS(Solver):
         tau: float | NDArray,
         z0: NDArray | None = None,
         gfirst: bool = True,
-        niter: int = 10,
+        niter: int | None = None,
         tol: float | None = None,
         callbackz: bool = False,
         show: bool = False,
@@ -1780,7 +1815,8 @@ class HQS(Solver):
             Apply Proximal of operator ``g`` first (``True``) or Proximal of
             operator ``f`` first (``False``)
         niter : :obj:`int`, optional
-            Number of iterations of iterative scheme
+            Number of iterations (default to ``None`` in case a user wants to
+            manually step over the solver)
         tol : :obj:`float`, optional
             Tolerance on change of objective function (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
@@ -1814,8 +1850,11 @@ class HQS(Solver):
         # check if tau is a vector
         self.tau = self.ncp.asarray(tau, dtype=np.float32)
         if self.tau.size == 1:
-            tau_print = str(np.round(self.tau, 6))
-            self.tau = self.tau * self.ncp.ones(niter, dtype=np.float32)
+            if niter is None:
+                tau_print = str(np.round(self.tau, 6))
+            else:
+                self.tau = self.tau * self.ncp.ones(niter, dtype=np.float32)
+                tau_print = str(np.round(self.tau[0], 6))
         else:
             tau_print = "Variable"
 
@@ -1826,8 +1865,11 @@ class HQS(Solver):
         self.t = 1.0
 
         # create variables to track the objective function and iterations
-        self.pfg, self.pfgold = np.inf, np.inf
+        pf, pg = self.proxf(x), self.proxg(x)
+        pfg = pf + pg
+        self.pfg, self.pfgold = pfg, pfg
         self.cost: list[float] = []
+        self.cost.append(float(self.pfg))
         self.tolbreak = False
         self.iiter = 0
 
@@ -1863,13 +1905,19 @@ class HQS(Solver):
             Updated additional model vector
 
         """
+        # define tau for current iteration
+        if self.tau.ndim == 0:
+            tau = self.tau
+        else:
+            tau = self.tau[self.iiter]
+
         # proximal steps
         if self.gfirst:
-            z = self.proxg.prox(x, self.tau[self.iiter])
-            x = self.proxf.prox(z, self.tau[self.iiter])
+            z = self.proxg.prox(x, tau)
+            x = self.proxf.prox(z, tau)
         else:
-            x = self.proxf.prox(z, self.tau[self.iiter])
-            z = self.proxg.prox(x, self.tau[self.iiter])
+            x = self.proxf.prox(z, tau)
+            z = self.proxg.prox(x, tau)
 
         # tolerance check: break iterations if overall
         # objective does not decrease below tolerance
@@ -1960,7 +2008,7 @@ class HQS(Solver):
         tau: float | NDArray,
         z0: NDArray | None = None,
         gfirst: bool = True,
-        niter: int = 10,
+        niter: int | None = None,
         tol: float | None = None,
         callbackz: bool = False,
         show: bool = False,
@@ -1989,7 +2037,8 @@ class HQS(Solver):
             Apply Proximal of operator ``g`` first (``True``) or Proximal of
             operator ``f`` first (``False``)
         niter : :obj:`int`, optional
-            Number of iterations of iterative scheme
+            Number of iterations (default to ``None`` in case a user wants to
+            manually step over the solver)
         tol : :obj:`float`, optional
             Tolerance on change of objective function (used as stopping
             criterion). If ``tol=None``, run until ``niter`` is reached
@@ -2133,7 +2182,7 @@ class ADMM(Solver):
         tau: float,
         z0: NDArray | None = None,
         gfirst: bool = False,
-        niter: int = 10,
+        niter: int | None = None,
         tol: float | None = None,
         callbackz: bool = False,
         show: bool = False,
@@ -2158,7 +2207,8 @@ class ADMM(Solver):
             Apply Proximal of operator ``g`` first (``True``) or Proximal of
             operator ``f`` first (``False``)
         niter : :obj:`int`, optional
-            Number of iterations of iterative scheme
+            Number of iterations (default to ``None`` in case a user wants to
+            manually step over the solver)
         tol : :obj:`float`, optional
             Tolerance on change of objective function (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
@@ -2485,7 +2535,7 @@ class ADMML2(Solver):
         tau: float,
         z0: NDArray | None = None,
         gfirst: bool = False,
-        niter: int = 10,
+        niter: int | None = None,
         tol: float | None = None,
         callbackz: bool = False,
         show: bool = False,
@@ -2513,7 +2563,8 @@ class ADMML2(Solver):
             Apply Proximal of operator ``g`` first (``True``) or Proximal of
             operator ``f`` first (``False``)
         niter : :obj:`int`, optional
-            Number of iterations of iterative scheme
+            Number of iterations (default to ``None`` in case a user wants to
+            manually step over the solver)
         tol : :obj:`float`, optional
             Tolerance on change of objective function (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
@@ -2900,7 +2951,7 @@ class LinearizedADMM(Solver):
         tau: float,
         mu: float,
         z0: NDArray | None = None,
-        niter: int = 10,
+        niter: int | None = None,
         tol: float | None = None,
         show: bool = False,
     ) -> tuple[NDArray, NDArray]:
@@ -2927,7 +2978,8 @@ class LinearizedADMM(Solver):
         z0 : :obj:`numpy.ndarray`
             Initial auxiliary vector. If ``None``, initialized to ``A @ x0``.
         niter : :obj:`int`, optional
-            Number of iterations of iterative scheme
+            Number of iterations (default to ``None`` in case a user wants to
+            manually step over the solver)
         tol : :obj:`float`, optional
             Tolerance on change of objective function (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached

@@ -20,7 +20,7 @@ from pyproximal.optimization.primal import (
     ProximalPoint,
     TwIST,
 )
-from pyproximal.proximal import L1, L2, Quadratic
+from pyproximal.proximal import L1, L2, Box, Quadratic
 
 par1 = {"n": 10, "m": 10, "dtype": "float64"}  # square, float64
 par2 = {"n": 8, "m": 10, "dtype": "float64"}  # underdetermined, float64
@@ -147,6 +147,41 @@ def test_GPG_weights(par):
             x0=np.zeros(m),
             tau=1.0,
             weights=[1.0, 1.0],
+        )
+
+
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
+def test_GPG_epsg(par):
+    """Check GPG raises error if epsg is a vector with number
+    of elements differring from the number of g functions
+    passed to proxgs"""
+    with pytest.raises(ValueError, match="must be a scalar or a vector"):
+        np.random.seed(0)
+        n, m = par["n"], par["m"]
+
+        # Random mixing matrix
+        R = np.random.normal(0.0, 1.0, (n, m))
+        Rop = MatrixMult(R)
+
+        # Model and data
+        x = np.zeros(m)
+        y = Rop @ x
+
+        # Operators
+        l2 = L2(Op=Rop, b=y, niter=10, warm=True)
+        l1 = L1(sigma=5e-1)
+        box = Box()
+        _ = GeneralizedProximalGradient(
+            [
+                l2,
+            ],
+            [
+                l1,
+                box,
+            ],
+            x0=np.zeros(m),
+            tau=1.0,
+            epsg=np.ones(5),
         )
 
 
