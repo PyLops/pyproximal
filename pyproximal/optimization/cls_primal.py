@@ -3315,7 +3315,7 @@ class TwIST(Solver):
         alpha: float | None = None,
         beta: float | None = None,
         eigs: tuple[float, float] | None = None,
-        niter: int = 10,
+        niter: int | None = None,
         tol: float | None = None,
         show: bool = False,
     ) -> NDArray:
@@ -3341,7 +3341,8 @@ class TwIST(Solver):
             Largest and smallest eigenvalues of :math:`\mathbf{A}^H \mathbf{A}`.
             If passed, computes `alpha` and `beta` based on them.
         niter : :obj:`int`, optional
-            Number of iterations of iterative scheme
+            Number of iterations (default to ``None`` in case a user wants to
+            manually step over the solver)
         tol : :obj:`float`, optional
             Tolerance on change of objective function (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
@@ -3672,7 +3673,7 @@ class DouglasRachfordSplitting(Solver):
         tau: float,
         eta: float = 1.0,
         gfirst: bool = True,
-        niter: int = 10,
+        niter: int | None = None,
         tol: float | None = None,
         callbacky: bool = False,
         show: bool = False,
@@ -3695,7 +3696,8 @@ class DouglasRachfordSplitting(Solver):
             Apply Proximal of operator ``g`` first (``True``) or Proximal of
             operator ``f`` first (``False``)
         niter : :obj:`int`, optional
-            Number of iterations of iterative scheme
+            Number of iterations (default to ``None`` in case a user wants to
+            manually step over the solver)
         tol : :obj:`float`, optional
             Tolerance on change of objective function (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
@@ -4032,7 +4034,7 @@ class PPXA(Solver):
         tau: float,
         eta: float = 1.0,
         weights: NDArray | list[float] | None = None,
-        niter: int = 1000,
+        niter: int | None = None,
         tol: float | None = None,
         show: bool = False,
     ) -> tuple[NDArray, NDArray]:
@@ -4055,7 +4057,8 @@ class PPXA(Solver):
             Weights :math:`\sum_{i=1}^m w_i = 1, \ 0 < w_i < 1`,
             Defaults to None, which means :math:`w_1 = \cdots = w_m = \frac{1}{m}.`
         niter : :obj:`int`, optional
-            Number of iterations of iterative scheme.
+            Number of iterations (default to ``None`` in case a user wants to
+            manually step over the solver)
         tol : :obj:`float`, optional
             Tolerance on change of objective function (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
@@ -4374,7 +4377,7 @@ class ConsensusADMM(Solver):
         proxfs: list[ProxOperator],
         x0: NDArray,
         tau: float,
-        niter: int = 1000,
+        niter: int | None = None,
         tol: float | None = None,
         show: bool = False,
     ) -> tuple[NDArray, NDArray, NDArray]:
@@ -4389,7 +4392,8 @@ class ConsensusADMM(Solver):
         tau : :obj:`float`
             Positive scalar weight
         niter : :obj:`int`, optional
-            Number of iterations of iterative scheme.
+            Number of iterations (default to ``None`` in case a user wants to
+            manually step over the solver)
         tol : :obj:`float`, optional
             Tolerance on change of objective function (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
