@@ -177,7 +177,6 @@ Class-based
     PPXA
     ConsensusADMM
 
-
 Function-based
 ~~~~~~~~~~~~~~
 
@@ -199,6 +198,43 @@ Function-based
     DouglasRachfordSplitting
     PPXA
     ConsensusADMM
+
+
+Primal-dual
+^^^^^^^^^^^
+
+Class-based
+~~~~~~~~~~~
+
+.. currentmodule:: pyproximal.optimization.cls_primaldual
+
+.. autosummary::
+   :toctree: generated/
+
+    AdaptivePrimalDual
+    PrimalDual
+
+Function-based
+~~~~~~~~~~~~~~
+
+.. currentmodule:: pyproximal.optimization.primaldual
+
+.. autosummary::
+   :toctree: generated/
+
+    AdaptivePrimalDual
+    PrimalDual
+
+
+Other
+^^^^^
+
+.. currentmodule:: pyproximal.optimization.bregman
+
+.. autosummary::
+   :toctree: generated/
+
+    Bregman
 
 .. currentmodule:: pyproximal.optimization.palm
 
@@ -228,28 +264,6 @@ Function-based
    :toctree: generated/
 
     SR3
-
-
-Primal-dual
-^^^^^^^^^^^
-
-.. currentmodule:: pyproximal.optimization.primaldual
-
-.. autosummary::
-   :toctree: generated/
-
-    AdaptivePrimalDual
-    PrimalDual
-
-Other
-^^^^^
-
-.. currentmodule:: pyproximal.optimization.bregman
-
-.. autosummary::
-   :toctree: generated/
-
-    Bregman
 
 .. currentmodule:: pyproximal.optimization.segmentation
 

@@ -1,20 +1,28 @@
-import time
+__all__ = [
+    "PrimalDual",
+    "AdaptivePrimalDual",
+]
+
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-import numpy as np
-from pylops.utils.backend import get_array_module, to_numpy
+from pylops.optimization.callback import CostNanInfCallback, CostToInitialCallback
 from pylops.utils.typing import NDArray
 
-from pyproximal.ProxOperator import ProxOperator
+from pyproximal.optimization.cls_primaldual import (
+    AdaptivePrimalDual as cAdaptivePrimalDual,
+)
+from pyproximal.optimization.cls_primaldual import PrimalDual as cPrimalDual
 
 if TYPE_CHECKING:
     from pylops.linearoperator import LinearOperator
 
+    from pyproximal.ProxOperator import ProxOperator
+
 
 def PrimalDual(
-    proxf: ProxOperator,
-    proxg: ProxOperator,
+    proxf: "ProxOperator",
+    proxg: "ProxOperator",
     A: "LinearOperator",
     x0: NDArray,
     tau: float | NDArray,
@@ -24,10 +32,13 @@ def PrimalDual(
     theta: float = 1.0,
     niter: int = 10,
     gfirst: bool = True,
+    tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[..., None] | None = None,
     callbacky: bool = False,
     returny: bool = False,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
 ) -> NDArray | tuple[NDArray, NDArray]:
     r"""Primal-dual algorithm
 
@@ -66,10 +77,12 @@ def PrimalDual(
         Initial vector
     tau : :obj:`float` or :obj:`numpy.ndarray`
         Stepsize of subgradient of :math:`f`. This can be constant
-        or function of iterations (in the latter cases provided as np.ndarray)
+        or function of iterations (in the latter cases provided
+        as numpy.ndarray)
     mu : :obj:`float` or :obj:`numpy.ndarray`
         Stepsize of subgradient of :math:`g^*`. This can be constant
-        or function of iterations (in the latter cases provided as np.ndarray)
+        or function of iterations (in the latter cases provided as
+        numpy.ndarray)
     y0 : :obj:`numpy.ndarray`
         Initial auxiliary vector. If ``None``, set to zero
     z : :obj:`numpy.ndarray`, optional
@@ -84,6 +97,16 @@ def PrimalDual(
     gfirst : :obj:`bool`, optional
         Apply Proximal of operator ``g`` first (``True``) or Proximal of
         operator ``f`` first (``False``)
+    tol : :obj:`float`, optional
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached or the other tolerance
+        criterion is met
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
@@ -93,6 +116,10 @@ def PrimalDual(
         Return also ``y``
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
 
     Returns
     -------
@@ -103,118 +130,37 @@ def PrimalDual(
 
     Notes
     -----
-    The Primal-dual algorithm can be expressed by the following recursion
-    (``gfirst=True``):
-
-    .. math::
-
-        \mathbf{y}^{k+1} = \prox_{\mu g^*}(\mathbf{y}^{k} +
-        \mu \mathbf{A}\bar{\mathbf{x}}^{k})\\
-        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{x}^{k} -
-        \tau (\mathbf{A}^H \mathbf{y}^{k+1} + \mathbf{z})) \\
-        \bar{\mathbf{x}}^{k+1} = \mathbf{x}^{k+1} +
-        \theta (\mathbf{x}^{k+1} - \mathbf{x}^k)
-
-    where :math:`\tau \mu \lambda_{max}(\mathbf{A}^H\mathbf{A}) < 1`.
-
-    Alternatively for ``gfirst=False`` the scheme becomes:
-
-    .. math::
-
-        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{x}^{k} -
-        \tau (\mathbf{A}^H \mathbf{y}^{k} + \mathbf{z})) \\
-        \bar{\mathbf{x}}^{k+1} = \mathbf{x}^{k+1} +
-        \theta (\mathbf{x}^{k+1} - \mathbf{x}^k) \\
-        \mathbf{y}^{k+1} = \prox_{\mu g^*}(\mathbf{y}^{k} +
-        \mu \mathbf{A}\bar{\mathbf{x}}^{k+1})
-
-    .. [1] A., Chambolle, and T., Pock, "A first-order primal-dual algorithm for
-        convex problems with applications to imaging", Journal of Mathematical
-        Imaging and Vision, 40, 8pp. 120-145. 2011.
+    See :class:`pyproximal.optimization.cls_primaldual.PrimalDual`
 
     """
-    ncp = get_array_module(x0)
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    # check if tau and mu are scalars or arrays
-    fixedtau = fixedmu = False
-    if isinstance(tau, (int, float)):
-        tau = tau * ncp.ones(niter, dtype=x0.dtype)
-        fixedtau = True
-    if isinstance(mu, (int, float)):
-        mu = mu * ncp.ones(niter, dtype=x0.dtype)
-        fixedmu = True
-
-    if show:
-        tstart = time.time()
-        print(
-            "Primal-dual: min_x f(Ax) + x^T z + g(x)\n"
-            "---------------------------------------------------------\n"
-            "Proximal operator (f): %s\n"
-            "Proximal operator (g): %s\n"
-            "Linear operator (A): %s\n"
-            "Additional vector (z): %s\n"
-            "tau = %s\t\tmu = %s\ntheta = %.2f\t\tniter = %d\n"
-            % (
-                type(proxf),
-                type(proxg),
-                type(A),
-                None if z is None else "vector",
-                str(tau[0]) if fixedtau else "Variable",
-                str(mu[0]) if fixedmu else "Variable",
-                theta,
-                niter,
-            )
-        )
-        head = "   Itn       x[0]          f           g          z^x       J = f + g + z^x"
-        print(head)
-
-    # initialize variables
-    x = x0.copy()
-    y = y0.copy() if y0 is not None else ncp.zeros(A.shape[0], dtype=x.dtype)
-    xhat = x.copy()
-
-    # run iterations
-    for iiter in range(niter):
-        xold = x.copy()
-        if gfirst:
-            y = proxg.proxdual(y + mu[iiter] * A.matvec(xhat), mu[iiter])
-            ATy = A.rmatvec(y)
-            if z is not None:
-                ATy += z
-            x = proxf.prox(x - tau[iiter] * ATy, tau[iiter])
-            xhat = x + theta * (x - xold)
-        else:
-            ATy = A.rmatvec(y)
-            if z is not None:
-                ATy += z
-            x = proxf.prox(x - tau[iiter] * ATy, tau[iiter])
-            xhat = x + theta * (x - xold)
-            y = proxg.proxdual(y + mu[iiter] * A.matvec(xhat), mu[iiter])
-
-        # run callback
-        if callback is not None:
-            if callbacky:
-                callback(x, y)
-            else:
-                callback(x)
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf, pg = proxf(x), proxg(A.matvec(x))
-                pf = 0.0 if isinstance(pf, bool) else pf
-                pg = 0.0 if isinstance(pg, bool) else pg
-                zx = 0.0 if z is None else np.dot(z, x)
-                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e      %10.3e" % (
-                    iiter + 1,
-                    np.real(to_numpy(x[0])),
-                    pf,
-                    pg,
-                    zx,
-                    pf + pg + zx,
-                )
-                print(msg)
-    if show:
-        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
-        print("---------------------------------------------------------\n")
+    pdsolve = cPrimalDual(
+        callbacks=callbacks if len(callbacks) > 0 else None,
+    )
+    if callback is not None:
+        pdsolve.callback = callback
+    x, _, y, _, _ = pdsolve.solve(
+        proxf=proxf,
+        proxg=proxg,
+        A=A,
+        x0=x0,
+        tau=tau,
+        mu=mu,
+        y0=y0,
+        z=z,
+        theta=theta,
+        gfirst=gfirst,
+        niter=niter,
+        tol=tol or (0.0 if rtol else None),
+        callbacky=callbacky,
+        show=show,
+        itershow=itershow,
+    )
     if not returny:
         return x
     else:
@@ -222,8 +168,8 @@ def PrimalDual(
 
 
 def AdaptivePrimalDual(
-    proxf: ProxOperator,
-    proxg: ProxOperator,
+    proxf: "ProxOperator",
+    proxg: "ProxOperator",
     A: "LinearOperator",
     x0: NDArray,
     tau: float,
@@ -234,9 +180,11 @@ def AdaptivePrimalDual(
     delta: float = 1.5,
     z: NDArray | None = None,
     niter: int = 10,
-    tol: float = 1e-10,
+    tol: float | None = 1e-10,
+    rtol: float | None = None,
     callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
 ) -> tuple[NDArray, tuple[NDArray, NDArray, NDArray]]:
     r"""Adaptive Primal-dual algorithm
 
@@ -276,13 +224,25 @@ def AdaptivePrimalDual(
         Additional vector
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
-    tol : :obj:`int`, optional
-        Tolerance on residual norms
+    tol : :obj:`float`, optional
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached or the other tolerance
+        criterion is met
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
 
     Returns
     -------
@@ -293,128 +253,35 @@ def AdaptivePrimalDual(
 
     Notes
     -----
-    The Adative Primal-dual algorithm share the the same iterations of the
-    original :func:`pyproximal.optimization.primaldual.PrimalDual` solver.
-    The main difference lies in the fact that the step sizes ``tau`` and ``mu``
-    are adaptively changed at each iteration leading to faster converge.
-
-    Changes are applied by tracking the norm of the primal and dual
-    residuals. When their mutual ratio increases beyond a certain treshold
-    ``delta`` the step lenghts are updated to balance the minimization and
-    maximization part of the overall optimization process.
-
-    .. [1] T., Goldstein, M., Li, X., Yuan, E., Esser, R., Baraniuk, "Adaptive
-        Primal-Dual Hybrid Gradient Methods for Saddle-Point Problems",
-        ArXiv, 2013.
+    See :class:`pyproximal.optimization.cls_primaldual.AdaptivePrimalDual`
 
     """
-    if show:
-        tstart = time.time()
-        print(
-            "Adaptive Primal-dual: min_x f(Ax) + x^T z + g(x)\n"
-            "---------------------------------------------------------\n"
-            "Proximal operator (f): %s\n"
-            "Proximal operator (g): %s\n"
-            "Linear operator (A): %s\n"
-            "Additional vector (z): %s\n"
-            "tau0 = %10e\tmu0 = %10e\n"
-            "alpha0 = %10e\teta = %10e\n"
-            "s = %10e\tdelta = %10e\n"
-            "niter = %d\t\ttol = %10e\n"
-            % (
-                type(proxf),
-                type(proxg),
-                type(A),
-                None if z is None else "vector",
-                tau,
-                mu,
-                alpha,
-                eta,
-                s,
-                delta,
-                niter,
-                tol,
-            )
-        )
-        head = "   Itn       x[0]          f           g          z^x       J = f + g + z^x"
-        print(head)
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    # initialization
-    x = x0.copy()
-    y = np.zeros(A.shape[0], dtype=x.dtype)
-    Ax = np.zeros(A.shape[0], dtype=x.dtype)
-    ATy = np.zeros(A.shape[1], dtype=x.dtype)
-    taus = np.zeros(niter + 1)
-    mus = np.zeros(niter + 1)
-    alphas = np.zeros(niter + 1)
-    taus[0], mus[0], alphas[0] = tau, mu, alpha
-    p = d = tol + 1.0
-
-    iiter = 0
-    while iiter < niter and p > tol and d > tol:
-        # store old values
-        xold = x.copy()
-        yold = y.copy()
-        Axold = Ax.copy()
-        ATyold = ATy.copy()
-
-        # proxf
-        if z is not None:
-            ATy += z
-        x = proxf.prox(x - tau * ATy, tau)
-        Ax = A.matvec(x)
-        Axhat = 2 * Ax - Axold
-
-        # proxg
-        y = proxg.proxdual(y + mu * Axhat, mu)
-        ATy = A.rmatvec(y)
-
-        # update steps
-        if z is not None:
-            p = float(
-                np.linalg.norm((xold - x) / tau - (ATyold - ATy) - A.rmatvec(z) + z)
-            )
-        else:
-            p = float(np.linalg.norm((xold - x) / tau - (ATyold - ATy)))
-        d = float(np.linalg.norm((yold - y) / mu - (Axold - Ax)))
-
-        if p > s * d * delta:
-            tau /= 1 - alpha
-            mu *= 1 - alpha
-            alpha *= eta
-        elif p < s * d / delta:
-            tau *= 1 - alpha
-            mu /= 1 - alpha
-            alpha *= eta
-
-        # save history of steps
-        taus[iiter + 1] = tau
-        mus[iiter + 1] = mu
-        alphas[iiter + 1] = alpha
-        iiter += 1
-
-        # run callback
-        if callback is not None:
-            callback(x)
-
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf, pg = proxf(x), proxg(A.matvec(x))
-                pf = 0.0 if isinstance(pf, bool) else pf
-                pg = 0.0 if isinstance(pg, bool) else pg
-                zx = 0.0 if z is None else np.dot(z, x)
-                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e      %10.3e" % (
-                    iiter + 1,
-                    np.real(to_numpy(x[0])),
-                    pf,
-                    pg,
-                    zx,
-                    pf + pg + zx,
-                )
-                print(msg)
-
-    steps = (taus[: iiter + 1], mus[: iiter + 1], alphas[: iiter + 1])
-    if show:
-        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
-
+    apdsolve = cAdaptivePrimalDual(
+        callbacks=callbacks if len(callbacks) > 0 else None,
+    )
+    if callback is not None:
+        apdsolve.callback = callback
+    x, _, _, _, steps = apdsolve.solve(
+        proxf=proxf,
+        proxg=proxg,
+        A=A,
+        x0=x0,
+        tau=tau,
+        mu=mu,
+        alpha=alpha,
+        eta=eta,
+        s=s,
+        delta=delta,
+        z=z,
+        niter=niter,
+        tol=tol or (0.0 if rtol else None),
+        show=show,
+        itershow=itershow,
+    )
     return x, steps
