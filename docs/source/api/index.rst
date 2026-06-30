@@ -155,6 +155,32 @@ Solvers
 Primal
 ^^^^^^
 
+Class-based
+~~~~~~~~~~~
+
+.. currentmodule:: pyproximal.optimization.cls_primal
+
+.. autosummary::
+   :toctree: generated/
+
+    AcceleratedProximalGradient
+    ADMM
+    ADMML2
+    AndersonProximalGradient
+    GeneralizedProximalGradient
+    HQS
+    LinearizedADMM
+    ProximalGradient
+    ProximalPoint
+    TwIST
+    DouglasRachfordSplitting
+    PPXA
+    ConsensusADMM
+
+
+Function-based
+~~~~~~~~~~~~~~
+
 .. currentmodule:: pyproximal.optimization.primal
 
 .. autosummary::
