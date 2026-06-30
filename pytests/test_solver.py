@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
-from pylops.basicoperators import Identity, MatrixMult
+from pylops.basicoperators import FirstDerivative, Identity, MatrixMult
 from pylops.optimization.leastsquares import regularized_inversion
 from pylops.optimization.sparsity import fista, ista
 
@@ -20,6 +20,7 @@ from pyproximal.optimization.primal import (
     ProximalPoint,
     TwIST,
 )
+from pyproximal.optimization.primaldual import AdaptivePrimalDual, PrimalDual
 from pyproximal.proximal import L1, L2, Box, Quadratic
 
 par1 = {"n": 10, "m": 10, "dtype": "float64"}  # square, float64
@@ -952,3 +953,124 @@ def test_ConsensusADMM_with_GPG(par) -> None:
     )
 
     assert_array_almost_equal(xppxa, xgpg, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
+@pytest.mark.parametrize("gfirst", [False, True])
+def test_ADMML2_PrimalDual(par, gfirst):
+    """Check equivalency of ADMML2 and Primal-Dual
+    (note that despite the trajectory will be different, they
+    should converge to the same solution)
+    """
+    np.random.seed(0)
+    n, m = par["n"], par["m"]
+
+    # Define sparse model
+    x = np.zeros(m, dtype=par["dtype"])
+    x[m // 2 :] = 1.0
+
+    # Random mixing matrix
+    R = np.random.normal(0.0, 1.0, (n, m)).astype(par["dtype"])
+    Rop = MatrixMult(R, dtype=par["dtype"])
+
+    y = Rop @ x
+
+    # Step size
+    Dop = FirstDerivative(m)
+    L = 4.0  # Lipshitz constant of Dop
+    eps = 1e-1
+
+    # ADMML2
+    l1 = L1(sigma=eps)
+    tau = 0.99 / L
+    xadmml2 = ADMML2(
+        l1,
+        Rop,
+        y,
+        Dop,
+        x0=np.zeros(m),
+        tau=tau,
+        gfirst=gfirst,
+        niter=200,
+        iter_lim=10,
+        show=True,
+    )[0]
+
+    # PD
+    l2 = L2(Rop, y, niter=10, warm=True)
+    l1 = L1(sigma=eps)
+    tau = 0.99 / np.sqrt(L)
+    mu = 0.99 / np.sqrt(L)
+    xpd = PrimalDual(
+        l2,
+        l1,
+        Dop,
+        x0=np.zeros(m),
+        tau=tau,
+        mu=mu,
+        gfirst=gfirst,
+        niter=200,
+        show=True,
+    )
+
+    assert_array_almost_equal(xadmml2, xpd, decimal=2)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
+def test_PrimalDual_AdaptivePrimalDual(par):
+    """Check equivalency of Primal-Dual and
+    Adaptive Primal-Dual (note that despite the
+    trajectory will be different, they should
+    converge to the same solution)
+    """
+    np.random.seed(0)
+    n, m = par["n"], par["m"]
+
+    # Define sparse model
+    x = np.zeros(m, dtype=par["dtype"])
+    x[m // 2 :] = 1.0
+
+    # Random mixing matrix
+    R = np.random.normal(0.0, 1.0, (n, m)).astype(par["dtype"])
+    Rop = MatrixMult(R, dtype=par["dtype"])
+
+    y = Rop @ x
+
+    # Step size
+    Dop = FirstDerivative(m)
+    L = 4.0  # Lipshitz constant of Dop
+    eps = 1e-1
+
+    # PD
+    l2 = L2(Rop, y, niter=10, warm=True)
+    l1 = L1(sigma=eps)
+    tau = 0.99 / np.sqrt(L)
+    mu = 0.99 / np.sqrt(L)
+    xpd = PrimalDual(
+        l2,
+        l1,
+        Dop,
+        x0=np.zeros(m),
+        tau=tau,
+        mu=mu,
+        niter=200,
+        show=True,
+    )
+
+    # Adaptive PD
+    l2 = L2(Rop, y, niter=10, warm=True)
+    l1 = L1(sigma=eps)
+    tau = 0.99 / np.sqrt(L)
+    mu = 0.99 / np.sqrt(L)
+    xapd = AdaptivePrimalDual(
+        l2,
+        l1,
+        Dop,
+        x0=np.zeros(m),
+        tau=tau,
+        mu=mu,
+        niter=200,
+        show=True,
+    )[0]
+
+    assert_array_almost_equal(xpd, xapd, decimal=2)
