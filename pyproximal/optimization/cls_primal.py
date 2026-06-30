@@ -352,7 +352,7 @@ class ProximalPoint(Solver):
             Estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        cost : :obj:`list`
+        cost : :obj:`numpy.ndarray`
             History of the objective function
 
         """
@@ -819,7 +819,7 @@ class ProximalGradient(Solver):
             Additional estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        cost : :obj:`list`
+        cost : :obj:`numpy.ndarray`
             History of the objective function
 
         """
@@ -1260,7 +1260,7 @@ class AndersonProximalGradient(Solver):
             Additional estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        cost : :obj:`list`
+        cost : :obj:`numpy.ndarray`
             History of the objective function
 
         """
@@ -1668,7 +1668,7 @@ class GeneralizedProximalGradient(Solver):
             Additional estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        cost : :obj:`list`
+        cost : :obj:`numpy.ndarray`
             History of the objective function
 
         """
@@ -2047,7 +2047,7 @@ class HQS(Solver):
             Additional estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        cost : :obj:`list`
+        cost : :obj:`numpy.ndarray`
             History of the objective function
 
         """
@@ -2415,7 +2415,7 @@ class ADMM(Solver):
             Additional estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        cost : :obj:`list`
+        cost : :obj:`numpy.ndarray`
             History of the objective function
 
         """
@@ -2826,7 +2826,7 @@ class ADMML2(Solver):
             Additional estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        cost : :obj:`list`
+        cost : :obj:`numpy.ndarray`
             History of the objective function
 
         """
@@ -3184,7 +3184,7 @@ class LinearizedADMM(Solver):
             Additional estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        cost : :obj:`list`
+        cost : :obj:`numpy.ndarray`
             History of the objective function
 
         """
@@ -3545,7 +3545,7 @@ class TwIST(Solver):
             Estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        cost : :obj:`list`
+        cost : :obj:`numpy.ndarray`
             History of the objective function
 
         """
@@ -3899,7 +3899,7 @@ class DouglasRachfordSplitting(Solver):
             Additional estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        cost : :obj:`list`
+        cost : :obj:`numpy.ndarray`
             History of the objective function
 
         """
@@ -4259,7 +4259,7 @@ class PPXA(Solver):
             Additional estimated model(s)
         iiter : :obj:`int`
             Number of executed iterations
-        cost : :obj:`list`
+        cost : :obj:`numpy.ndarray`
             History of the objective function
 
         """
@@ -4590,7 +4590,7 @@ class ConsensusADMM(Solver):
             Additional estimated model
         iiter : :obj:`int`
             Number of executed iterations
-        cost : :obj:`list`
+        cost : :obj:`numpy.ndarray`
             History of the objective function
 
         """
