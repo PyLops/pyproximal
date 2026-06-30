@@ -158,12 +158,7 @@ class ProximalPoint(Solver):
         self._print_solver(nbar=60)
 
         strpar = f"Proximal operator: {type(self.prox).__name__}"
-        if self.niter is not None:
-            strpar1 = (
-                f"tau = {self.tau:6e}\ttol = {str(self.tol)}\tniter = {self.niter}"
-            )
-        else:
-            strpar1 = f"tau = {self.tau:6e}\ttol = {str(self.tol)}"
+        strpar1 = f"tau = {self.tau:6e}\ttol = {str(self.tol)}\tniter = {self.niter}"
         print(strpar)
         print(strpar1)
         print("-" * 60 + "\n")
@@ -215,7 +210,6 @@ class ProximalPoint(Solver):
 
         """
         self.prox = prox
-        self.x0 = x0
         self.tau = tau
         self.niter = niter
         self.tol = tol
@@ -439,10 +433,7 @@ class ProximalGradient(Solver):
         )
         strpar1 = f"tau = {tau_str}\t\tbacktrack = {self.backtracking}"
         strpar2 = f"beta = {self.beta}\t\tepsg = {epsg_print}\t\tacceleration = {self.acceleration}"
-        if self.niter is not None:
-            strpar3 = f"niter = {self.niter}\t\tniterback = {self.niterback}\t\ttol = {str(self.tol)}"
-        else:
-            strpar3 = f"niterback = {self.niterback}\t\ttol = {str(self.tol)}"
+        strpar3 = f"niter = {self.niter}\t\tniterback = {self.niterback}\t\ttol = {str(self.tol)}"
         print(strpar)
         print(strpar1)
         print(strpar2)
@@ -542,7 +533,6 @@ class ProximalGradient(Solver):
         """
         self.proxf = proxf
         self.proxg = proxg
-        self.x0 = x0
         self.backtracking = backtracking
         self.beta = beta
         self.eta = eta
@@ -998,7 +988,6 @@ class AndersonProximalGradient(Solver):
         """
         self.proxf = proxf
         self.proxg = proxg
-        self.x0 = x0
         self.epsr = epsr
         self.safeguard = safeguard
         self.nhistory = nhistory
@@ -1426,7 +1415,6 @@ class GeneralizedProximalGradient(Solver):
         """
         self.proxfs = proxfs
         self.proxgs = proxgs
-        self.x0 = x0
         self.tau = tau
         self.eta = eta
         self.niter = niter
@@ -4510,13 +4498,13 @@ class ConsensusADMM(Solver):
         ----------
         x : :obj:`numpy.ndarray`
             Current model vector to be updated by multiple steps of
-            the PPXA algorithm
+            the ConsensusADMM algorithm
         x_bar : :obj:`numpy.ndarray`
             Current averaged model vector to be updated by multiple steps of
-            the PPXA algorithm
+            the ConsensusADMM algorithm
         y : :obj:`numpy.ndarray`
             Additional model vector to be updated by multiple steps of
-            the PPXA algorithm
+            the ConsensusADMM algorithm
         niter : :obj:`int`, optional
             Number of iterations. Can be set to ``None`` if already
             provided in the setup call
