@@ -105,7 +105,7 @@ errhistgd = []
 xredgd = pyproximal.optimization.red.RED(
     l2,
     red,
-    x0=np.zeros(x.size),
+    x0=np.zeros(x.size, dtype=np.complex128),
     solver="gradientdescent",
     alpha=0.5,
     niter=50,
@@ -135,7 +135,7 @@ errhistadmm = []
 xredadmm = pyproximal.optimization.red.RED(
     l2,
     red,
-    x0=np.zeros(x.size),
+    x0=np.zeros(x.size, dtype=np.complex128),
     solver=pyproximal.optimization.primal.ADMM,
     tau=tau,
     niter=50,
