@@ -163,7 +163,6 @@ Class-based
 .. autosummary::
    :toctree: generated/
 
-    AcceleratedProximalGradient
     ADMM
     ADMML2
     AndersonProximalGradient
