@@ -98,7 +98,7 @@ iml12_ada, steps = pyproximal.optimization.primaldual.AdaptivePrimalDual(
     x0=np.zeros_like(img.ravel()),
     niter=45,
     show=True,
-    tol=0.05,
+    xytol=0.05,
     callback=lambda x: callback(x, l2, l1iso, Gop, cost_ada, img.ravel(), err_ada),
 )
 iml12_ada = iml12_ada.reshape(img.shape)

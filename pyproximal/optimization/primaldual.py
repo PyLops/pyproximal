@@ -180,8 +180,9 @@ def AdaptivePrimalDual(
     delta: float = 1.5,
     z: NDArray | None = None,
     niter: int = 10,
-    tol: float | None = 1e-10,
+    tol: float | None = None,
     rtol: float | None = None,
+    xytol: float | None = None,
     callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
     itershow: tuple[int, int, int] = (10, 10, 10),
@@ -234,6 +235,9 @@ def AdaptivePrimalDual(
         initial objective function is below this value. If ``rtol=None``,
         run until ``niter`` is reached or the other tolerance criterion is
         met
+    xytol : :obj:`float`, optional
+        Tolerance on x/y updates (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
@@ -281,6 +285,7 @@ def AdaptivePrimalDual(
         z=z,
         niter=niter,
         tol=tol or (0.0 if rtol else None),
+        xytol=xytol,
         show=show,
         itershow=itershow,
     )

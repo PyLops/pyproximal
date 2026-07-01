@@ -543,7 +543,9 @@ class AdaptivePrimalDual(Solver):
         strpar1 = f"tau0 = {self.tau:6.2e}\tmu0 = {self.mu:6.2e}"
         strpar2 = f"alpha0 = {str(self.alpha)}\teta0 = {self.niter}"
         strpar3 = f"s = {str(self.s)}\t\tdelta = {self.delta}"
-        strpar4 = f"tol = {str(self.tol)}\tniter = {self.niter}"
+        strpar4 = (
+            f"tol = {str(self.tol)}\txytol = {str(self.xytol)}\tniter = {self.niter}"
+        )
         print(strpar)
         print(strpar1)
         print(strpar2)
@@ -551,15 +553,16 @@ class AdaptivePrimalDual(Solver):
         print(strpar4)
         print("-" * 85 + "\n")
         if not xcomplex:
-            head1 = "    Itn           x[0]                 f            g          z^x       J=f+g+z^x"
+            head1 = "    Itn           x[0]                  f          g          z^x      J=f+g+z^x"
         else:
             head1 = "    Itn              x[0]                     f         g          z^x       J=f+g+z^x"
         print(head1)
 
     def _print_step(self, x: NDArray) -> None:
-        self.pf = self.proxf(x)
-        self.pg = self.proxg(self.A.matvec(x))
-        self.zx = 0.0 if self.z is None else self.ncp.dot(self.z, x)
+        if self.tol is None:
+            self.pf = self.proxf(x)
+            self.pg = self.proxg(self.A.matvec(x))
+            self.zx = 0.0 if self.z is None else self.ncp.dot(self.z, x)
         pf = 0.0 if isinstance(self.pf, bool) else self.pf
         pg = 0.0 if isinstance(self.pg, bool) else self.pg
         self.pfg = pf + pg + self.zx
@@ -567,10 +570,10 @@ class AdaptivePrimalDual(Solver):
         msg = (
             f"{self.iiter:6g}        "
             + strx
-            + f" {self.pf:11.4e} "
-            + f"{self.pg:11.4e} "
-            + f" {self.zx:11.4e} "
-            + f" {self.pfg:11.4e} "
+            + f"{pf:11.4e} "
+            + f"{pg:11.4e} "
+            + f"{self.zx:11.4e} "
+            + f"{self.pfg:11.4e} "
         )
         print(msg)
 
@@ -589,6 +592,7 @@ class AdaptivePrimalDual(Solver):
         z: NDArray | None = None,
         niter: int | None = None,
         tol: float | None = None,
+        xytol: float | None = None,
         show: bool = False,
     ) -> tuple[NDArray, NDArray]:
         r"""Setup solver
@@ -624,6 +628,9 @@ class AdaptivePrimalDual(Solver):
             Number of iterations of iterative scheme (default to ``None``
             in case a user wants to manually step over the solver)
         tol : :obj:`float`, optional
+            Tolerance on change of objective function (used as stopping criterion). If
+            ``tol=None``, run until ``niter`` is reached
+        xytol : :obj:`float`, optional
             Tolerance on x/y updates (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
         show : :obj:`bool`, optional
@@ -647,7 +654,7 @@ class AdaptivePrimalDual(Solver):
         self.z = z
         self.niter = niter
         self.tol = tol
-
+        self.xytol = xytol
         self.ncp = get_array_module(x0)
 
         # initialize solver
@@ -758,11 +765,19 @@ class AdaptivePrimalDual(Solver):
         self.mus.append(self.mu)
         self.alphas.append(self.alpha)
 
-        # tolerance check: break iterations if
-        # x/y updates do not decrease
-        # below tolerance
+        # tolerance checks: break iterations if overall
+        # objective or x/y updates do not decrease
+        # below respective tolerances
         if self.tol is not None:
-            if self.p <= self.tol or self.d <= self.tol:
+            self.pfgold = self.pfg
+            self.pf = self.proxf(x)
+            self.pg = self.proxg(self.A.matvec(x))
+            self.zx = 0.0 if self.z is None else self.ncp.dot(self.z, x)
+            self.pfg = self.pf + self.pg + self.zx
+            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+                self.tolbreak = True
+        if self.xytol is not None:
+            if self.p <= self.xytol or self.d <= self.xytol:
                 self.tolbreak = True
 
         self.iiter += 1
@@ -846,6 +861,7 @@ class AdaptivePrimalDual(Solver):
         z: NDArray | None = None,
         niter: int | None = None,
         tol: float | None = None,
+        xytol: float | None = None,
         show: bool = False,
         itershow: tuple[int, int, int] = (10, 10, 10),
     ) -> tuple[NDArray, NDArray, int, NDArray, tuple[NDArray, NDArray, NDArray]]:
@@ -882,6 +898,9 @@ class AdaptivePrimalDual(Solver):
             Number of iterations of iterative scheme (default to ``None``
             in case a user wants to manually step over the solver)
         tol : :obj:`float`, optional
+            Tolerance on change of objective function (used as stopping criterion). If
+            ``tol=None``, run until ``niter`` is reached
+        xytol : :obj:`float`, optional
             Tolerance on x/y updates (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
         show : :obj:`bool`, optional
@@ -919,6 +938,7 @@ class AdaptivePrimalDual(Solver):
             z=z,
             niter=niter,
             tol=tol,
+            xytol=xytol,
             show=show,
         )
         x, y = self.run(x, y, niter, show=show, itershow=itershow)
