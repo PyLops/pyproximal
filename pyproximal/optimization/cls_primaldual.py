@@ -100,16 +100,16 @@ class PrimalDual(Solver):
             f"Linear operator (A): {type(self.A).__name__}\n"
             f"Additional vector (z): {None if self.z is None else 'vector'}\n"
         )
-        strpar1 = f"tau = {tau_print}\tmu = {mu_print}\ttheta = {self.theta:6e}"
-        strpar2 = f"tol = {str(self.tol)}\t\tniter = {self.niter}"
+        strpar1 = f"tau = {tau_print}\tmu = {mu_print}\ttheta = {self.theta:6.2e}"
+        strpar2 = f"tol = {str(self.tol)}\tniter = {self.niter}"
         print(strpar)
         print(strpar1)
         print(strpar2)
         print("-" * 85 + "\n")
         if not xcomplex:
-            head1 = "    Itn           x[0]                f            g          z^x       J=f+g+z^x"
+            head1 = "    Itn           x[0]                 f            g          z^x       J=f+g+z^x"
         else:
-            head1 = "    Itn              x[0]                     f         g          z^x       J=f+g+z^x"
+            head1 = "    Itn              x[0]                      f          g           z^x        J=f+g+z^x"
         print(head1)
 
     def _print_step(self, x: NDArray) -> None:
@@ -540,10 +540,10 @@ class AdaptivePrimalDual(Solver):
             f"Linear operator (A): {type(self.A).__name__}\n"
             f"Additional vector (z): {None if self.z is None else 'vector'}\n"
         )
-        strpar1 = f"tau0 = {self.tau}\tmu0 = {self.mu}"
-        strpar2 = f"alpha0 = {str(self.alpha)}\t\teta0 = {self.niter}"
+        strpar1 = f"tau0 = {self.tau:6.2e}\tmu0 = {self.mu:6.2e}"
+        strpar2 = f"alpha0 = {str(self.alpha)}\teta0 = {self.niter}"
         strpar3 = f"s = {str(self.s)}\t\tdelta = {self.delta}"
-        strpar4 = f"tol = {str(self.tol)}\t\tniter = {self.niter}"
+        strpar4 = f"tol = {str(self.tol)}\tniter = {self.niter}"
         print(strpar)
         print(strpar1)
         print(strpar2)
@@ -551,16 +551,15 @@ class AdaptivePrimalDual(Solver):
         print(strpar4)
         print("-" * 85 + "\n")
         if not xcomplex:
-            head1 = "    Itn           x[0]                f            g          z^x       J=f+g+z^x"
+            head1 = "    Itn           x[0]                 f            g          z^x       J=f+g+z^x"
         else:
             head1 = "    Itn              x[0]                     f         g          z^x       J=f+g+z^x"
         print(head1)
 
     def _print_step(self, x: NDArray) -> None:
-        if self.tol is None:
-            self.pf = self.proxf(x)
-            self.pg = self.proxg(self.A.matvec(x))
-            self.zx = 0.0 if self.z is None else self.ncp.dot(self.z, x)
+        self.pf = self.proxf(x)
+        self.pg = self.proxg(self.A.matvec(x))
+        self.zx = 0.0 if self.z is None else self.ncp.dot(self.z, x)
         pf = 0.0 if isinstance(self.pf, bool) else self.pf
         pg = 0.0 if isinstance(self.pg, bool) else self.pg
         self.pfg = pf + pg + self.zx
@@ -625,7 +624,7 @@ class AdaptivePrimalDual(Solver):
             Number of iterations of iterative scheme (default to ``None``
             in case a user wants to manually step over the solver)
         tol : :obj:`float`, optional
-            Tolerance on change of objective function (used as stopping criterion). If
+            Tolerance on x/y updates (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
         show : :obj:`bool`, optional
             Display setup log
@@ -672,10 +671,10 @@ class AdaptivePrimalDual(Solver):
             self.p = self.d = 0.0
 
         # create variables to track the objective function and iterations
-        pf = self.proxf(x)
-        pg = self.proxg(self.A.matvec(x))
-        zx = 0.0 if self.z is None else self.ncp.dot(self.z, x)
-        pfg = pf + pg + zx
+        self.pf = self.proxf(x)
+        self.pg = self.proxg(self.A.matvec(x))
+        self.zx = 0.0 if self.z is None else self.ncp.dot(self.z, x)
+        pfg = self.pf + self.pg + self.zx
         self.pfg, self.pfgold = pfg, pfg
         self.cost: list[float] = []
         self.cost.append(float(self.pfg))
@@ -759,25 +758,16 @@ class AdaptivePrimalDual(Solver):
         self.mus.append(self.mu)
         self.alphas.append(self.alpha)
 
-        # tolerance check: break iterations if overall
-        # objective or x/y updates do not decrease
+        # tolerance check: break iterations if
+        # x/y updates do not decrease
         # below tolerance
-        if self.tol is not None:
-            self.pfgold = self.pfg
-            self.pf = self.proxf(x)
-            self.pg = self.proxg(self.A.matvec(x))
-            self.zx = 0.0 if self.z is None else self.ncp.dot(self.z, x)
-            self.pfg = self.pf + self.pg + self.zx
-            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
-                self.tolbreak = True
-
-            if self.p <= self.tol or self.d <= self.tol:
-                self.tolbreak = True
+        if self.p <= self.tol or self.d <= self.tol:
+            self.tolbreak = True
 
         self.iiter += 1
         if show:
             self._print_step(x)
-        if self.tol is not None or show:
+        if show:
             self.cost.append(float(self.pfg))
         return x, y
 
@@ -891,7 +881,7 @@ class AdaptivePrimalDual(Solver):
             Number of iterations of iterative scheme (default to ``None``
             in case a user wants to manually step over the solver)
         tol : :obj:`float`, optional
-            Tolerance on change of objective function (used as stopping criterion). If
+            Tolerance on x/y updates (used as stopping criterion). If
             ``tol=None``, run until ``niter`` is reached
         show : :obj:`bool`, optional
             Display setup log

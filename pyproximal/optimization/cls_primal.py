@@ -440,9 +440,9 @@ class ProximalGradient(Solver):
         print(strpar3)
         print("-" * 81 + "\n")
         if not xcomplex:
-            head1 = "    Itn           x[0]              f           g       J=f+eps*g       tau"
+            head1 = "    Itn           x[0]              f           g       J=f+eps*g     tau"
         else:
-            head1 = "    Itn              x[0]                  f           g       J=f+eps*g       tau"
+            head1 = "    Itn              x[0]                  f           g       J=f+eps*g     tau"
         print(head1)
 
     def _print_step(
@@ -2145,7 +2145,7 @@ class ADMM(Solver):
             head1 = "    Itn           x[0]              f           g         J=f+g"
         else:
             head1 = (
-                "    Itn              x[0]                  f           g         J=f+g"
+                "    Itn              x[0]                 f           g         J=f+g"
             )
         print(head1)
 
@@ -2458,7 +2458,7 @@ class ADMML2(Solver):
 
     Notes
     -----
-    The ADMM algorithm with L2 misfit term can be expressed by the following recursion:
+    The ADMM algorithm with L2 misfit term can be expressed by the following recursion [1]_:
 
     .. math::
 
@@ -3626,7 +3626,7 @@ class DouglasRachfordSplitting(Solver):
             f"Proximal operator (g): {type(self.proxg).__name__}\n"
         )
         strpar1 = f"tau = {self.tau:6e}\teta = {self.eta:6e}\tniter = {self.niter}"
-        strpar2 = f"gfirst = {self.gfirst}\ttol = {self.tol}"
+        strpar2 = f"gfirst = {self.gfirst}\t\ttol = {self.tol}"
         print(strpar)
         print(strpar1)
         print(strpar2)
