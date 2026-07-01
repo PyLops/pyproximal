@@ -43,7 +43,7 @@ def PrimalDual(
     r"""Primal-dual algorithm
 
     Solves the following (possibly) nonlinear minimization problem using
-    the general version of the first-order primal-dual algorithm of [1]_:
+    the general version of the first-order primal-dual algorithm:
 
     .. math::
 
@@ -98,7 +98,7 @@ def PrimalDual(
         Apply Proximal of operator ``g`` first (``True``) or Proximal of
         operator ``f`` first (``False``)
     tol : :obj:`float`, optional
-        Tolerance on change of objective function (used as stopping criterion). If
+        Tolerance on x/y updates (used as stopping criterion). If
         ``tol=None``, run until ``niter`` is reached or the other tolerance
         criterion is met
     rtol : :obj:`float`, optional
@@ -190,7 +190,7 @@ def AdaptivePrimalDual(
 
     Solves the minimization problem in
     :func:`pyproximal.optimization.primaldual.PrimalDual`
-    using an adaptive version of the first-order primal-dual algorithm of [1]_.
+    using an adaptive version of the first-order primal-dual algorithm.
     The main advantage of this method is that step sizes :math:`\tau` and
     :math:`\mu` are changing through iterations, improving the overall speed
     of convergence of the algorithm.
