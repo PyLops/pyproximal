@@ -130,7 +130,13 @@ laff = pyproximal.proximal.AffineSet(Bop, data_blended.ravel(), niter=5)
 lort = pyproximal.proximal.Orthogonal(pyproximal.proximal.L0(sigma=sigma), Sop.H)
 
 data_inv = pyproximal.optimization.primal.HQS(
-    laff, lort, x0=np.zeros(Bop.shape[1]), tau=tau, gfirst=False, niter=niter, show=True
+    laff,
+    lort,
+    x0=np.zeros(Bop.shape[1], dtype=np.complex128),
+    tau=tau,
+    gfirst=False,
+    niter=niter,
+    show=True,
 )[0]
 data_inv = data_inv.reshape(ns, nt)
 snr_inv = pylops.utils.metrics.snr(data, data_inv)
