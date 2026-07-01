@@ -761,8 +761,9 @@ class AdaptivePrimalDual(Solver):
         # tolerance check: break iterations if
         # x/y updates do not decrease
         # below tolerance
-        if self.p <= self.tol or self.d <= self.tol:
-            self.tolbreak = True
+        if self.tol is not None:
+            if self.p <= self.tol or self.d <= self.tol:
+                self.tolbreak = True
 
         self.iiter += 1
         if show:
