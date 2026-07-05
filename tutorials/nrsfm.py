@@ -231,8 +231,11 @@ class BlockDiagFrobenius(ProxOperator):
         self.M = M
 
     def __call__(self, x):
-        X = x.reshape(self.dim)
-        return 0.5 * np.linalg.norm(self.R @ X - self.M, "fro") ** 2
+        X = x.reshape(self.dim).reshape(self.dim[0] // 3, 3, self.dim[1])
+        return (
+            0.5
+            * np.linalg.norm((self.R @ X).reshape(self.M.shape) - self.M, "fro") ** 2
+        )
 
     @_check_tau
     def prox(self, x, tau):
