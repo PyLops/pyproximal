@@ -1,5 +1,5 @@
 __all__ = [
-    "ModuleUpdateCallback",
+    "ModelUpdateCallback",
 ]
 
 from typing import TYPE_CHECKING
@@ -11,8 +11,8 @@ if TYPE_CHECKING:
     from pyproximal.optimization.basesolver import Solver
 
 
-class ModuleUpdateCallback(Callbacks):  # type: ignore[misc]
-    """Module update callback
+class ModelUpdateCallback(Callbacks):  # type: ignore[misc]
+    """Model update callback
 
     This callback can be used to stop the solver when each element of
     the model (i.e, solution) is updated below a certain threshold.
