@@ -217,8 +217,11 @@ class ProximalPoint(Solver):
         self.ncp = get_array_module(x0)
 
         # create variables to track the objective function and iterations
-        self.pf, self.pfold = np.inf, np.inf
+        pf = self.prox(x0)
+        self.pf, self.pfold = pf, pf
+
         self.cost: list[float] = []
+        self.cost.append(float(self.pf))
         self.tolbreak = False
         self.iiter = 0
 
@@ -251,7 +254,7 @@ class ProximalPoint(Solver):
         if self.tol is not None:
             self.pfold = self.pf
             self.pf = self.prox(x)
-            if np.abs(1.0 - self.pf / self.pfold) < self.tol:
+            if self.pfold != 0 and self.ncp.abs(1.0 - self.pf / self.pfold) < self.tol:
                 self.tolbreak = True
 
         self.iiter += 1
@@ -678,7 +681,10 @@ class ProximalGradient(Solver):
             self.pfgold = self.pfg
             pf, pg = self.proxf(x), self.proxg(x)
             self.pfg = pf + np.sum(epsg * pg)
-            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+            if (
+                self.pfgold != 0
+                and self.ncp.abs(1.0 - self.pfg / self.pfgold) < self.tol
+            ):
                 self.tolbreak = True
         else:
             pf, pg = 0.0, 0.0
@@ -1128,7 +1134,10 @@ class AndersonProximalGradient(Solver):
             self.pfgold = self.pfg
             self.pf, pg = self.proxf(x), self.proxg(x)
             self.pfg = self.pf + np.sum(epsg * pg)
-            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+            if (
+                self.pfgold != 0
+                and self.ncp.abs(1.0 - self.pfg / self.pfgold) < self.tol
+            ):
                 self.tolbreak = True
         else:
             pg = 0.0
@@ -1431,9 +1440,7 @@ class GeneralizedProximalGradient(Solver):
             raise ValueError(msg)
 
         # check if epsg is a vector and set same value for all gs otherwise
-        print("epsg", epsg)
         self.epsg = self.ncp.asarray(epsg, dtype=np.float32)
-        print("self.epsg.size", self.epsg.size)
         if self.epsg.size == 1:
             self.epsg = epsg * self.ncp.ones(len(proxgs), dtype=np.float32)
             epsg_print = str(self.epsg[0])
@@ -1463,8 +1470,15 @@ class GeneralizedProximalGradient(Solver):
         self.t = 1.0
 
         # create variables to track the objective function and iterations
-        self.pfg, self.pfgold = np.inf, np.inf
+        pf = np.sum([proxf(x) for proxf in self.proxfs])
+        pg = np.sum(
+            [eg * proxg(x) for proxg, eg in zip(self.proxgs, self.epsg, strict=True)]
+        )
+        pfg = pf + pg
+        self.pfg, self.pfgold = pfg, pfg
+
         self.cost: list[float] = []
+        self.cost.append(float(self.pfg))
         self.tolbreak = False
         self.iiter = 0
 
@@ -1538,7 +1552,10 @@ class GeneralizedProximalGradient(Solver):
                 ]
             )
             self.pfg = pf + pg
-            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+            if (
+                self.pfgold != 0
+                and self.ncp.abs(1.0 - self.pfg / self.pfgold) < self.tol
+            ):
                 self.tolbreak = True
         else:
             pf, pg = 0.0, 0.0
@@ -1856,6 +1873,7 @@ class HQS(Solver):
         pf, pg = self.proxf(x), self.proxg(x)
         pfg = pf + pg
         self.pfg, self.pfgold = pfg, pfg
+
         self.cost: list[float] = []
         self.cost.append(float(self.pfg))
         self.tolbreak = False
@@ -1914,7 +1932,10 @@ class HQS(Solver):
             pf = self.proxf(x)
             pg = self.proxg(x)
             self.pfg = pf + pg
-            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+            if (
+                self.pfgold != 0
+                and self.ncp.abs(1.0 - self.pfg / self.pfgold) < self.tol
+            ):
                 self.tolbreak = True
         else:
             pf, pg = 0.0, 0.0
@@ -2139,7 +2160,6 @@ class ADMM(Solver):
         print(strpar)
         print(strpar1)
         print(strpar2)
-
         print("-" * 65 + "\n")
         if not xcomplex:
             head1 = "    Itn           x[0]              f           g         J=f+g"
@@ -2233,8 +2253,13 @@ class ADMM(Solver):
         self.u = self.ncp.zeros_like(x)
 
         # create variables to track the objective function and iterations
-        self.pfg, self.pfgold = np.inf, np.inf
+        pf = self.proxf(x)
+        pg = self.proxg(x)
+        pfg = pf + pg
+        self.pfg, self.pfgold = pfg, pfg
+
         self.cost: list[float] = []
+        self.cost.append(float(self.pfg))
         self.tolbreak = False
         self.iiter = 0
 
@@ -2286,7 +2311,10 @@ class ADMM(Solver):
             pf = self.proxf(x)
             pg = self.proxg(x)
             self.pfg = pf + pg
-            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+            if (
+                self.pfgold != 0
+                and self.ncp.abs(1.0 - self.pfg / self.pfgold) < self.tol
+            ):
                 self.tolbreak = True
         else:
             pf, pg = 0.0, 0.0
@@ -2485,7 +2513,6 @@ class ADMML2(Solver):
         strpar1 = f"tau = {self.tau:6e}\tniter = {self.niter}\ttol = {self.tol}"
         print(strpar)
         print(strpar1)
-
         print("-" * 65 + "\n")
         if not xcomplex:
             head1 = "    Itn           x[0]              f           g         J=f+g"
@@ -2594,8 +2621,13 @@ class ADMML2(Solver):
         self.sqrttau = 1.0 / sqrt(self.tau)
 
         # create variables to track the objective function and iterations
-        self.pfg, self.pfgold = np.inf, np.inf
+        pf = 0.5 * self.ncp.linalg.norm(self.Op @ x - self.b) ** 2
+        pg = self.proxg(self.A @ x)
+        pfg = pf + pg
+        self.pfg, self.pfgold = pfg, pfg
+
         self.cost: list[float] = []
+        self.cost.append(float(self.pfg))
         self.tolbreak = False
         self.iiter = 0
 
@@ -2683,7 +2715,10 @@ class ADMML2(Solver):
             pf = 0.5 * self.ncp.linalg.norm(self.Op @ x - self.b) ** 2
             pg = self.proxg(Ax)
             self.pfg = pf + pg
-            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+            if (
+                self.pfgold != 0
+                and self.ncp.abs(1.0 - self.pfg / self.pfgold) < self.tol
+            ):
                 self.tolbreak = True
         else:
             pf, pg = 0.0, 0.0
@@ -2907,7 +2942,6 @@ class LinearizedADMM(Solver):
         print(strpar)
         print(strpar1)
         print(strpar2)
-
         print("-" * 65 + "\n")
         if not xcomplex:
             head1 = "    Itn           x[0]              f           g         J=f+g"
@@ -3004,8 +3038,13 @@ class LinearizedADMM(Solver):
         self.u = self.ncp.zeros_like(z)
 
         # create variables to track the objective function and iterations
-        self.pfg, self.pfgold = np.inf, np.inf
+        pf = self.proxf(x)
+        pg = self.proxg(self.Ax)
+        pfg = pf + pg
+        self.pfg, self.pfgold = pfg, pfg
+
         self.cost: list[float] = []
+        self.cost.append(float(self.pfg))
         self.tolbreak = False
         self.iiter = 0
 
@@ -3056,7 +3095,10 @@ class LinearizedADMM(Solver):
             pf = self.proxf(x)
             pg = self.proxg(self.Ax)
             self.pfg = pf + pg
-            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+            if (
+                self.pfgold != 0
+                and self.ncp.abs(1.0 - self.pfg / self.pfgold) < self.tol
+            ):
                 self.tolbreak = True
         else:
             pf, pg = 0.0, 0.0
@@ -3271,7 +3313,6 @@ class TwIST(Solver):
         print(strpar)
         print(strpar1)
         print(strpar2)
-
         print("-" * 65 + "\n")
         if not xcomplex:
             head1 = "    Itn           x[0]              f           g         J=f+g"
@@ -3369,8 +3410,13 @@ class TwIST(Solver):
         x = self.proxg.prox(x0 - self.proxf.grad(x0), 1.0)
 
         # create variables to track the objective function and iterations
-        self.pfg, self.pfgold = np.inf, np.inf
+        pf = self.proxf(x)
+        pg = self.proxg(x)
+        pfg = pf + pg
+        self.pfg, self.pfgold = pfg, pfg
+
         self.cost: list[float] = []
+        self.cost.append(float(self.pfg))
         self.tolbreak = False
         self.iiter = 0
 
@@ -3423,7 +3469,10 @@ class TwIST(Solver):
             pf = self.proxf(x)
             pg = self.proxg(x)
             self.pfg = pf + pg
-            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+            if (
+                self.pfgold != 0
+                and self.ncp.abs(1.0 - self.pfg / self.pfgold) < self.tol
+            ):
                 self.tolbreak = True
         else:
             pf, pg = 0.0, 0.0
@@ -3630,7 +3679,6 @@ class DouglasRachfordSplitting(Solver):
         print(strpar)
         print(strpar1)
         print(strpar2)
-
         print("-" * 65 + "\n")
         if not xcomplex:
             head1 = "    Itn           x[0]              f           g         J=f+g"
@@ -3719,8 +3767,13 @@ class DouglasRachfordSplitting(Solver):
         y = x0.copy()
 
         # create variables to track the objective function and iterations
-        self.pfg, self.pfgold = np.inf, np.inf
+        pf = self.proxf(x)
+        pg = self.proxg(x)
+        pfg = pf + pg
+        self.pfg, self.pfgold = pfg, pfg
+
         self.cost: list[float] = []
+        self.cost.append(float(self.pfg))
         self.tolbreak = False
         self.iiter = 0
 
@@ -3771,7 +3824,10 @@ class DouglasRachfordSplitting(Solver):
             pf = self.proxf(x)
             pg = self.proxg(x)
             self.pfg = pf + pg
-            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+            if (
+                self.pfgold != 0
+                and self.ncp.abs(1.0 - self.pfg / self.pfgold) < self.tol
+            ):
                 self.tolbreak = True
         else:
             pf, pg = 0.0, 0.0
@@ -3999,7 +4055,6 @@ class PPXA(Solver):
         print(strpar1)
         print(strpar2)
         print(strpar3)
-
         print("-" * 65 + "\n")
         if not xcomplex:
             head1 = "    Itn           x[0]         J=sum_i f_i"
@@ -4087,8 +4142,11 @@ class PPXA(Solver):
         x = self.ncp.mean(y, axis=0)
 
         # create variables to track the objective function and iterations
-        self.pf, self.pfold = np.inf, np.inf
+        pf = self.ncp.sum([self.proxfs[i](x) for i in range(self.nprox)])
+        self.pf, self.pfold = pf, pf
+
         self.cost: list[float] = []
+        self.cost.append(float(self.pf))
         self.tolbreak = False
         self.iiter = 0
 
@@ -4138,7 +4196,7 @@ class PPXA(Solver):
         if self.tol is not None:
             self.pfold = self.pf
             self.pf = self.ncp.sum([self.proxfs[i](x) for i in range(self.nprox)])
-            if np.abs(1.0 - self.pf / self.pfold) < self.tol:
+            if self.pfold != 0 and self.ncp.abs(1.0 - self.pf / self.pfold) < self.tol:
                 self.tolbreak = True
         else:
             self.pf = 0.0
@@ -4344,7 +4402,6 @@ class ConsensusADMM(Solver):
         strpar1 = f"tau = {self.tau:6e}\tniter = {self.niter}\ttol = {self.tol}"
         print(strpar)
         print(strpar1)
-
         print("-" * 65 + "\n")
         if not xcomplex:
             head1 = "    Itn           x[0]         J=sum_i f_i"
@@ -4412,8 +4469,11 @@ class ConsensusADMM(Solver):
         y = self.ncp.zeros((self.nprox, x0.size), dtype=x0.dtype)
 
         # create variables to track the objective function and iterations
-        self.pf, self.pfold = np.inf, np.inf
+        pf = self.ncp.sum([self.proxfs[i](x_bar) for i in range(self.nprox)])
+        self.pf, self.pfold = pf, pf
+
         self.cost: list[float] = []
+        self.cost.append(float(self.pf))
         self.tolbreak = False
         self.iiter = 0
 
@@ -4471,7 +4531,7 @@ class ConsensusADMM(Solver):
         if self.tol is not None:
             self.pfold = self.pf
             self.pf = self.ncp.sum([self.proxfs[i](x_bar) for i in range(self.nprox)])
-            if np.abs(1.0 - self.pf / self.pfold) < self.tol:
+            if self.pfold != 0 and self.ncp.abs(1.0 - self.pf / self.pfold) < self.tol:
                 self.tolbreak = True
         else:
             self.pf = 0.0

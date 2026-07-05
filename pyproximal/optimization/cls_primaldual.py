@@ -328,7 +328,10 @@ class PrimalDual(Solver):
             self.pg = self.proxg(self.A.matvec(x))
             self.zx = 0.0 if self.z is None else self.ncp.dot(self.z, x)
             self.pfg = self.pf + self.pg + self.zx
-            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+            if (
+                self.pfgold != 0
+                and self.ncp.abs(1.0 - self.pfg / self.pfgold) < self.tol
+            ):
                 self.tolbreak = True
 
         self.iiter += 1
@@ -774,7 +777,10 @@ class AdaptivePrimalDual(Solver):
             self.pg = self.proxg(self.A.matvec(x))
             self.zx = 0.0 if self.z is None else self.ncp.dot(self.z, x)
             self.pfg = self.pf + self.pg + self.zx
-            if np.abs(1.0 - self.pfg / self.pfgold) < self.tol:
+            if (
+                self.pfgold != 0
+                and self.ncp.abs(1.0 - self.pfg / self.pfgold) < self.tol
+            ):
                 self.tolbreak = True
         if self.xytol is not None:
             if self.p <= self.xytol or self.d <= self.xytol:
