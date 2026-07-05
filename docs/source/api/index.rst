@@ -155,6 +155,30 @@ Solvers
 Primal
 ^^^^^^
 
+Class-based
+~~~~~~~~~~~
+
+.. currentmodule:: pyproximal.optimization.cls_primal
+
+.. autosummary::
+   :toctree: generated/
+
+    ADMM
+    ADMML2
+    AndersonProximalGradient
+    GeneralizedProximalGradient
+    HQS
+    LinearizedADMM
+    ProximalGradient
+    ProximalPoint
+    TwIST
+    DouglasRachfordSplitting
+    PPXA
+    ConsensusADMM
+
+Function-based
+~~~~~~~~~~~~~~
+
 .. currentmodule:: pyproximal.optimization.primal
 
 .. autosummary::
@@ -173,6 +197,43 @@ Primal
     DouglasRachfordSplitting
     PPXA
     ConsensusADMM
+
+
+Primal-dual
+^^^^^^^^^^^
+
+Class-based
+~~~~~~~~~~~
+
+.. currentmodule:: pyproximal.optimization.cls_primaldual
+
+.. autosummary::
+   :toctree: generated/
+
+    AdaptivePrimalDual
+    PrimalDual
+
+Function-based
+~~~~~~~~~~~~~~
+
+.. currentmodule:: pyproximal.optimization.primaldual
+
+.. autosummary::
+   :toctree: generated/
+
+    AdaptivePrimalDual
+    PrimalDual
+
+
+Other
+^^^^^
+
+.. currentmodule:: pyproximal.optimization.bregman
+
+.. autosummary::
+   :toctree: generated/
+
+    Bregman
 
 .. currentmodule:: pyproximal.optimization.palm
 
@@ -202,28 +263,6 @@ Primal
    :toctree: generated/
 
     SR3
-
-
-Primal-dual
-^^^^^^^^^^^
-
-.. currentmodule:: pyproximal.optimization.primaldual
-
-.. autosummary::
-   :toctree: generated/
-
-    AdaptivePrimalDual
-    PrimalDual
-
-Other
-^^^^^
-
-.. currentmodule:: pyproximal.optimization.bregman
-
-.. autosummary::
-   :toctree: generated/
-
-    Bregman
 
 .. currentmodule:: pyproximal.optimization.segmentation
 

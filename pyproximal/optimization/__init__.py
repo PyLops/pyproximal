@@ -53,4 +53,6 @@ on a special use of the Primal-Dual algorithm:
 
 """
 
-from . import primal, primaldual, bregman, segmentation, sr3, palm, pnp, red
+from . import cls_primal, primal
+from . import cls_primaldual, primaldual
+from . import bregman, segmentation, sr3, palm, pnp, red

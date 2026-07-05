@@ -1,116 +1,61 @@
-import time
+__all__ = [
+    "ProximalPoint",
+    "ProximalGradient",
+    "AcceleratedProximalGradient",
+    "AndersonProximalGradient",
+    "GeneralizedProximalGradient",
+    "HQS",
+    "ADMM",
+    "ADMML2",
+    "LinearizedADMM",
+    "TwIST",
+    "DouglasRachfordSplitting",
+    "PPXA",
+    "ConsensusADMM",
+]
+
 import warnings
 from collections.abc import Callable
-from math import sqrt
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
-import numpy as np
-from pylops.optimization.leastsquares import regularized_inversion
-from pylops.utils.backend import get_array_module, to_numpy
+from pylops.optimization.callback import CostNanInfCallback, CostToInitialCallback
 from pylops.utils.typing import NDArray
 
-from pyproximal.proximal import L2
-from pyproximal.ProxOperator import ProxOperator
-from pyproximal.utils.bilinear import BilinearOperator
+from pyproximal.optimization.cls_primal import ADMM as cADMM
+from pyproximal.optimization.cls_primal import ADMML2 as cADMML2
+from pyproximal.optimization.cls_primal import HQS as cHQS
+from pyproximal.optimization.cls_primal import PPXA as cPPXA
+from pyproximal.optimization.cls_primal import (
+    AndersonProximalGradient as cAndersonProximalGradient,
+)
+from pyproximal.optimization.cls_primal import ConsensusADMM as cConsensusADMM
+from pyproximal.optimization.cls_primal import (
+    DouglasRachfordSplitting as cDouglasRachfordSplitting,
+)
+from pyproximal.optimization.cls_primal import (
+    GeneralizedProximalGradient as cGeneralizedProximalGradient,
+)
+from pyproximal.optimization.cls_primal import LinearizedADMM as cLinearizedADMM
+from pyproximal.optimization.cls_primal import ProximalGradient as cProximalGradient
+from pyproximal.optimization.cls_primal import ProximalPoint as cProximalPoint
+from pyproximal.optimization.cls_primal import TwIST as cTwIST
 
 if TYPE_CHECKING:
     from pylops.linearoperator import LinearOperator
 
-
-def _backtracking(
-    x: NDArray,
-    tau: float,
-    proxf: ProxOperator,
-    proxg: ProxOperator,
-    epsg: float,
-    beta: float = 0.5,
-    niterback: int = 10,
-) -> tuple[NDArray, float]:
-    r"""Backtracking
-
-    Line-search algorithm for finding step sizes in proximal algorithms when
-    the Lipschitz constant of the operator is unknown (or expensive to
-    estimate).
-
-    """
-
-    def ftilde(x: NDArray, y: NDArray, f: ProxOperator, tau: float) -> float:
-        xy = x - y
-        return float(
-            f(y) + np.dot(f.grad(y), xy) + (1.0 / (2.0 * tau)) * np.linalg.norm(xy) ** 2
-        )
-
-    iiterback = 0
-    while iiterback < niterback:
-        z = proxg.prox(x - tau * proxf.grad(x), epsg * tau)
-        ft = ftilde(z, x, proxf, tau)
-        if proxf(z) <= ft:
-            break
-        tau *= beta
-        iiterback += 1
-    return z, tau
-
-
-def _x0z0_init(
-    x0: NDArray | None,
-    z0: NDArray | None,
-    Op: Optional["LinearOperator"] = None,
-    z0name: str | None = "z0",
-    Opname: str | None = "Op",
-) -> tuple[NDArray, NDArray]:
-    r"""Initialize x0 and z0
-
-    Initialize x0 and z0 using the following convention.
-
-    For ``Op=None``:
-    - if both are provided, they are simply returned;
-    - if only one is provided (the other is ``None``), the one provided
-      is copied to the other one.
-
-    For ``Op!=None``, ``x0`` must be provided, and:
-    - if both are provided, they are simply returned;
-    - if ``z0`` is not provided, set to ``Op @ x0``.
-
-    Parameters
-    ----------
-    x0 : :obj:`numpy.ndarray`
-        Initial vector
-    z0 : :obj:`numpy.ndarray`
-        Initial auxiliary vector
-    Op : :obj:`pylops.LinearOperator`, optional
-        Linear Operator to apply to ``x0``
-    z0name : :obj:`str`, optional
-        Name to display in error message instead of ``z0``
-    Opname : :obj:`str`, optional
-        Name to display in error message instead of ``Op``
-
-    """
-    if x0 is None and z0 is None:
-        msg = f"Both x0 or {z0name} are None, provide either of them or both"
-        raise ValueError(msg)
-
-    if Op is None:
-        if x0 is None:
-            x0 = z0.copy()  # type: ignore[union-attr]
-        elif z0 is None:
-            z0 = x0.copy()
-    else:
-        if x0 is None:
-            msg = f"x0 must be provided when {Opname} is also provided"
-            raise ValueError(msg)
-        elif z0 is None:
-            z0 = Op @ x0
-    return x0, z0
+    from pyproximal.ProxOperator import ProxOperator
 
 
 def ProximalPoint(
-    prox: ProxOperator,
+    prox: "ProxOperator",
     x0: NDArray,
     tau: float,
     niter: int = 10,
     tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
 ) -> NDArray:
     r"""Proximal point algorithm
 
@@ -135,12 +80,23 @@ def ProximalPoint(
         Number of iterations of iterative scheme
     tol : :obj:`float`, optional
         Tolerance on change of objective function (used as stopping criterion). If
-        ``tol=None``, run until ``niter`` is reached
+        ``tol=None``, run until ``niter`` is reached or the other tolerance
+        criterion is met
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
 
     Returns
     -------
@@ -149,66 +105,35 @@ def ProximalPoint(
 
     Notes
     -----
-    The Proximal point algorithm can be expressed by the following recursion:
-
-    .. math::
-
-        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{x}^k)
+    See :class:`pyproximal.optimization.cls_primal.ProximalPoint`
 
     """
-    if show:
-        tstart = time.time()
-        print(
-            "Proximal point algorithm\n"
-            "---------------------------------------------------------\n"
-            "Proximal operator: %s\n"
-            "tau = %10e\tniter = %d\ttol = %s\n" % (type(prox), tau, niter, str(tol))
-        )
-        head = "   Itn       x[0]          f"
-        print(head)
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    # initialize model
-    x = x0.copy()
-    pf = np.inf
-    tolbreak = False
-
-    # iterate
-    for iiter in range(niter):
-        x = prox.prox(x, tau)
-
-        # run callback
-        if callback is not None:
-            callback(x)
-
-        # tolerance check: break iterations if overall
-        # objective does not decrease below tolerance
-        if tol is not None:
-            pfold = pf
-            pf = prox(x)
-            if np.abs(1.0 - pf / pfold) < tol:
-                tolbreak = True
-
-        # show iteration logger
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                if tol is None:
-                    pf = prox(x)
-                msg = "%6g  %12.5e  %10.3e" % (iiter + 1, x[0], pf)
-                print(msg)
-
-        # break if tolerance condition is met
-        if tolbreak:
-            break
-
-    if show:
-        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
-        print("---------------------------------------------------------\n")
+    proxpsolve = cProximalPoint(
+        callbacks=callbacks if len(callbacks) > 0 else None,
+    )
+    if callback is not None:
+        proxpsolve.callback = callback
+    x, _, _ = proxpsolve.solve(
+        prox=prox,
+        x0=x0,
+        tau=tau,
+        niter=niter,
+        tol=tol or (0.0 if rtol else None),
+        show=show,
+        itershow=itershow,
+    )
     return x
 
 
 def ProximalGradient(
-    proxf: ProxOperator,
-    proxg: ProxOperator,
+    proxf: "ProxOperator",
+    proxg: "ProxOperator",
     x0: NDArray,
     epsg: float | NDArray = 1.0,
     tau: float | None = None,
@@ -219,8 +144,10 @@ def ProximalGradient(
     niterback: int = 100,
     acceleration: str | None = None,
     tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
 ) -> NDArray:
     r"""Proximal gradient (optionally accelerated)
 
@@ -244,7 +171,9 @@ def ProximalGradient(
     x0 : :obj:`numpy.ndarray`
         Initial vector
     epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
-        Scaling factor of g function
+        Scaling factor of g function. Can be a scalar
+        for iteration-independent scaling or a a 1d vector for
+        iteration-dependent scaling
     tau : :obj:`float` or :obj:`numpy.ndarray`, optional
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
@@ -268,12 +197,23 @@ def ProximalGradient(
         Acceleration (``None``, ``vandenberghe`` or ``fista``)
     tol : :obj:`float`, optional
         Tolerance on change of objective function (used as stopping criterion). If
-        ``tol=None``, run until ``niter`` is reached
+        ``tol=None``, run until ``niter`` is reached or the other tolerance
+        criterion is met
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
 
     Returns
     -------
@@ -282,176 +222,42 @@ def ProximalGradient(
 
     Notes
     -----
-    The Proximal gradient algorithm can be expressed by the following recursion:
-
-    .. math::
-
-        \mathbf{x}^{k+1} = \mathbf{y}^k + \eta (\prox_{\tau^k \epsilon g}(\mathbf{y}^k -
-        \tau^k \nabla f(\mathbf{y}^k)) - \mathbf{y}^k) \\
-        \mathbf{y}^{k+1} = \mathbf{x}^k + \omega^k
-        (\mathbf{x}^k - \mathbf{x}^{k-1})
-
-    where at each iteration :math:`\tau^k` can be estimated by back-tracking
-    as follows:
-
-    .. math::
-
-        \begin{aligned}
-        &\tau = \tau^{k-1} &\\
-        &repeat \; \mathbf{z} = \prox_{\tau \epsilon g}(\mathbf{x}^k -
-        \tau \nabla f(\mathbf{x}^k)), \tau = \beta \tau \quad if \;
-        f(\mathbf{z}) \leq \tilde{f}_\tau(\mathbf{z}, \mathbf{x}^k) \\
-        &\tau^k = \tau, \quad \mathbf{x}^{k+1} = \mathbf{z} &\\
-        \end{aligned}
-
-    where :math:`\tilde{f}_\tau(\mathbf{x}, \mathbf{y}) = f(\mathbf{y}) +
-    \nabla f(\mathbf{y})^T (\mathbf{x} - \mathbf{y}) +
-    1/(2\tau)||\mathbf{x} - \mathbf{y}||_2^2`.
-
-    Different accelerations are provided:
-
-    - ``acceleration=None``: :math:`\omega^k = 0`;
-    - ``acceleration=vandenberghe`` [1]_: :math:`\omega^k = k / (k + 3)` for `
-    - ``acceleration=fista``: :math:`\omega^k = (t_{k-1}-1)/t_k` where
-      :math:`t_k = (1 + \sqrt{1+4t_{k-1}^{2}}) / 2` [2]_
-
-    .. [1] Vandenberghe, L., "Fast proximal gradient methods", 2010.
-    .. [2] Beck, A., and Teboulle, M. "A Fast Iterative Shrinkage-Thresholding
-       Algorithm for Linear Inverse Problems", SIAM Journal on
-       Imaging Sciences, vol. 2, pp. 183-202. 2009.
+    See :class:`pyproximal.optimization.cls_primal.ProximalGradient`
 
     """
-    # check if epgs is a vector
-    epsg = np.asarray(epsg, dtype=float)
-    if epsg.size == 1:
-        epsg = epsg * np.ones(niter)
-        epsg_print = str(epsg[0])
-    else:
-        epsg_print = "Multi"
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    if acceleration not in [None, "None", "vandenberghe", "fista"]:
-        msg = "Acceleration should be None, vandenberghe or fista"
-        raise NotImplementedError(msg)
-    if show:
-        tstart = time.time()
-        print(
-            "Accelerated Proximal Gradient\n"
-            "---------------------------------------------------------\n"
-            "Proximal operator (f): %s\n"
-            "Proximal operator (g): %s\n"
-            "tau = %s\tbacktrack = %s\tbeta = %10e\n"
-            "epsg = %s\tniter = %d\ttol = %s\n"
-            ""
-            "niterback = %d\tacceleration = %s\n"
-            % (
-                type(proxf),
-                type(proxg),
-                str(tau),
-                backtracking,
-                beta,
-                epsg_print,
-                niter,
-                str(tol),
-                niterback,
-                acceleration,
-            )
-        )
-        head = "   Itn       x[0]          f           g       J=f+eps*g       tau"
-        print(head)
-
-    if tau is None:
-        backtracking = True
-        tau = 1.0
-
-    # initialize model
-    t = 1.0
-    x = x0.copy()
-    y = x.copy()
-    pfg = np.inf
-    tolbreak = False
-
-    # iterate
-    for iiter in range(niter):
-        xold = x.copy()
-
-        # proximal step
-        if not backtracking:
-            if eta == 1.0:
-                x = proxg.prox(y - tau * proxf.grad(y), epsg[iiter] * tau)
-            else:
-                x = x + eta * (
-                    proxg.prox(x - tau * proxf.grad(x), epsg[iiter] * tau) - x
-                )
-        else:
-            x, tau = _backtracking(
-                y, tau, proxf, proxg, epsg[iiter], beta=beta, niterback=niterback
-            )
-            if eta != 1.0:
-                x = x + eta * (
-                    proxg.prox(x - tau * proxf.grad(x), epsg[iiter] * tau) - x
-                )
-
-        # update internal parameters for bilinear operator
-        if isinstance(proxf, BilinearOperator):
-            proxf.updatexy(x)
-
-        # update y
-        if acceleration == "vandenberghe":
-            omega = iiter / (iiter + 3)
-        elif acceleration == "fista":
-            told = t
-            t = (1.0 + np.sqrt(1.0 + 4.0 * t**2)) / 2.0
-            omega = (told - 1.0) / t
-        else:
-            omega = 0
-        y = x + omega * (x - xold)
-
-        # run callback
-        if callback is not None:
-            callback(x)
-
-        # tolerance check: break iterations if overall
-        # objective does not decrease below tolerance
-        if tol is not None:
-            pfgold = pfg
-            pf, pg = proxf(x), proxg(x)
-            pfg = pf + np.sum(epsg[iiter] * pg)
-            if np.abs(1.0 - pfg / pfgold) < tol:
-                tolbreak = True
-
-        # show iteration logger
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                if tol is None:
-                    pf, pg = proxf(x), proxg(x)
-                    pfg = pf + np.sum(epsg[iiter] * pg)
-                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e  %10.3e" % (
-                    iiter + 1,
-                    (
-                        np.real(to_numpy(x[0]))
-                        if x.ndim == 1
-                        else np.real(to_numpy(x[0, 0]))
-                    ),
-                    pf,
-                    pg,
-                    pfg,
-                    tau,
-                )
-                print(msg)
-
-        # break if tolerance condition is met
-        if tolbreak:
-            break
-
-    if show:
-        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
-        print("---------------------------------------------------------\n")
+    proxgsolve = cProximalGradient(
+        callbacks=callbacks if len(callbacks) > 0 else None,
+    )
+    if callback is not None:
+        proxgsolve.callback = callback
+    x, _, _, _ = proxgsolve.solve(
+        proxf=proxf,
+        proxg=proxg,
+        x0=x0,
+        epsg=epsg,
+        tau=tau,
+        backtracking=backtracking,
+        beta=beta,
+        eta=eta,
+        acceleration=acceleration,
+        niterback=niterback,
+        niter=niter,
+        tol=tol or (0.0 if rtol else None),
+        show=show,
+        itershow=itershow,
+    )
     return x
 
 
 def AcceleratedProximalGradient(
-    proxf: ProxOperator,
-    proxg: ProxOperator,
+    proxf: "ProxOperator",
+    proxg: "ProxOperator",
     x0: NDArray,
     tau: float | None = None,
     beta: float = 0.5,
@@ -460,8 +266,10 @@ def AcceleratedProximalGradient(
     niterback: int = 100,
     acceleration: str = "vandenberghe",
     tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
 ) -> NDArray:
     r"""Accelerated Proximal gradient
 
@@ -489,14 +297,16 @@ def AcceleratedProximalGradient(
         niterback=niterback,
         acceleration=acceleration,
         tol=tol,
+        rtol=rtol,
         callback=callback,
         show=show,
+        itershow=itershow,
     )
 
 
 def AndersonProximalGradient(
-    proxf: ProxOperator,
-    proxg: ProxOperator,
+    proxf: "ProxOperator",
+    proxg: "ProxOperator",
     x0: NDArray,
     epsg: float | NDArray = 1.0,
     tau: float | NDArray = 1.0,
@@ -505,8 +315,10 @@ def AndersonProximalGradient(
     epsr: float = 1e-10,
     safeguard: bool = False,
     tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
 ) -> NDArray:
     r"""Proximal gradient with Anderson acceleration
 
@@ -530,7 +342,9 @@ def AndersonProximalGradient(
     x0 : :obj:`numpy.ndarray`
         Initial vector
     epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
-        Scaling factor of g function
+        Scaling factor of g function. Can be a scalar
+        for iteration-independent scaling or a a 1d vector for
+        iteration-dependent scaling
     tau : :obj:`float` or :obj:`numpy.ndarray`, optional
         Positive scalar weight, which should satisfy the following condition
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
@@ -548,11 +362,21 @@ def AndersonProximalGradient(
     tol : :obj:`float`, optional
         Tolerance on change of objective function (used as stopping criterion). If
         ``tol=None``, run until ``niter`` is reached
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
 
     Returns
     -------
@@ -561,170 +385,40 @@ def AndersonProximalGradient(
 
     Notes
     -----
-    The Proximal gradient algorithm with Anderson acceleration can be expressed by the
-    following recursion [1]_:
-
-    .. math::
-        m_k = min(m, k)\\
-        \mathbf{g}^{k} = \mathbf{x}^{k} - \tau^k \nabla f(\mathbf{x}^k)\\
-        \mathbf{r}^{k} = \mathbf{g}^{k} - \mathbf{g}^{k}\\
-        \mathbf{G}^{k} = [\mathbf{g}^{k},..., \mathbf{g}^{k-m_k}]\\
-        \mathbf{R}^{k} = [\mathbf{r}^{k},..., \mathbf{r}^{k-m_k}]\\
-        \alpha_k = (\mathbf{R}^{kT} \mathbf{R}^{k})^{-1} \mathbf{1} / \mathbf{1}^T
-        (\mathbf{R}^{kT} \mathbf{R}^{k})^{-1} \mathbf{1}\\
-        \mathbf{y}^{k+1} = \mathbf{G}^{k} \alpha_k\\
-        \mathbf{x}^{k+1} = \prox_{\tau^{k+1} g}(\mathbf{y}^{k+1})
-
-    where :math:`m` equals ``nhistory``, :math:`k=1,2,...,n_{iter}`, :math:`\mathbf{y}^{0}=\mathbf{x}^{0}`,
-    :math:`\mathbf{y}^{1}=\mathbf{x}^{0} - \tau^0 \nabla f(\mathbf{x}^0)`,
-    :math:`\mathbf{x}^{1}=\prox_{\tau^k g}(\mathbf{y}^{1})`, and
-    :math:`\mathbf{g}^{0}=\mathbf{y}^{1}`.
-
-    Refer to [1]_ for the guarded version of the algorithm (when ``safeguard=True``).
-
-    .. [1] Mai, V., and Johansson, M. "Anderson Acceleration of Proximal Gradient
-       Methods", 2020.
+    See :class:`pyproximal.optimization.cls_primal.AndersonProximalGradient`
 
     """
-    # check if epgs is a vector
-    epsg = np.asarray(epsg, dtype=float)
-    if epsg.size == 1:
-        epsg = epsg * np.ones(niter)
-        epsg_print = str(epsg[0])
-    else:
-        epsg_print = "Multi"
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    if show:
-        tstart = time.time()
-        print(
-            "Proximal Gradient with Anderson Acceleration \n"
-            "---------------------------------------------------------\n"
-            "Proximal operator (f): %s\n"
-            "Proximal operator (g): %s\n"
-            "tau = %s\t\tepsg = %s\tniter = %d\n"
-            "nhist = %d\tepsr = %s\n"
-            "guard = %s\ttol = %s\n"
-            % (
-                type(proxf),
-                type(proxg),
-                str(tau),
-                epsg_print,
-                niter,
-                nhistory,
-                str(epsr),
-                str(safeguard),
-                str(tol),
-            )
-        )
-        head = "   Itn       x[0]          f           g       J=f+eps*g       tau"
-        print(head)
-
-    # initialize model
-    y = x0 - tau * proxf.grad(x0)
-    x = proxg.prox(y, epsg[0] * tau)
-    g = y.copy()
-    r = g - x0
-    R, G = (
-        [
-            g,
-        ],
-        [
-            r,
-        ],
+    aproxgsolve = cAndersonProximalGradient(
+        callbacks=callbacks if len(callbacks) > 0 else None,
     )
-    pf = proxf(x)
-    pfg = np.inf
-    tolbreak = False
-
-    # iterate
-    for iiter in range(niter):
-        # update fix point
-        g = x - tau * proxf.grad(x)
-        r = g - y
-
-        # update history vectors
-        R.insert(0, r)
-        G.insert(0, g)
-        if iiter >= nhistory - 1:
-            R.pop(-1)
-            G.pop(-1)
-
-        # solve for alpha coefficients
-        Rstack = np.vstack(R)
-        Rinv = np.linalg.pinv(Rstack @ Rstack.T + epsr * np.linalg.norm(Rstack) ** 2)
-        ones = np.ones(min(nhistory, iiter + 2))
-        Rinvones = Rinv @ ones
-        alpha = Rinvones / (ones[None] @ Rinvones)
-
-        if not safeguard:
-            # update auxiliary variable
-            y = np.vstack(G).T @ alpha
-
-            # update main variable
-            x = proxg.prox(y, epsg[iiter] * tau)
-
-        else:
-            # update auxiliary variable
-            ytest = np.vstack(G).T @ alpha
-
-            # update main variable
-            xtest = proxg.prox(ytest, epsg[iiter] * tau)
-
-            # check if function is decreased, otherwise do basic PG step
-            pfold, pf = pf, proxf(xtest)
-            if pf <= pfold - tau * np.linalg.norm(proxf.grad(x)) ** 2 / 2:
-                y = ytest
-                x = xtest
-            else:
-                x = proxg.prox(g, epsg[iiter] * tau)
-                y = g
-
-        # run callback
-        if callback is not None:
-            callback(x)
-
-        # tolerance check: break iterations if overall
-        # objective does not decrease below tolerance
-        if tol is not None:
-            pfgold = pfg
-            pf, pg = proxf(x), proxg(x)
-            pfg = pf + np.sum(epsg[iiter] * pg)
-            if np.abs(1.0 - pfg / pfgold) < tol:
-                tolbreak = True
-
-        # show iteration logger
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                if tol is None:
-                    pf, pg = proxf(x), proxg(x)
-                    pfg = pf + np.sum(epsg[iiter] * pg)
-                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e  %10.3e" % (
-                    iiter + 1,
-                    (
-                        np.real(to_numpy(x[0]))
-                        if x.ndim == 1
-                        else np.real(to_numpy(x[0, 0]))
-                    ),
-                    pf,
-                    pg,
-                    pfg,
-                    tau,
-                )
-                print(msg)
-
-        # break if tolerance condition is met
-        if tolbreak:
-            break
-
-    if show:
-        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
-        print("---------------------------------------------------------\n")
+    if callback is not None:
+        aproxgsolve.callback = callback
+    x, _, _, _ = aproxgsolve.solve(
+        proxf=proxf,
+        proxg=proxg,
+        x0=x0,
+        epsg=epsg,
+        tau=tau,
+        niter=niter,
+        nhistory=nhistory,
+        epsr=epsr,
+        safeguard=safeguard,
+        tol=tol or (0.0 if rtol else None),
+        show=show,
+        itershow=itershow,
+    )
     return x
 
 
 def GeneralizedProximalGradient(
-    proxfs: list[ProxOperator],
-    proxgs: list[ProxOperator],
+    proxfs: list["ProxOperator"],
+    proxgs: list["ProxOperator"],
     x0: NDArray,
     tau: float | None,
     epsg: float | NDArray = 1.0,
@@ -732,8 +426,11 @@ def GeneralizedProximalGradient(
     eta: float = 1.0,
     niter: int = 10,
     acceleration: str | None = None,
+    tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
 ) -> NDArray:
     r"""Generalized Proximal gradient
 
@@ -762,7 +459,8 @@ def GeneralizedProximalGradient(
         to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
         the Lipschitz constant of :math:`\sum_{i=1}^n \nabla f_i`.
     epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
-        Scaling factor(s) of ``g`` function(s)
+        Scaling factor(s) of ``g`` function(s). If a scalar is provided
+        the same scaling factor is applied to every ``g`` function.
     weights : :obj:`float`, optional
         Weighting factors of ``g`` functions. Must sum to 1.
     eta : :obj:`float`, optional
@@ -772,11 +470,25 @@ def GeneralizedProximalGradient(
         Number of iterations of iterative scheme
     acceleration:  :obj:`str`, optional
         Acceleration (``None``, ``vandenberghe`` or ``fista``)
+    tol : :obj:`float`, optional
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached or the other tolerance
+        criterion is met
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
 
     Returns
     -------
@@ -785,134 +497,51 @@ def GeneralizedProximalGradient(
 
     Notes
     -----
-    The Generalized Proximal gradient algorithm can be expressed by the
-    following recursion [1]_:
-
-    .. math::
-        \text{for } j=1,\cdots,n, \\
-        ~~~~\mathbf z_j^{k+1} = \mathbf z_j^{k} + \eta
-        \left[prox_{\frac{\tau^k \epsilon_j}{w_j} g_j}\left(2 \mathbf{x}^{k} - \mathbf{z}_j^{k}
-        - \tau^k \sum_{i=1}^n \nabla f_i(\mathbf{x}^{k})\right) - \mathbf{x}^{k} \right] \\
-        \mathbf{x}^{k+1} = \sum_{j=1}^n w_j \mathbf z_j^{k+1} \\
-
-    where :math:`\sum_{j=1}^n w_j=1`. In the current implementation, :math:`w_j=1/n` when
-    not provided.
-
-    .. [1] Raguet, H., Fadili, J. and Peyré, G. "Generalized Forward-Backward Splitting",
-       arXiv, 2012.
+    See :class:`pyproximal.optimization.cls_primal.GeneralizedProximalGradient`
 
     """
-    # check if weights sum to 1
-    if weights is None:
-        weights = np.ones(len(proxgs)) / len(proxgs)
-    if len(weights) != len(proxgs) or np.sum(weights) != 1.0:
-        msg = f"omega={weights} must be an array of size {len(proxgs)} summing to 1"
-        raise ValueError(msg)
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    # check if epgs is a vector
-    epsg = np.asarray(epsg, dtype=float)
-    if epsg.size == 1:
-        epsg_print = str(epsg)
-        epsg = epsg * np.ones(len(proxgs))
-    else:
-        epsg_print = "Multi"
-
-    if acceleration not in [None, "None", "vandenberghe", "fista"]:
-        msg = "Acceleration should be None, vandenberghe or fista"
-        raise NotImplementedError(msg)
-    if show:
-        tstart = time.time()
-        print(
-            "Generalized Proximal Gradient\n"
-            "---------------------------------------------------------\n"
-            "Proximal operators (f): %s\n"
-            "Proximal operators (g): %s\n"
-            "tau = %10e\nepsg = %s\tniter = %d\n"
-            % (
-                [type(proxf) for proxf in proxfs],
-                [type(proxg) for proxg in proxgs],
-                0 if tau is None else tau,
-                epsg_print,
-                niter,
-            )
-        )
-        head = "   Itn       x[0]          f           g       J=f+g"
-        print(head)
-
-    if tau is None:
-        tau = 1.0
-
-    # initialize model
-    t = 1.0
-    x = x0.copy()
-    y = x.copy()
-    zs = [x.copy() for _ in range(len(proxgs))]
-
-    # iterate
-    for iiter in range(niter):
-        xold = x.copy()
-
-        # gradient
-        grad = np.zeros_like(x)
-        for _, proxf in enumerate(proxfs):
-            grad += proxf.grad(x)
-
-        # proximal step
-        x = np.zeros_like(x)
-        for i, proxg in enumerate(proxgs):
-            ztmp = 2 * y - zs[i] - tau * grad
-            ztmp = proxg.prox(ztmp, tau * epsg[i] / weights[i])
-            zs[i] += eta * (ztmp - y)
-            x += weights[i] * zs[i]
-
-        # update y
-        if acceleration == "vandenberghe":
-            omega = iiter / (iiter + 3)
-        elif acceleration == "fista":
-            told = t
-            t = (1.0 + np.sqrt(1.0 + 4.0 * t**2)) / 2.0
-            omega = (told - 1.0) / t
-        else:
-            omega = 0
-        y = x + omega * (x - xold)
-
-        # run callback
-        if callback is not None:
-            callback(x)
-
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf: float = np.sum([proxf(x) for proxf in proxfs])
-                pg: float = np.sum(
-                    [eg * proxg(x) for proxg, eg in zip(proxgs, epsg, strict=True)]
-                )
-                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
-                    iiter + 1,
-                    np.real(to_numpy(x[0]))
-                    if x.ndim == 1
-                    else np.real(to_numpy(x[0, 0])),
-                    pf,
-                    pg,
-                    pf + pg,
-                )
-                print(msg)
-    if show:
-        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
-        print("---------------------------------------------------------\n")
+    proxgsolve = cGeneralizedProximalGradient(
+        callbacks=callbacks if len(callbacks) > 0 else None,
+    )
+    if callback is not None:
+        proxgsolve.callback = callback
+    x, _, _, _ = proxgsolve.solve(
+        proxfs=proxfs,
+        proxgs=proxgs,
+        x0=x0,
+        epsg=epsg,
+        weights=weights,
+        tau=1.0 if tau is None else tau,
+        eta=eta,
+        niter=niter,
+        acceleration=acceleration,
+        tol=tol or (0.0 if rtol else None),
+        show=show,
+        itershow=itershow,
+    )
     return x
 
 
 def HQS(
-    proxf: ProxOperator,
-    proxg: ProxOperator,
+    proxf: "ProxOperator",
+    proxg: "ProxOperator",
     x0: NDArray,
     tau: float | NDArray,
     niter: int = 10,
     z0: NDArray | None = None,
     gfirst: bool = True,
+    tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[..., None] | None = None,
     callbackz: bool = False,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
 ) -> tuple[NDArray, NDArray]:
     r"""Half Quadratic splitting
 
@@ -950,6 +579,15 @@ def HQS(
     gfirst : :obj:`bool`, optional
         Apply Proximal of operator ``g`` first (``True``) or Proximal of
         operator ``f`` first (``False``)
+    tol : :obj:`float`, optional
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
@@ -957,6 +595,10 @@ def HQS(
         Modify callback signature to (``callback(x, z)``) when ``callbackz=True``
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
 
     Returns
     -------
@@ -972,98 +614,50 @@ def HQS(
 
     Notes
     -----
-    The HQS algorithm can be expressed by the following recursion [1]_:
-
-    .. math::
-
-        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{x}^{k}) \\
-        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{z}^{k+1})
-
-    for ``gfirst=False``, or
-
-    .. math::
-
-        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{z}^{k}) \\
-        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{x}^{k+1})
-
-    for ``gfirst=False``. Note that ``x`` and ``z`` converge to each other,
-    however if iterations are stopped too early ``x`` is guaranteed to belong to
-    the domain of ``f`` while ``z`` is guaranteed to belong to the domain of ``g``.
-    Depending on the problem either of the two may be the best solution.
-
-    .. [1] D., Geman, and C., Yang, "Nonlinear image recovery with halfquadratic
-         regularization", IEEE Transactions on Image Processing,
-         4, 7, pp. 932-946, 1995.
+    See :class:`pyproximal.optimization.cls_primal.HQS`
 
     """
-    # initialize variables
-    x, z = _x0z0_init(x0, z0)
-    ncp = get_array_module(x)
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    # check if tau is a vector
-    tau = ncp.asarray(tau, dtype=float)
-    if tau.size == 1:
-        tau_print = str(tau)
-        tau = tau * np.ones(niter)
-    else:
-        tau_print = "Variable"
-
-    if show:
-        tstart = time.time()
-        print(
-            "HQS\n"
-            "---------------------------------------------------------\n"
-            "Proximal operator (f): %s\n"
-            "Proximal operator (g): %s\n"
-            "tau = %s\tniter = %d\n" % (type(proxf), type(proxg), tau_print, niter)
-        )
-        head = "   Itn       x[0]          f           g       J = f + g"
-        print(head)
-
-    # run iterations
-    for iiter in range(niter):
-        if gfirst:
-            z = proxg.prox(x, tau[iiter])
-            x = proxf.prox(z, tau[iiter])
-        else:
-            x = proxf.prox(z, tau[iiter])
-            z = proxg.prox(x, tau[iiter])
-
-        # run callback
-        if callback is not None:
-            if callbackz:
-                callback(x, z)
-            else:
-                callback(x)
-
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf, pg = proxf(x), proxg(x)
-                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
-                    iiter + 1,
-                    np.real(to_numpy(x[0])),
-                    pf,
-                    pg,
-                    pf + pg,
-                )
-                print(msg)
-    if show:
-        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
-        print("---------------------------------------------------------\n")
+    hqssolve = cHQS(
+        callbacks=callbacks if len(callbacks) > 0 else None,
+    )
+    if callback is not None:
+        hqssolve.callback = callback
+    x, z, _, _ = hqssolve.solve(
+        proxf=proxf,
+        proxg=proxg,
+        x0=x0,
+        tau=tau,
+        z0=z0,
+        niter=niter,
+        gfirst=gfirst,
+        tol=tol or (0.0 if rtol else None),
+        callbackz=callbackz,
+        show=show,
+        itershow=itershow,
+    )
     return x, z
 
 
 def ADMM(
-    proxf: ProxOperator,
-    proxg: ProxOperator,
+    proxf: "ProxOperator",
+    proxg: "ProxOperator",
     x0: NDArray,
     tau: float,
     niter: int = 10,
     z0: NDArray | None = None,
     gfirst: bool = False,
+    tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[..., None] | None = None,
     callbackz: bool = False,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
 ) -> tuple[NDArray, NDArray]:
     r"""Alternating Direction Method of Multipliers
 
@@ -1114,6 +708,15 @@ def ADMM(
     gfirst : :obj:`bool`, optional
         Apply Proximal of operator ``g`` first (``True``) or Proximal of
         operator ``f`` first (``False``)
+    tol : :obj:`float`, optional
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
@@ -1121,6 +724,10 @@ def ADMM(
         Modify callback signature to (``callback(x, z)``) when ``callbackz=True``
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
 
     Returns
     -------
@@ -1141,77 +748,38 @@ def ADMM(
 
     Notes
     -----
-    The ADMM algorithm can be expressed by the following recursion [1]_:
-
-    .. math::
-
-        \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{z}^{k} - \mathbf{u}^{k})\\
-        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{x}^{k+1} + \mathbf{u}^{k})\\
-        \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{x}^{k+1} - \mathbf{z}^{k+1}
-
-    Note that ``x`` and ``z`` converge to each other, however if iterations are
-    stopped too early ``x`` is guaranteed to belong to the domain of ``f``
-    while ``z`` is guaranteed to belong to the domain of ``g``. Depending on
-    the problem either of the two may be the best solution.
-
-    .. [1] S. Boyd, N. Parikh, E. Chu, B. Peleato, and J. Eckstein. 2011.
-        Distributed optimization and statistical learning via the alternating
-        direction method of multipliers. Foundations and Trends in Machine
-        Learning, 3 (1), 1-122. https://doi.org/10.1561/2200000016.
+    See :class:`pyproximal.optimization.cls_primal.ADMM`
 
     """
-    # initialize variables
-    x, z = _x0z0_init(x0, z0)
-    ncp = get_array_module(x)
-    u = ncp.zeros_like(x)
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    if show:
-        tstart = time.time()
-        print(
-            "ADMM\n"
-            "---------------------------------------------------------\n"
-            "Proximal operator (f): %s\n"
-            "Proximal operator (g): %s\n"
-            "tau = %10e\tniter = %d\n" % (type(proxf), type(proxg), tau, niter)
-        )
-        head = "   Itn       x[0]          f           g       J = f + g"
-        print(head)
-
-    # run iterations
-    for iiter in range(niter):
-        if gfirst:
-            z = proxg.prox(x + u, tau)
-            x = proxf.prox(z - u, tau)
-        else:
-            x = proxf.prox(z - u, tau)
-            z = proxg.prox(x + u, tau)
-        u = u + x - z
-
-        # run callback
-        if callback is not None:
-            if callbackz:
-                callback(x, z)
-            else:
-                callback(x)
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf, pg = proxf(x), proxg(x)
-                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
-                    iiter + 1,
-                    np.real(to_numpy(x[0])),
-                    pf,
-                    pg,
-                    pf + pg,
-                )
-                print(msg)
-    if show:
-        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
-        print("---------------------------------------------------------\n")
+    admmsolve = cADMM(
+        callbacks=callbacks if len(callbacks) > 0 else None,
+    )
+    if callback is not None:
+        admmsolve.callback = callback
+    x, z, _, _ = admmsolve.solve(
+        proxf=proxf,
+        proxg=proxg,
+        x0=x0,
+        tau=tau,
+        z0=z0,
+        gfirst=gfirst,
+        niter=niter,
+        tol=tol or (0.0 if rtol else None),
+        callbackz=callbackz,
+        show=show,
+        itershow=itershow,
+    )
     return x, z
 
 
 def ADMML2(
-    proxg: ProxOperator,
+    proxg: "ProxOperator",
     Op: "LinearOperator",
     b: NDArray,
     A: "LinearOperator",
@@ -1220,8 +788,12 @@ def ADMML2(
     niter: int = 10,
     z0: NDArray | None = None,
     gfirst: bool = False,
+    tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[[NDArray], None] | None = None,
+    callbackz: bool = False,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
     **kwargs_solver: dict[str, Any],
 ) -> tuple[NDArray, NDArray]:
     r"""Alternating Direction Method of Multipliers for L2 misfit term
@@ -1259,11 +831,24 @@ def ADMML2(
     gfirst : :obj:`bool`, optional
         Apply Proximal of operator ``g`` first (``True``) or Proximal of
         operator ``f`` first (``False``)
+    tol : :obj:`float`, optional
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
     **kwargs_solver
         Arbitrary keyword arguments for :py:func:`scipy.sparse.linalg.lsqr` used
         to solve the x-update
@@ -1287,108 +872,53 @@ def ADMML2(
 
     Notes
     -----
-    The ADMM algorithm can be expressed by the following recursion:
-
-    .. math::
-
-        \mathbf{x}^{k+1} = \argmin_{\mathbf{x}} \frac{1}{2}||\mathbf{Op}\mathbf{x}
-        - \mathbf{b}||_2^2 + \frac{1}{2\tau} ||\mathbf{Ax} - \mathbf{z}^k + \mathbf{u}^k||_2^2\\
-        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{Ax}^{k+1} + \mathbf{u}^{k})\\
-        \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{Ax}^{k+1} - \mathbf{z}^{k+1}
+    See :class:`pyproximal.optimization.cls_primal.ADMML2`
 
     """
-    # initialize variables
-    x, z = _x0z0_init(x0, z0, A, Opname="A")
-    ncp = get_array_module(x)
-    u = ncp.zeros_like(z)
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    if show:
-        tstart = time.time()
-        print(
-            "ADMM\n"
-            "---------------------------------------------------------\n"
-            "Proximal operator (g): %s\n"
-            "tau = %10e\tniter = %d\n" % (type(proxg), tau, niter)
-        )
-        head = "   Itn       x[0]          f           g       J = f + g"
-        print(head)
-
-    # run iterations
-    sqrttau = 1.0 / sqrt(tau)
-    for iiter in range(niter):
-        if gfirst:
-            Ax = A @ x
-            z = proxg.prox(Ax + u, tau)
-
-            # solve augumented system
-            x = regularized_inversion(
-                Op,
-                b,
-                [
-                    A,
-                ],
-                x0=x,
-                dataregs=[
-                    z - u,
-                ],
-                epsRs=[
-                    sqrttau,
-                ],
-                **kwargs_solver,
-            )[0]
-        else:
-            # solve augumented system
-            x = regularized_inversion(
-                Op,
-                b,
-                [
-                    A,
-                ],
-                x0=x,
-                dataregs=[
-                    z - u,
-                ],
-                epsRs=[
-                    sqrttau,
-                ],
-                **kwargs_solver,
-            )[0]
-            Ax = A @ x
-            z = proxg.prox(Ax + u, tau)
-        u = u + Ax - z
-
-        # run callback
-        if callback is not None:
-            callback(x)
-
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf, pg = 0.5 * np.linalg.norm(Op @ x - b) ** 2, proxg(Ax)
-                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
-                    iiter + 1,
-                    np.real(to_numpy(x[0])),
-                    pf,
-                    pg,
-                    pf + pg,
-                )
-                print(msg)
-    if show:
-        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
-        print("---------------------------------------------------------\n")
+    admml2solve = cADMML2(
+        callbacks=callbacks if len(callbacks) > 0 else None,
+    )
+    if callback is not None:
+        admml2solve.callback = callback
+    x, z, _, _ = admml2solve.solve(
+        proxg=proxg,
+        Op=Op,
+        b=b,
+        A=A,
+        x0=x0,
+        tau=tau,
+        z0=z0,
+        gfirst=gfirst,
+        niter=niter,
+        tol=tol or (0.0 if rtol else None),
+        callbackz=callbackz,
+        show=show,
+        itershow=itershow,
+        **kwargs_solver,
+    )
     return x, z
 
 
 def LinearizedADMM(
-    proxf: ProxOperator,
-    proxg: ProxOperator,
+    proxf: "ProxOperator",
+    proxg: "ProxOperator",
     A: "LinearOperator",
     x0: NDArray,
     tau: float,
     mu: float,
     niter: int = 10,
     z0: NDArray | None = None,
+    tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
 ) -> tuple[NDArray, NDArray]:
     r"""Linearized Alternating Direction Method of Multipliers
 
@@ -1425,11 +955,24 @@ def LinearizedADMM(
         Number of iterations of iterative scheme
     z0 : :obj:`numpy.ndarray`
         Initial auxiliary vector. If ``None``, initialized to ``A @ x0``.
+    tol : :obj:`float`, optional
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
 
     Returns
     -------
@@ -1450,71 +993,38 @@ def LinearizedADMM(
 
     Notes
     -----
-    The Linearized-ADMM algorithm can be expressed by the following recursion [1]_:
-
-    .. math::
-
-        \mathbf{x}^{k+1} = \prox_{\mu f}(\mathbf{x}^{k} - \frac{\mu}{\tau}
-        \mathbf{A}^H(\mathbf{A} \mathbf{x}^k - \mathbf{z}^k + \mathbf{u}^k))\\
-        \mathbf{z}^{k+1} = \prox_{\tau g}(\mathbf{A} \mathbf{x}^{k+1} +
-        \mathbf{u}^k)\\
-        \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{A}\mathbf{x}^{k+1} -
-        \mathbf{z}^{k+1}
-
-    .. [1] N., Parikh, "Proximal Algorithms", Foundations and Trends
-        in Optimization. 2013.
+    See :class:`pyproximal.optimization.cls_primal.LinearizedADMM`
 
     """
-    # initialize variables
-    x, z = _x0z0_init(x0, z0, A, Opname="A")
-    Ax = A.matvec(x) if z0 is None else z
-    ncp = get_array_module(x)
-    u = ncp.zeros_like(z)
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    if show:
-        tstart = time.time()
-        print(
-            "Linearized-ADMM\n"
-            "---------------------------------------------------------\n"
-            "Proximal operator (f): %s\n"
-            "Proximal operator (g): %s\n"
-            "Linear operator (A): %s\n"
-            "tau = %10e\tmu = %10e\tniter = %d\n"
-            % (type(proxf), type(proxg), type(A), tau, mu, niter)
-        )
-        head = "   Itn       x[0]          f           g       J = f + g"
-        print(head)
-
-    # run iterations
-    for iiter in range(niter):
-        x = proxf.prox(x - mu / tau * A.rmatvec(Ax - z + u), mu)
-        Ax = A.matvec(x)
-        z = proxg.prox(Ax + u, tau)
-        u = u + Ax - z
-
-        # run callback
-        if callback is not None:
-            callback(x)
-
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf, pg = proxf(x), proxg(Ax)
-                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
-                    iiter + 1,
-                    np.real(to_numpy(x[0])),
-                    pf,
-                    pg,
-                    pf + pg,
-                )
-                print(msg)
-    if show:
-        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
-        print("---------------------------------------------------------\n")
+    ladmmsolve = cLinearizedADMM(
+        callbacks=callbacks if len(callbacks) > 0 else None,
+    )
+    if callback is not None:
+        ladmmsolve.callback = callback
+    x, z, _, _ = ladmmsolve.solve(
+        proxf=proxf,
+        proxg=proxg,
+        A=A,
+        x0=x0,
+        tau=tau,
+        mu=mu,
+        z0=z0,
+        niter=niter,
+        tol=tol or (0.0 if rtol else None),
+        show=show,
+        itershow=itershow,
+    )
     return x, z
 
 
 def TwIST(
-    proxg: ProxOperator,
+    proxg: "ProxOperator",
     A: "LinearOperator",
     b: NDArray,
     x0: NDArray,
@@ -1522,8 +1032,11 @@ def TwIST(
     beta: float | None = None,
     eigs: tuple[float, float] | None = None,
     niter: int = 10,
+    tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[[NDArray], None] | None = None,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
     returncost: bool = False,
 ) -> NDArray | tuple[NDArray, NDArray]:
     r"""Two-step Iterative Shrinkage/Threshold
@@ -1560,11 +1073,24 @@ def TwIST(
         If passed, computes `alpha` and `beta` based on them.
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme
+    tol : :obj:`float`, optional
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
     returncost : :obj:`bool`, optional
         Return cost function
 
@@ -1572,110 +1098,38 @@ def TwIST(
     -------
     x : :obj:`numpy.ndarray`
         Inverted model
-    j : :obj:`numpy.ndarray`
+    j : :obj:`numpy.ndarray`, optional
         Cost function
 
     Notes
     -----
-    The TwIST algorithm can be expressed by the following recursion:
-
-    .. math::
-
-        \mathbf{x}^{k+1} = (1-\alpha) \mathbf{x}^{k-1} +
-        (\alpha-\beta) \mathbf{x}^k +
-        \beta \prox_{g} (\mathbf{x}^k + \mathbf{A}^H
-        (\mathbf{b} - \mathbf{A}\mathbf{x}^k)).
-
-    where :math:`\mathbf{x}^{1} = \prox_{g} (\mathbf{x}^0 + \mathbf{A}^T
-    (\mathbf{b} - \mathbf{A}\mathbf{x}^0))`.
-
-    The optimal weighting parameters :math:`\alpha` and :math:`\beta` are
-    linked to the smallest and largest eigenvalues of
-    :math:`\mathbf{A}^H\mathbf{A}` as follows:
-
-    .. math::
-
-        \alpha = 1 + \rho^2 \\
-        \beta =\frac{2 \alpha}{\Lambda_{max} + \lambda_{min}}
-
-    where :math:`\rho=\frac{1-\sqrt{k}}{1+\sqrt{k}}` with
-    :math:`k=\frac{\lambda_{min}}{\Lambda_{max}}` and
-    :math:`\Lambda_{max}=max(1, \lambda_{max})`.
-
-    Experimentally, it has been observed that TwIST is robust to the
-    choice of such parameters. Finally, note that in the case of
-    :math:`\alpha=1` and :math:`\beta=1`, TwIST is identical to IST.
+    See :class:`pyproximal.optimization.cls_primal.TwIST`
 
     """
-    # define proxf as L2 proximal
-    proxf = L2(Op=A, b=b)
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    # find alpha and beta
-    if alpha is None or beta is None:
-        if eigs is None:
-            emin = A.eigs(neigs=1, which="SM")
-            emax = max([1, A.eigs(neigs=1, which="LM")])
-        else:
-            emax, emin = eigs
-        k = emin / emax
-        rho = (1 - sqrt(k)) / (1 + sqrt(k))
-        alpha = 1 + rho**2
-        beta = 2 * alpha / (emax + emin)
-
-    # compute proximal of g on initial guess (x_1)
-    xold = x0.copy()
-    x = proxg.prox(xold - proxf.grad(xold), 1.0)
-
-    if show:
-        tstart = time.time()
-        print(
-            "TwIST\n"
-            "---------------------------------------------------------\n"
-            "Proximal operator (g): %s\n"
-            "Linear operator (A): %s\n"
-            "alpha = %10e\tbeta = %10e\tniter = %d\n"
-            % (type(proxg), type(A), alpha, beta, niter)
-        )
-        head = "   Itn       x[0]          f           g       J = f + g"
-        print(head)
-
-    # iterate
-    if returncost:
-        j = np.zeros(niter)
-    for iiter in range(niter):
-        # compute new x
-        xnew = (
-            (1 - alpha) * xold
-            + (alpha - beta) * x
-            + beta * proxg.prox(x - proxf.grad(x), 1.0)
-        )
-        # save current x as old (x_i -> x_i-1)
-        xold = x.copy()
-        # save new x as current (x_i+1 -> x_i)
-        x = xnew.copy()
-
-        # compute cost function
-        if returncost:
-            j[iiter] = proxf(x) + proxg(x)
-
-        # run callback
-        if callback is not None:
-            callback(x)
-
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf, pg = proxf(x), proxg(x)
-                msg = "%6g  %12.5e  %10.3e  %10.3e  %10.3e" % (
-                    iiter + 1,
-                    np.real(to_numpy(x[0])),
-                    pf,
-                    pg,
-                    pf + pg,
-                )
-                print(msg)
-    if show:
-        print("\nTotal time (s) = %.2f" % (time.time() - tstart))
-        print("---------------------------------------------------------\n")
+    twistsolve = cTwIST(
+        callbacks=callbacks if len(callbacks) > 0 else None,
+    )
+    if callback is not None:
+        twistsolve.callback = callback
+    x, _, j = twistsolve.solve(
+        proxg=proxg,
+        A=A,
+        b=b,
+        x0=x0,
+        alpha=alpha,
+        beta=beta,
+        eigs=eigs,
+        niter=niter,
+        tol=tol or (0.0 if rtol or returncost else None),
+        show=show,
+        itershow=itershow,
+    )
     if returncost:
         return x, j
     else:
@@ -1683,16 +1137,19 @@ def TwIST(
 
 
 def DouglasRachfordSplitting(
-    proxf: ProxOperator,
-    proxg: ProxOperator,
+    proxf: "ProxOperator",
+    proxg: "ProxOperator",
     x0: NDArray,
     tau: float,
     eta: float = 1.0,
     niter: int = 10,
     gfirst: bool = True,
+    tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[..., None] | None = None,
     callbacky: bool = False,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
 ) -> tuple[NDArray, NDArray]:
     r"""Douglas-Rachford Splitting
 
@@ -1723,6 +1180,15 @@ def DouglasRachfordSplitting(
     gfirst : :obj:`bool`, optional
         Apply Proximal of operator ``g`` first (``True``) or Proximal of
         operator ``f`` first (``False``)
+    tol : :obj:`float`, optional
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
@@ -1731,6 +1197,10 @@ def DouglasRachfordSplitting(
         when ``callbacky=True``
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
 
     Returns
     -------
@@ -1741,86 +1211,47 @@ def DouglasRachfordSplitting(
 
     Notes
     -----
-    The Douglas-Rachford Splitting algorithm can be expressed by the following
-    recursion [1]_, [2]_, [3]_, [4]_:
-
-    .. math::
-
-        \mathbf{x}^{k} &= \prox_{\tau g}(\mathbf{y}^k) \\
-        \mathbf{y}^{k+1} &= \mathbf{y}^{k} +
-        \eta (\prox_{\tau f}(2 \mathbf{x}^{k} - \mathbf{y}^{k})
-        - \mathbf{x}^{k})
-
-    .. [1] Patrick L. Combettes and Jean-Christophe Pesquet. 2011. Proximal
-        Splitting Methods in Signal Processing. In Fixed-Point Algorithms for
-        Inverse Problems in Science and Engineering, Springer, pp. 185-212.
-        Algorithm 10.15.
-        https://doi.org/10.1007/978-1-4419-9569-8_10
-    .. [2] Scott B. Lindstrom and Brailey Sims. 2021. Survey: Sixty Years of
-        Douglas-Rachford. Journal of the Australian Mathematical Society, 110,
-        3, 333-370. Eq.(15). https://doi.org/10.1017/S1446788719000570
-        https://arxiv.org/abs/1809.07181
-    .. [3] Ryu, E.K., Yin, W., 2022. Large-Scale Convex Optimization: Algorithms
-        & Analyses via Monotone Operators. Cambridge University Press,
-        Cambridge. Eq.(2.18). https://doi.org/10.1017/9781009160865
-        https://large-scale-book.mathopt.com/
-    .. [4] Combettes, P.L., Pesquet, J.-C., 2008. A proximal decomposition
-        method for solving convex variational inverse problems. Inverse Problems
-        24, 065014. Proposition 3.2. https://doi.org/10.1088/0266-5611/24/6/065014
-        https://arxiv.org/abs/0807.2617
+    See :class:`pyproximal.optimization.cls_primal.DouglasRachfordSplitting`
 
     """
-    if show:
-        tstart = time.time()
-        print(
-            "Douglas-Rachford Splitting\n"
-            "---------------------------------------------------------\n"
-            f"Proximal operator (f): {type(proxf)}\n"
-            f"Proximal operator (g): {type(proxg)}\n"
-            f"tau = {tau:10e}\tniter = {niter:d}\n"
-        )
-        head = "   Itn       x[0]          f           g       J = f + g"
-        print(head)
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    y = x0.copy()
-    for iiter in range(niter):
-        if gfirst:
-            x = proxg.prox(y, tau)
-            y = y + eta * (proxf.prox(2 * x - y, tau) - x)
-        else:
-            x = proxf.prox(y, tau)
-            y = y + eta * (proxg.prox(2 * x - y, tau) - x)
-
-        # run callback
-        if callback is not None:
-            if callbacky:
-                callback(x, y)
-            else:
-                callback(x)
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf, pg = proxf(x), proxg(x)
-                print(
-                    f"{iiter + 1:6d}  {np.real(to_numpy(x[0])):12.5e}  "
-                    f"{pf:10.3e}  {pg:10.3e}  {pf + pg:10.3e}"
-                )
-
-    if show:
-        print(f"\nTotal time (s) = {time.time() - tstart:.2f}")
-        print("---------------------------------------------------------\n")
+    drssolve = cDouglasRachfordSplitting(
+        callbacks=callbacks if len(callbacks) > 0 else None,
+    )
+    if callback is not None:
+        drssolve.callback = callback
+    x, y, _, _ = drssolve.solve(
+        proxf=proxf,
+        proxg=proxg,
+        x0=x0,
+        tau=tau,
+        eta=eta,
+        gfirst=gfirst,
+        niter=niter,
+        tol=tol or (0.0 if rtol else None),
+        show=show,
+        itershow=itershow,
+    )
     return x, y
 
 
 def PPXA(  # pylint: disable=invalid-name
-    proxfs: list[ProxOperator],
+    proxfs: list["ProxOperator"],
     x0: NDArray | list[NDArray],
     tau: float,
     eta: float = 1.0,
     weights: NDArray | list[float] | None = None,
     niter: int = 1000,
-    tol: float | None = 1e-7,
+    tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[..., None] | None = None,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
 ) -> NDArray:
     r"""Parallel Proximal Algorithm (PPXA)
 
@@ -1853,13 +1284,23 @@ def PPXA(  # pylint: disable=invalid-name
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme.
     tol : :obj:`float`, optional
-        Tolerance on change of the solution (used as stopping criterion).
-        If ``tol=0``, run until ``niter`` is reached.
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
 
     Returns
     -------
@@ -1872,115 +1313,44 @@ def PPXA(  # pylint: disable=invalid-name
 
     Notes
     -----
-    The Parallel Proximal Algorithm (PPXA) can be expressed by the following
-    recursion [1]_, [2]_, [3]_, [4]_:
-
-    * :math:`\mathbf{y}_{i}^{0} = \mathbf{x}` or :math:`\mathbf{y}_{i}^{0} = \mathbf{x}_{i}` for :math:`i=1,\ldots,m`
-    * :math:`\mathbf{x}^{0} = \sum_{i=1}^m w_i \mathbf{y}_{i}^{0}`
-    * for :math:`k = 1, \ldots`
-
-      * for :math:`i = 1, \ldots, m`
-
-        * :math:`\mathbf{p}_{i}^{k} = \prox_{\frac{\tau}{w_i} f_i} (\mathbf{y}_{i}^{k})`
-
-      * :math:`\mathbf{p}^{k} = \sum_{i=1}^{m} w_i \mathbf{p}_{i}^{k}`
-      * for :math:`i = 1, \ldots, m`
-
-        * :math:`\mathbf{y}_{i}^{k+1} = \mathbf{y}_{i}^{k} + \eta (2 \mathbf{p}^{k} - \mathbf{x}^{k} - \mathbf{p}_i^{k})`
-
-      * :math:`\mathbf{x}^{k+1} = \mathbf{x}^{k} + \eta (\mathbf{p}^{k} - \mathbf{x}^{k})`
-
-    where :math:`0 < \eta < 2` and
-    :math:`\sum_{i=1}^m w_i = 1, \ 0 < w_i < 1`.
-    In the current implementation, :math:`w_i = 1 / m` when not provided.
-
-    References
-    ----------
-    .. [1] Combettes, P.L., Pesquet, J.-C., 2008. A proximal decomposition
-        method for solving convex variational inverse problems. Inverse Problems
-        24, 065014. Algorithm 3.1. https://doi.org/10.1088/0266-5611/24/6/065014
-        https://arxiv.org/abs/0807.2617
-    .. [2] Combettes, P.L., Pesquet, J.-C., 2011. Proximal Splitting Methods in
-        Signal Processing, in Fixed-Point Algorithms for Inverse Problems in
-        Science and Engineering, Springer, pp. 185-212. Algorithm 10.27.
-        https://doi.org/10.1007/978-1-4419-9569-8_10
-    .. [3] Bauschke, H.H., Combettes, P.L., 2011. Convex Analysis and Monotone
-        Operator Theory in Hilbert Spaces, 1st ed, CMS Books in Mathematics.
-        Springer, New York, NY. Proposition 27.8.
-        https://doi.org/10.1007/978-1-4419-9467-7
-    .. [4] Ryu, E.K., Yin, W., 2022. Large-Scale Convex Optimization: Algorithms
-        & Analyses via Monotone Operators. Cambridge University Press,
-        Cambridge. Exercise 2.38 https://doi.org/10.1017/9781009160865
-        https://large-scale-book.mathopt.com/
+    See :class:`pyproximal.optimization.cls_primal.PPXA`
 
     """
-    if show:
-        tstart = time.time()
-        print(
-            "Parallel Proximal Algorithm\n"
-            "---------------------------------------------------------"
-        )
-        for i, proxf in enumerate(proxfs):
-            print(f"Proximal operator (f{i}): {type(proxf)}")
-        print(f"tau = {tau:10e}\tniter = {niter:d}\n")
-        head = "   Itn       x[0]          J=sum_i f_i"
-        print(head)
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    ncp = get_array_module(x0)
-
-    # initialize model
-    m = len(proxfs)
-    if weights is None:
-        w = ncp.full(m, 1.0 / m)
-    else:
-        w = ncp.asarray(weights)
-
-    if isinstance(x0, list) or x0.ndim == 2:
-        y = ncp.asarray(x0)  # yi_0 = xi_0, for i = 1, ..., m
-    else:
-        y = ncp.full((m, x0.size), x0)  # y1_0 = y2_0 = ... = ym_0 = x0
-
-    x = ncp.mean(y, axis=0)
-    x_old = x.copy()
-
-    # iterate
-    for iiter in range(niter):
-        p = ncp.stack([proxfs[i].prox(y[i], tau / w[i]) for i in range(m)])
-        pn = ncp.sum(w[:, None] * p, axis=0)
-        y = y + eta * (2 * pn - x - p)
-        x = x + eta * (pn - x)
-
-        # run callback
-        if callback is not None:
-            callback(x)
-
-        # show iteration logger
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf = ncp.sum([proxfs[i](x) for i in range(m)])
-                print(f"{iiter + 1:6d}  {ncp.real(to_numpy(x[0])):12.5e}  {pf:10.3e}")
-
-        # break if tolerance condition is met
-        if ncp.abs(x - x_old).max() < tol:
-            break
-
-        x_old = x
-
-    if show:
-        print(f"\nTotal time (s) = {time.time() - tstart:.2f}")
-        print("---------------------------------------------------------\n")
-
+    ppxasolve = cPPXA(
+        callbacks=callbacks if len(callbacks) > 0 else None,
+    )
+    if callback is not None:
+        ppxasolve.callback = callback
+    x, _, _, _ = ppxasolve.solve(
+        proxfs=proxfs,
+        x0=x0,
+        tau=tau,
+        eta=eta,
+        weights=weights,
+        niter=niter,
+        tol=tol or (0.0 if rtol else None),
+        show=show,
+        itershow=itershow,
+    )
     return x
 
 
 def ConsensusADMM(  # pylint: disable=invalid-name
-    proxfs: list[ProxOperator],
+    proxfs: list["ProxOperator"],
     x0: NDArray,
     tau: float,
     niter: int = 1000,
-    tol: float | None = 1e-7,
+    tol: float | None = None,
+    rtol: float | None = None,
     callback: Callable[..., None] | None = None,
     show: bool = False,
+    itershow: tuple[int, int, int] = (10, 10, 10),
 ) -> NDArray:
     r"""Consensus ADMM
 
@@ -2006,13 +1376,23 @@ def ConsensusADMM(  # pylint: disable=invalid-name
     niter : :obj:`int`, optional
         Number of iterations of iterative scheme.
     tol : :obj:`float`, optional
-        Tolerance on change of the solution (used as stopping criterion).
-        If ``tol=0``, run until ``niter`` is reached.
+        Tolerance on change of objective function (used as stopping criterion). If
+        ``tol=None``, run until ``niter`` is reached
+    rtol : :obj:`float`, optional
+        Relative tolerance on objective function wrt initial value. Stops
+        the solver when the ratio of the current objective function to the
+        initial objective function is below this value. If ``rtol=None``,
+        run until ``niter`` is reached or the other tolerance criterion is
+        met
     callback : :obj:`callable`, optional
         Function with signature (``callback(x)``) to call after each iteration
         where ``x`` is the current model vector
     show : :obj:`bool`, optional
         Display iterations log
+    itershow : :obj:`tuple`, optional
+        Display set log for the first N1 steps, last N2 steps,
+        and every N3 steps in between where N1, N2, N3 are the
+        three element of the list.
 
     Returns
     -------
@@ -2026,82 +1406,27 @@ def ConsensusADMM(  # pylint: disable=invalid-name
 
     Notes
     -----
-    The ADMM for the consensus problem can be expressed by the following
-    recursion [1]_, [2]_:
-
-    * :math:`\bar{\mathbf{x}}^{0} = \mathbf{x}`
-    * for :math:`k = 1, \ldots`
-
-      * for :math:`i = 1, \ldots, m`
-
-        * :math:`\mathbf{x}_i^{k+1} = \mathrm{prox}_{\tau f_i} \left(\bar{\mathbf{x}}^{k} - \mathbf{y}_i^{k}\right)`
-
-      * :math:`\bar{\mathbf{x}}^{k+1} = \frac{1}{m} \sum_{i=1}^m \mathbf{x}_i^{k}`
-
-      * for :math:`i = 1, \ldots, m`
-
-        * :math:`\mathbf{y}_i^{k+1} = \mathbf{y}_i^{k} + \mathbf{x}_i^{k+1} - \bar{\mathbf{x}}^{k+1}`
-
-    The current implementation returns :math:`\bar{\mathbf{x}}`.
-
-    References
-    ----------
-    .. [1] Boyd, S., Parikh, N., Chu, E., Peleato, B., Eckstein, J., 2011.
-        Distributed Optimization and Statistical Learning via the Alternating
-        Direction Method of Multipliers. Foundations and Trends in Machine Learning,
-        Vol. 3, No. 1, pp 1-122. Section 7.1. https://doi.org/10.1561/2200000016
-        https://stanford.edu/~boyd/papers/pdf/admm_distr_stats.pdf
-    .. [2] Parikh, N., Boyd, S., 2014. Proximal Algorithms. Foundations and
-        Trends in Optimization, Vol. 1, No. 3, pp 127-239.
-        Section 5.2.1. https://doi.org/10.1561/2400000003
-        https://web.stanford.edu/~boyd/papers/pdf/prox_algs.pdf
+    See :class:`pyproximal.optimization.cls_primal.ConsensusADMM`
 
     """
-    if show:
-        tstart = time.time()
-        print(
-            "Consensus ADMM\n---------------------------------------------------------"
-        )
-        for i, proxf in enumerate(proxfs):
-            print(f"Proximal operator (f{i}): {type(proxf)}")
-        print(f"tau = {tau:10e}\tniter = {niter:d}\n")
-        head = "   Itn       x[0]          J=sum_i f_i"
-        print(head)
+    callbacks = []
+    if tol is not None or rtol is not None:
+        callbacks.append(CostNanInfCallback())
+    if rtol is not None:
+        callbacks.append(CostToInitialCallback(rtol))
 
-    ncp = get_array_module(x0)
-
-    # initialize model
-    m = len(proxfs)
-    x_bar = x0.copy()
-    x_bar_old = x0.copy()
-    y = ncp.zeros((m, x0.size), dtype=x0.dtype)
-
-    # iterate
-    for iiter in range(niter):
-        x = ncp.stack([proxfs[i].prox(x_bar - y[i], tau) for i in range(m)])
-        x_bar = ncp.mean(x, axis=0)
-        y = y + x - x_bar
-
-        # run callback
-        if callback is not None:
-            callback(x_bar)
-
-        # show iteration logger
-        if show:
-            if iiter < 10 or niter - iiter < 10 or iiter % (niter // 10) == 0:
-                pf = ncp.sum([proxfs[i](x_bar) for i in range(m)])
-                print(
-                    f"{iiter + 1:6d}  {ncp.real(to_numpy(x_bar[0])):12.5e}  {pf:10.3e}"
-                )
-
-        # break if tolerance condition is met
-        if ncp.abs(x_bar - x_bar_old).max() < tol:
-            break
-
-        x_bar_old = x_bar
-
-    if show:
-        print(f"\nTotal time (s) = {time.time() - tstart:.2f}")
-        print("---------------------------------------------------------\n")
-
-    return x_bar
+    ccadmmsolve = cConsensusADMM(
+        callbacks=callbacks if len(callbacks) > 0 else None,
+    )
+    if callback is not None:
+        ccadmmsolve.callback = callback
+    _, x, _, _, _ = ccadmmsolve.solve(
+        proxfs=proxfs,
+        x0=x0,
+        tau=tau,
+        niter=niter,
+        tol=tol or (0.0 if rtol else None),
+        show=show,
+        itershow=itershow,
+    )
+    return x
