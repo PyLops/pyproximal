@@ -407,7 +407,7 @@ class _PrecompositionOperator(ProxOperator):
         self.f, self.a, self.b = f, a, b
         super().__init__(None, f.hasgrad)
 
-    def __call__(self, x: NDArray) -> NDArray:
+    def __call__(self, x: NDArray) -> bool | float | int:
         return self.f(self.a * x + self.b)
 
     @_check_tau
