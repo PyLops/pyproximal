@@ -28,7 +28,7 @@ class L21(ProxOperator):
     .. math::
 
         \sigma \|\mathbf{X}\|_{2,1} = \sigma \sum_{j=0}^{N'_x} \|\mathbf{x}_j\|_2 =
-        \sigma \sum_{j=0}^{N'_x} \sqrt{\sum_{i=0}^{N_{dim}}} |x_{ij}|^2
+        \sigma \sum_{j=0}^{N'_x} \sqrt{\sum_{i=0}^{N_{dim}} |x_{ij}|^2}
 
     the proximal operator is:
 
@@ -65,13 +65,14 @@ class L21(ProxOperator):
 
     def __call__(self, x: NDArray) -> float:
         x = x.reshape(self.ndim, len(x) // self.ndim)
-        f = self.sigma * np.sum(np.sqrt(np.sum(x**2, axis=0)))
+        f = self.sigma * np.sum(np.sqrt(np.sum(np.abs(x) ** 2, axis=0)))
+        print(f"f = {f}")
         return float(f)
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:
         x = x.reshape(self.ndim, len(x) // self.ndim)
-        aux = np.sqrt(np.sum(x**2, axis=0))
+        aux = np.sqrt(np.sum(np.abs(x) ** 2, axis=0))
         aux = np.vstack([aux] * self.ndim).ravel()
         x = (1 - (tau * self.sigma) / np.maximum(aux, tau * self.sigma)) * x.ravel()
         return x
@@ -79,7 +80,7 @@ class L21(ProxOperator):
     @_check_tau
     def proxdual(self, x: NDArray, tau: float) -> NDArray:
         x = x.reshape(self.ndim, len(x) // self.ndim)
-        aux = np.sqrt(np.sum(x**2, axis=0))
+        aux = np.sqrt(np.sum(np.abs(x) ** 2, axis=0))
         aux = np.vstack([aux] * self.ndim).ravel()
         x = self.sigma * x.ravel() / np.maximum(aux, self.sigma)
         return x
