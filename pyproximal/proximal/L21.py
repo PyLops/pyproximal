@@ -66,7 +66,6 @@ class L21(ProxOperator):
     def __call__(self, x: NDArray) -> float:
         x = x.reshape(self.ndim, len(x) // self.ndim)
         f = self.sigma * np.sum(np.sqrt(np.sum(np.abs(x) ** 2, axis=0)))
-        print(f"f = {f}")
         return float(f)
 
     @_check_tau
