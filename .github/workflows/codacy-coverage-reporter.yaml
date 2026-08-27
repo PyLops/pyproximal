@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install dependencies and pyproximal
-        run: uv sync --locked --all-extras --all-groups
+        run: uv sync --locked  --extra advanced --all-groups
       - name: Coverage with pytest
         run: |
           uv run coverage run -m pytest
