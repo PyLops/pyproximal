@@ -66,7 +66,7 @@ jobs:
     displayName: 'Install uv'
 
   - script: |
-      uv sync --locked --all-extras --all-groups
+      uv sync --locked --extra advanced --all-groups
     displayName: 'Install dependencies and pyproximal'
 
   - script: |
