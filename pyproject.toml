@@ -23,12 +23,13 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "numpy >= 1.21.0",
     "scipy >= 1.11.0",
@@ -42,6 +43,8 @@ advanced = [
     "llvmlite",
     "numba",
 ]
+gpu-cu12 = ["cupy-cuda12x", "numba-cuda[cu12]>=0.30.0"]
+gpu-cu13 = ["cupy-cuda13x", "numba-cuda[cu13]>=0.30.0"]
 
 [dependency-groups]
 dev = [
@@ -84,6 +87,15 @@ packages = ["pyproximal"]
 
 [tool.hatch.build.targets.sdist]
 exclude = ["/.github", "/testdata"]
+
+
+[tool.uv]
+conflicts = [
+  [
+    { extra = "gpu-cu12" },
+    { extra = "gpu-cu13" },
+  ],
+]
 
 [tool.pytest.ini_options]
 addopts = "--verbose"
