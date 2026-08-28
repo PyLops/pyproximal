@@ -623,8 +623,8 @@ class ProximalGradient(Solver):
 
         # define epsg for current iteration
         if self.epsg.ndim == 0:
-            epsg = self.epsg
-            epsg_prev = self.epsg
+            epsg = self.epsg.item()
+            epsg_prev = self.epsg.item()
         else:
             epsg = self.epsg[self.iiter].item()
             epsg_prev = self.epsg[self.iiter - 1].item()
@@ -1077,8 +1077,8 @@ class AndersonProximalGradient(Solver):
         """
         # define epsg for current iteration
         if self.epsg.ndim == 0:
-            epsg = self.epsg
-            epsg_prev = self.epsg
+            epsg = self.epsg.item()
+            epsg_prev = self.epsg.item()
         else:
             epsg = self.epsg[self.iiter].item()
             epsg_prev = self.epsg[self.iiter - 1].item()
@@ -1525,9 +1525,11 @@ class GeneralizedProximalGradient(Solver):
         x = np.zeros_like(x)
         for i, proxg in enumerate(self.proxgs):
             ztmp = 2 * y - self.zs[i] - self.tau * grad
-            ztmp = proxg.prox(ztmp, self.tau * self.epsg[i] / self.weights[i])
+            ztmp = proxg.prox(
+                ztmp, self.tau * self.epsg[i].item() / self.weights[i].item()
+            )
             self.zs[i] += self.eta * (ztmp - y)
-            x += self.weights[i] * self.zs[i]
+            x += self.weights[i].item() * self.zs[i]
 
         # update y
         if self.acceleration == "vandenberghe":
@@ -1913,7 +1915,7 @@ class HQS(Solver):
         """
         # define tau for current iteration
         if self.tau.ndim == 0:
-            tau = self.tau
+            tau = self.tau.item()
         else:
             tau = self.tau[self.iiter].item()
 
