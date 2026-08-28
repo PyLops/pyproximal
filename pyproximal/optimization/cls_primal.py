@@ -626,8 +626,8 @@ class ProximalGradient(Solver):
             epsg = self.epsg
             epsg_prev = self.epsg
         else:
-            epsg = self.epsg[self.iiter]
-            epsg_prev = self.epsg[self.iiter - 1]
+            epsg = self.epsg[self.iiter].item()
+            epsg_prev = self.epsg[self.iiter - 1].item()
 
         # proximal step
         if not self.backtracking:
@@ -1080,8 +1080,8 @@ class AndersonProximalGradient(Solver):
             epsg = self.epsg
             epsg_prev = self.epsg
         else:
-            epsg = self.epsg[self.iiter]
-            epsg_prev = self.epsg[self.iiter - 1]
+            epsg = self.epsg[self.iiter].item()
+            epsg_prev = self.epsg[self.iiter - 1].item()
 
         # update fix point
         g = x - self.tau * self.proxf.grad(x)
@@ -1915,7 +1915,7 @@ class HQS(Solver):
         if self.tau.ndim == 0:
             tau = self.tau
         else:
-            tau = self.tau[self.iiter]
+            tau = self.tau[self.iiter].item()
 
         # proximal steps
         if self.gfirst:
