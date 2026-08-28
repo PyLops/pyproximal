@@ -147,7 +147,7 @@ def test_GPG_weights(par):
             ],
             x0=np.zeros(m),
             tau=1.0,
-            weights=[1.0, 1.0],
+            weights=np.array([1.0, 1.0]),
         )
 
 
@@ -701,7 +701,7 @@ def test_ADMM_DRS(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2), (par3)])
-@pytest.mark.parametrize("weights", [None, (0.5, 0.5)])
+@pytest.mark.parametrize("weights", [None, np.array([0.5, 0.5])])
 def test_PPXA_with_ADMM(par, weights) -> None:
     """Check equivalency of PPXA and ADMM
     when using a single regularization term
