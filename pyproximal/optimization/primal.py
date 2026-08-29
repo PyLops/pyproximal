@@ -461,7 +461,7 @@ def GeneralizedProximalGradient(
     epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
         Scaling factor(s) of ``g`` function(s). If a scalar is provided
         the same scaling factor is applied to every ``g`` function.
-    weights : :obj:`float`, optional
+    weights : :obj:`numpy.ndarray`, optional
         Weighting factors of ``g`` functions. Must sum to 1.
     eta : :obj:`float`, optional
         Relaxation parameter (must be between 0 and 1, 0 excluded). Note that

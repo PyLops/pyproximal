@@ -295,15 +295,15 @@ class PrimalDual(Solver):
 
         # define tau for current iteration
         if self.tau.ndim == 0:
-            tau = self.tau
+            tau = self.tau.item()
         else:
-            tau = self.tau[self.iiter]
+            tau = self.tau[self.iiter].item()
 
         # define mu for current iteration
         if self.mu.ndim == 0:
-            mu = self.mu
+            mu = self.mu.item()
         else:
-            mu = self.mu[self.iiter]
+            mu = self.mu[self.iiter].item()
 
         if self.gfirst:
             y = self.proxg.proxdual(y + mu * self.A.matvec(xhat), mu)

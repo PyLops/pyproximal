@@ -15,7 +15,7 @@ __all__ = [
 
 from collections.abc import Sequence
 from math import sqrt
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, Optional
 
 import numpy as np
 import pylops
@@ -621,41 +621,48 @@ class ProximalGradient(Solver):
         """
         xold = x.copy()
 
+        # define tau for current iteration
+        if self.tau.size == 1:
+            tau = self.tau.item()
+        else:
+            tau = self.tau
+
         # define epsg for current iteration
         if self.epsg.ndim == 0:
-            epsg = self.epsg
-            epsg_prev = self.epsg
+            epsg = self.epsg.item()
+            epsg_prev = self.epsg.item()
         else:
-            epsg = self.epsg[self.iiter]
-            epsg_prev = self.epsg[self.iiter - 1]
+            epsg = self.epsg[self.iiter].item()
+            epsg_prev = self.epsg[self.iiter - 1].item()
 
         # proximal step
         if not self.backtracking:
             if self.eta == 1.0:
-                x = self.proxg.prox(y - self.tau * self.proxf.grad(y), epsg * self.tau)
+                x = self.proxg.prox(y - tau * self.proxf.grad(y), epsg * tau)
             else:
                 x = x + self.eta * (
                     self.proxg.prox(
-                        x - self.tau * self.proxf.grad(x),
-                        epsg * self.tau,
+                        x - tau * self.proxf.grad(x),
+                        epsg * tau,
                     )
                     - x
                 )
         else:
-            x, self.tau = _backtracking(
+            x, tau = _backtracking(
                 y,
-                cast(float, self.tau),
+                tau,
                 self.proxf,
                 self.proxg,
                 epsg,
                 beta=self.beta,
                 niterback=self.niterback,
             )
+            self.tau = self.ncp.atleast_1d(self.ncp.asarray(tau, dtype=np.float32))
             if self.eta != 1.0:
                 x = x + self.eta * (
                     self.proxg.prox(
-                        x - self.tau * self.proxf.grad(x),
-                        epsg * self.tau,
+                        x - tau * self.proxf.grad(x),
+                        epsg * tau,
                     )
                     - x
                 )
@@ -1075,16 +1082,22 @@ class AndersonProximalGradient(Solver):
             Updated additional model vector
 
         """
+        # define tau for current iteration
+        if self.tau.size == 1:
+            tau = self.tau.item()
+        else:
+            tau = self.tau
+
         # define epsg for current iteration
         if self.epsg.ndim == 0:
-            epsg = self.epsg
-            epsg_prev = self.epsg
+            epsg = self.epsg.item()
+            epsg_prev = self.epsg.item()
         else:
-            epsg = self.epsg[self.iiter]
-            epsg_prev = self.epsg[self.iiter - 1]
+            epsg = self.epsg[self.iiter].item()
+            epsg_prev = self.epsg[self.iiter - 1].item()
 
         # update fix point
-        g = x - self.tau * self.proxf.grad(x)
+        g = x - tau * self.proxf.grad(x)
         r = g - y
 
         # update history vectors
@@ -1108,24 +1121,21 @@ class AndersonProximalGradient(Solver):
             y = np.vstack(self.G).T @ alpha
 
             # update main variable
-            x = self.proxg.prox(y, epsg * self.tau)
+            x = self.proxg.prox(y, epsg * tau)
         else:
             # update auxiliary variable
             ytest = np.vstack(self.G).T @ alpha
 
             # update main variable
-            xtest = self.proxg.prox(ytest, epsg * self.tau)
+            xtest = self.proxg.prox(ytest, epsg * tau)
 
             # check if function is decreased, otherwise do basic PG step
             pfold, self.pf = self.pf, self.proxf(xtest)
-            if (
-                self.pf
-                <= pfold - self.tau * np.linalg.norm(self.proxf.grad(x)) ** 2 / 2
-            ):
+            if self.pf <= pfold - tau * np.linalg.norm(self.proxf.grad(x)) ** 2 / 2:
                 y = ytest
                 x = xtest
             else:
-                x = self.proxg.prox(g, epsg * self.tau)
+                x = self.proxg.prox(g, epsg * tau)
                 y = g
 
         # tolerance check: break iterations if overall
@@ -1398,7 +1408,7 @@ class GeneralizedProximalGradient(Solver):
         epsg : :obj:`float` or :obj:`numpy.ndarray`, optional
             Scaling factor(s) of ``g`` function(s). If a scalar is provided
             the same scaling factor is applied to every ``g`` function.
-        weights : :obj:`float`, optional
+        weights : :obj:`numpy.ndarray`, optional
             Weighting factors of ``g`` functions. Must sum to 1.
         eta : :obj:`float`, optional
             Relaxation parameter (must be between 0 and 1, 0 excluded). Note that
@@ -1525,9 +1535,11 @@ class GeneralizedProximalGradient(Solver):
         x = np.zeros_like(x)
         for i, proxg in enumerate(self.proxgs):
             ztmp = 2 * y - self.zs[i] - self.tau * grad
-            ztmp = proxg.prox(ztmp, self.tau * self.epsg[i] / self.weights[i])
+            ztmp = proxg.prox(
+                ztmp, self.tau * self.epsg[i].item() / self.weights[i].item()
+            )
             self.zs[i] += self.eta * (ztmp - y)
-            x += self.weights[i] * self.zs[i]
+            x += self.weights[i].item() * self.zs[i]
 
         # update y
         if self.acceleration == "vandenberghe":
@@ -1913,9 +1925,9 @@ class HQS(Solver):
         """
         # define tau for current iteration
         if self.tau.ndim == 0:
-            tau = self.tau
+            tau = self.tau.item()
         else:
-            tau = self.tau[self.iiter]
+            tau = self.tau[self.iiter].item()
 
         # proximal steps
         if self.gfirst:
