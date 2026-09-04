@@ -21,6 +21,7 @@ from pyproximal.optimization.primal import (
     TwIST,
 )
 from pyproximal.optimization.primaldual import AdaptivePrimalDual, PrimalDual
+from pyproximal.optimization.segmentation import Segment
 from pyproximal.proximal import L1, L2, Box, Quadratic
 
 par1 = {"n": 10, "m": 10, "dtype": "float64"}  # square, float64
@@ -184,6 +185,19 @@ def test_GPG_epsg(par):
             tau=1.0,
             epsg=np.ones(5),
         )
+
+
+@pytest.mark.parametrize("par", [(par1), (par2), (par3)])
+def test_Segment_taumu(par):
+    """Check Segment raises error if neither tau or mu are passed"""
+    with pytest.raises(ValueError, match="tau or mu must be"):
+        np.random.seed(0)
+
+        # Model and classes
+        y = np.zeros((par["n"], par["m"]))
+        cl = np.array([-1, 0, 1])
+
+        _ = Segment(y, cl, 1.0, 1.0, tau=None, mu=None)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2), (par3)])
