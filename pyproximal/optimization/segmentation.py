@@ -3,6 +3,7 @@ from typing import Any
 
 import numpy as np
 from pylops import BlockDiag, Gradient
+from pylops.utils.backend import get_array_module
 from pylops.utils.typing import NDArray
 
 from pyproximal import L21, Simplex, VStack
@@ -14,6 +15,8 @@ def Segment(
     cl: NDArray,
     sigma: float,
     alpha: float,
+    tau: float | None = 1.0,
+    mu: float | None = None,
     clsigmas: NDArray | None = None,
     z: NDArray | None = None,
     niter: int = 10,
@@ -37,6 +40,14 @@ def Segment(
         Positive scalar weight of the misfit term
     alpha : :obj:`float`
         Positive scalar weight of the regularization term
+    tau : :obj:`float`, optional
+        Stepsize of subgradient of segmentation term.
+        If ``None``, it is set from ``mu`` and the
+        Lipschitz constant of the gradient operator.
+    mu : :obj:`float`, optional
+        Stepsize of subgradient of regularization term.
+        If ``None``, it is set from ``tau`` and the
+        Lipschitz constant of the gradient operator.
     clsigmas : :obj:`numpy.ndarray`, optional
         Classes standard deviations
     z : :obj:`numpy.ndarray`, optional
@@ -64,6 +75,11 @@ def Segment(
         Estimated classes. This is a vector of the same size of the input data
         ``y`` with the selected classes at each pixel.
 
+    Raises
+    ------
+    ValueError
+        If both ``tau`` and ``mu`` are ``None``
+
     Notes
     -----
     This solver performs image segmentation over :math:`N_{cl}` classes solving
@@ -90,12 +106,23 @@ def Segment(
         Imaging and Vision, 40, 8pp. 120–145. 2011.
 
     """
+    ncp = get_array_module(y)
     kwargs_simplex = {} if kwargs_simplex is None else kwargs_simplex
 
     dims = y.shape
     ndims = len(dims)
     dimsprod = np.prod(np.array(dims))
     ncl = len(cl)
+
+    # Set step sizes
+    L = 4 * ndims
+    if tau is None:
+        if mu is None:
+            msg = "Either tau or mu must be provided."
+            raise ValueError(msg)
+        tau = 1.0 / (mu * L)
+    elif mu is None:
+        mu = 1.0 / (tau * L)
 
     # Data (difference between image and center of classes)
     g = sigma / 2.0 * (y.reshape(1, dimsprod) - cl[:, np.newaxis]) ** 2
@@ -104,10 +131,7 @@ def Segment(
     g = g.ravel()
 
     # Gradient operator
-    sampling = 1.0
-    Gop = Gradient(
-        dims=dims, sampling=sampling, edge=False, kind="forward", dtype="float64"
-    )
+    Gop = Gradient(dims=dims, sampling=1.0, edge=False, kind="forward", dtype="float64")
     Gop = BlockDiag([Gop] * ncl)
 
     # Simplex and L21 proximal operators
@@ -118,11 +142,6 @@ def Segment(
         [L21(ndim=ndims, sigma=0.5 * alpha)] * ncl, nn=[ndims * dimsprod] * ncl
     )
 
-    # Steps
-    L = 8.0 / sampling**2
-    tau = 1.0
-    mu = 1.0 / (tau * L)
-
     # Inversion
     x: NDArray = PrimalDual(
         simp,
@@ -132,14 +151,14 @@ def Segment(
         mu=mu,
         z=g if z is None else g + z,
         theta=1.0,
-        x0=np.zeros_like(g) if x0 is None else x0,
+        x0=ncp.zeros_like(g) if x0 is None else x0,
         niter=niter,
         callback=callback,
         show=show,
         returny=False,
     )
     x = x.reshape(ncl, dimsprod).T
-    cl = np.argmax(x, axis=1)
+    cl = ncp.argmax(x, axis=1)
     cl = cl.reshape(dims)
 
     return x, cl
