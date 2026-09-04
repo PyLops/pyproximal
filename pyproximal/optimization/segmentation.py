@@ -106,10 +106,6 @@ def Segment(
         Imaging and Vision, 40, 8pp. 120–145. 2011.
 
     """
-    if tau is None and mu is None:
-        msg = "Either tau or mu must be provided."
-        raise ValueError(msg)
-
     ncp = get_array_module(y)
     kwargs_simplex = {} if kwargs_simplex is None else kwargs_simplex
 
@@ -117,6 +113,16 @@ def Segment(
     ndims = len(dims)
     dimsprod = np.prod(np.array(dims))
     ncl = len(cl)
+
+    # Set step sizes
+    L = 4 * ndims
+    if tau is None:
+        if mu is None:
+            msg = "Either tau or mu must be provided."
+            raise ValueError(msg)
+        tau = 1.0 / (mu * L)
+    elif mu is None:
+        mu = 1.0 / (tau * L)
 
     # Data (difference between image and center of classes)
     g = sigma / 2.0 * (y.reshape(1, dimsprod) - cl[:, np.newaxis]) ** 2
@@ -135,11 +141,6 @@ def Segment(
     l21 = VStack(
         [L21(ndim=ndims, sigma=0.5 * alpha)] * ncl, nn=[ndims * dimsprod] * ncl
     )
-
-    # Steps
-    L = 4 * ndims
-    tau = 1.0 / (mu * L) if tau is None else tau
-    mu = 1.0 / (tau * L) if mu is None else mu
 
     # Inversion
     x: NDArray = PrimalDual(
