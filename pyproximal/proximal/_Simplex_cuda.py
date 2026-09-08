@@ -3,11 +3,26 @@ from numba import cuda
 
 
 @cuda.jit(device=True)
+def clamp_jit_cuda(v, lower, upper):
+    """Clamp a value between lower and upper bounds
+
+    Note: equivalent to ``min(max(v, lower), upper)``, written out explicitly
+    to avoid a Numba CUDA-target typing bug in the variadic ``min``/``max``
+    builtin overloads (raises a spurious "Signature mismatch" TypeError).
+    """
+    if v < lower:
+        return lower
+    elif v > upper:
+        return upper
+    return v
+
+
+@cuda.jit(device=True)
 def fun_jit_cuda(mu, x, coeffs, scalar, lower, upper):
     """Bisection function"""
     p = 0
     for i in range(coeffs.shape[0]):
-        p += coeffs[i] * min(max(x[i] - mu * coeffs[i], lower), upper)
+        p += coeffs[i] * clamp_jit_cuda(x[i] - mu * coeffs[i], lower, upper)
     return p - scalar
 
 
@@ -83,4 +98,4 @@ def simplex_jit_cuda(x, coeffs, scalar, lower, upper, maxiter, ftol, xtol, y):
         )
 
         for j in range(coeffs.shape[0]):
-            y[i][j] = min(max(x[i][j] - c * coeffs[j], lower), upper)
+            y[i][j] = clamp_jit_cuda(x[i][j] - c * coeffs[j], lower, upper)
