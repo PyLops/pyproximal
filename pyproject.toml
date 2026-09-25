@@ -60,6 +60,7 @@ doc = [
     "scikit-image",
     "bm3d",
     "bm4d",
+    "pywavelets",
     "pooch",
     "sphinx",
     "sphinx-design",
