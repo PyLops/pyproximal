@@ -120,21 +120,25 @@ g = pyproximal.VStack(
 # benefit of combining the two priors, we also solve the problem using a
 # single wavelet transform at a time (for which
 # :math:`\|\mathbf{W}_i\|_2^2 \le 1`).
+
+Lw = 1.0  # maxeig(W_i^H W_i)
+L = 2.0  # maxeig(K^H K)
+
 tau = 0.4
-mu = 1.0 / (tau * 2.5)
-mu1 = 1.0 / (tau * 1.25)
+muw = 0.8 / (tau * Lw)
+mu = 0.8 / (tau * L)
 niter = 400
 x0 = np.zeros(ny * nx)
 
 # Haar only
 xhaar = pyproximal.optimization.primaldual.PrimalDual(
-    f, pyproximal.L1(sigma=lam1), W1op, tau=tau, mu=mu1, x0=x0, niter=niter
+    f, pyproximal.L1(sigma=lam1), W1op, tau=tau, mu=muw, x0=x0, niter=niter
 )
 xhaar = xhaar.reshape(ny, nx)
 
 # db4 only
 xdb4 = pyproximal.optimization.primaldual.PrimalDual(
-    f, pyproximal.L1(sigma=lam2), W2op, tau=tau, mu=mu1, x0=x0, niter=niter
+    f, pyproximal.L1(sigma=lam2), W2op, tau=tau, mu=muw, x0=x0, niter=niter
 )
 xdb4 = xdb4.reshape(ny, nx)
 
