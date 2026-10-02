@@ -161,7 +161,7 @@ def test_L1Ball(par):
 @pytest.mark.parametrize("dtype", ["float32", "float64", "complex64", "complex128"])
 @pytest.mark.parametrize("values", [[0.125, -0.25], [1.0, 0.0], [0.0, 0.0]])
 def test_L1Ball_feasible_inputs(dtype, values):
-    """The projection fixes every point already in the ball."""
+    """Check that the projection returns the input as already in the ball."""
     x = np.array(values, dtype=dtype)
     original = x.copy()
     projection = L1BallProj(x.size, radius=1.0)
@@ -175,6 +175,7 @@ def test_L1Ball_feasible_inputs(dtype, values):
 
 @pytest.mark.parametrize("dtype", ["complex64", "complex128"])
 def test_L1Ball_complex_interior(dtype):
+    """Check that complex inputs already in the ball are returned unchanged."""
     x = np.array([0.125 + 0.125j, 0.25 - 0.125j], dtype=dtype)
     ball = L1Ball(x.size, radius=1.0)
     assert_array_equal(ball.prox(x, 1.0), x)
