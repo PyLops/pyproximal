@@ -16,8 +16,7 @@ Version 0.13.0
   :py:class:`pyproximal.optimization.segmentation.Segment` solver.
 * Added support for ``sigma`` vector in :py:class:`pyproximal.proximal.L1`.
 * Added ``numba-cuda`` to optional dependencies.
-* Fixed :py:class:`pyproximal.projection.L1BallProj` to preserve feasible inputs .
- preserve feasible inputs in L1 ball projection
+* Fixed :py:class:`pyproximal.projection.L1BallProj` to preserve feasible inputs in L1 ball projection.
 * Fixed handling of complex-valued inputs in :py:class:`pyproximal.proximal.L21`
   and :py:class:`pyproximal.proximal.L21_plus_L1`.
 
