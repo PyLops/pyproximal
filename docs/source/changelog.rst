@@ -3,7 +3,26 @@
 |:newspaper_roll:| Changelog
 ############################
 
-Version 0.12.1
+
+Version 0.13.0
+--------------
+*Released on: 30/10/2026*
+
+* Added :py:class:`pyproximal.optimization.red.RED` solver.
+* Added :py:class:`pyproximal.proximal.RED` operator.
+* Added class-based solvers in :py:mod:`pyproximal.optimization.cls_primal` 
+  and :py:mod:`pyproximal.optimization.cls_primaldual`.
+* Added ``tau`` and ``mu`` optional parameters to 
+  :py:class:`pyproximal.optimization.segmentation.Segment` solver.
+* Added support for ``sigma`` vector in :py:class:`pyproximal.proximal.L1`.
+* Added ``numba-cuda`` to optional dependencies.
+* Fixed :py:class:`pyproximal.projection.L1BallProj` to preserve feasible inputs .
+ preserve feasible inputs in L1 ball projection
+* Fixed handling of complex-valued inputs in :py:class:`pyproximal.proximal.L21`
+  and :py:class:`pyproximal.proximal.L21_plus_L1`.
+
+
+Version 0.12.0
 --------------
 *Released on: 18/04/2026*
 
