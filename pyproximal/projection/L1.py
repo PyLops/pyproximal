@@ -30,7 +30,12 @@ class L1BallProj:
 
     .. math::
 
-        P_{L1_{r}} (\mathbf{x}) = sign(\mathbf{x}) P_{\operatorname{Simplex}(r)}(\mathbf{x})
+        P_{L1_{r}} (\mathbf{x}) =
+        \begin{cases}
+        \mathbf{x}, & \|\mathbf{x}\|_1 \leq r \\
+        sign(\mathbf{x}) P_{\operatorname{Simplex}(r)}(|\mathbf{x}|),
+        & \text{otherwise}
+        \end{cases}
 
     Note that this is the proximal operator of the corresponding
     indicator function :math:`\mathcal{I}_{L1_{r}}`.
@@ -49,6 +54,8 @@ class L1BallProj:
         self.simplex = SimplexProj(n, radius, maxiter, xtol)
 
     def __call__(self, x: NDArray) -> NDArray:
+        if np.sum(np.abs(x)) <= self.radius:
+            return x
         if np.iscomplexobj(x):
             return np.exp(1j * np.angle(x)) * self.simplex(np.abs(x))
         else:
