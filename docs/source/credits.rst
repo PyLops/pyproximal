@@ -9,3 +9,4 @@
 *  `Marcus Valtonen Örnhag <https://github.com/marcusvaltonen>`_, marcusvaltonen
 *  `Olivier Leblanc <https://github.com/olivierleblanc>`_, olivierleblanc
 *  `Toru Tamaki <https://github.com/tttamaki>`_, tttamaki
+*  `Mika Mikasuki <https://github.com/mikamikasuki>`_, mikamikasuki
