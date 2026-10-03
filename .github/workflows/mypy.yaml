@@ -18,7 +18,7 @@ jobs:
           python-version: "3.11"
           enable-cache: true
       - name: Install dependencies and pyproximal
-        run: uv sync --locked --all-extras --all-groups
+        run: uv sync --locked  --extra advanced --all-groups
       - name: Run Mypy
         run: |
           uv run mypy pyproximal/

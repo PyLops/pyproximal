@@ -9,6 +9,7 @@ dependencies:
   - scipy>=1.14.0
   - pylops>=2.4.0
   - scikit-image
+  - pywavelets
   - matplotlib
   - typing_extensions>=4.0.0
   - ipython

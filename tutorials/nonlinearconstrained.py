@@ -168,6 +168,7 @@ xinv_pg = pyproximal.optimization.primal.ProximalGradient(
     epsg=1.0,
     niter=5000,
     show=True,
+    itershow=(10, 500, 10),
     callback=lambda x: callback(x, xhist),
 )
 xhist_pg = np.array(xhist)

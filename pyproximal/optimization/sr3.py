@@ -152,7 +152,7 @@ def SR3(
 
     Notes
     -----
-    SR3 uses the following algorithm:
+    SR3 uses the following algorithm [1]_:
 
         .. math::
             \mathbf{x}_{k+1} = (\mathbf{A}^T\mathbf{A} + \kappa
@@ -160,6 +160,12 @@ def SR3(
             \kappa \mathbf{L}^T\mathbf{y}_k) \\
             \mathbf{y}_{k+1} = \prox_{\lambda/\kappa\mathcal{R}}
             (\mathbf{Lx}_{k+1})
+
+    References
+    ----------
+    .. [1] Zheng, P., Askham, T., Brunton, S. L., Kutz, N.,
+       and Aravkin, A. Y. "A Unified Framework for Sparse Relaxed
+       Regularized Regression: SR3", https://arxiv.org/abs/1807.05411.
 
     """
     (m, n) = Op.shape

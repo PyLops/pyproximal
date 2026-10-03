@@ -110,7 +110,7 @@ with pylops.disabled_ndarray_multiplication():
         l2,
         l1,
         Gop,
-        x0=np.zeros(gt.size),
+        x0=np.zeros(gt.size, dtype=np.complex128),
         tau=tau,
         mu=mu,
         theta=1.0,

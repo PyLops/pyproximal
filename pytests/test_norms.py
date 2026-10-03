@@ -314,23 +314,48 @@ def test_L2Convolve(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
-def test_L1(par):
-    """L1 norm and grad and proximal/dual proximal"""
+def test_L1_scalar(par):
+    """L1 norm (with and without g) and grad and proximal/dual proximal
+    with sigma as scalar"""
     np.random.seed(10)
 
-    l1 = L1(sigma=par["sigma"])
+    g = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    tau = 2.0
+    for gg in [None, g]:
+        l1 = L1(sigma=par["sigma"], g=gg)
+        xg = x if gg is None else x - gg
+
+        # norm
+        assert l1(x) == pytest.approx(par["sigma"] * np.sum(np.abs(xg)))
+
+        # grad (note that since this norm is non-smooth, the
+        # gradient method is not implemented; as such the gradient
+        # of the Moreau envelope is called instead
+        _ = l1.grad(x)
+
+        # prox / dualprox
+        assert moreau(l1, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_L1_vector(par):
+    """L1 norm and proximal/dual proximal with sigma as vector"""
+    np.random.seed(10)
+
+    sigma = np.random.uniform(0.1, 2.0, par["nx"]).astype(par["dtype"])
+    l1 = L1(sigma=sigma)
 
     # norm
     x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
-    assert l1(x) == par["sigma"] * np.sum(np.abs(x))
+    assert l1(x) == pytest.approx(np.sum(sigma * np.abs(x)))
 
-    # grad (note that since this norm is non-smooth, the
-    # gradient method is not implemented; as such the gradient
-    # of the Moreau envelope is called instead
-    _ = l1.grad(x)
+    # prox
+    tau = 2.0
+    xprox = np.sign(x) * np.maximum(np.abs(x) - tau * sigma, 0.0)
+    assert_array_almost_equal(l1.prox(x, tau), xprox)
 
     # prox / dualprox
-    tau = 2.0
     assert moreau(l1, x, tau)
 
 
@@ -351,20 +376,34 @@ def test_L1_func(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
-def test_L1_diff(par):
-    """L1 norm of difference and proximal/dual proximal"""
+def test_L1_2d(par):
+    """L1 norm and proximal/dual proximal of 2-dimensional input with
+    sigma as vector acting on the second dimension"""
     np.random.seed(10)
 
-    g = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
-    l1 = L1(sigma=par["sigma"], g=g)
+    ncol = 3
+    sigma = np.random.uniform(0.1, 2.0, ncol).astype(par["dtype"])
+    g = np.random.normal(0.0, 1.0, (par["nx"], 1)).astype(par["dtype"])
 
-    # norm
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
-    assert l1(x) == par["sigma"] * np.sum(np.abs(x - g))
-
-    # prox / dualprox
+    x = np.random.normal(0.0, 1.0, (par["nx"], ncol)).astype(par["dtype"])
     tau = 2.0
-    assert moreau(l1, x, tau)
+    for gg in [None, g]:
+        l1 = L1(sigma=sigma, g=gg)
+        xg = x if gg is None else x - gg
+
+        # norm
+        norm = sum(sigma[j] * np.sum(np.abs(xg[:, j])) for j in range(ncol))
+        assert l1(x) == pytest.approx(norm)
+
+        # prox
+        xprox = np.sign(xg) * np.maximum(np.abs(xg) - tau * sigma, 0.0)
+        if gg is not None:
+            xprox += gg
+        assert_array_almost_equal(l1.prox(x, tau), xprox)
+
+        # dualprox (conjugate of sigma||x - g||_1 is <x, g> + i_{|x|<=sigma})
+        xdual = x if gg is None else x - tau * gg
+        assert_array_almost_equal(l1.proxdual(x, tau), np.clip(xdual, -sigma, sigma))
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])

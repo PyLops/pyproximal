@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from math import sqrt
 from typing import TYPE_CHECKING, Any, Optional
 
 import numpy as np
@@ -37,7 +38,7 @@ class L2(ProxOperator):
         Data vector
     q : :obj:`numpy.ndarray`, optional
         Dot vector
-    sigma : :obj:`int`, optional
+    sigma : :obj:`float`, optional
         Multiplicative coefficient of L2 norm
     alpha : :obj:`float`, optional
         Multiplicative coefficient of dot product
@@ -267,8 +268,8 @@ class L2(ProxOperator):
                 if self.q is not None:
                     y -= tau * self.alpha * self.q
                 x = regularized_inversion(
-                    np.sqrt(tau * self.sigma) * self.Op,
-                    np.sqrt(tau * self.sigma) * self.b,
+                    sqrt(tau * self.sigma) * self.Op,
+                    sqrt(tau * self.sigma) * self.b,
                     [
                         Identity(self.Op.shape[1], dtype=self.Op.dtype),
                     ],

@@ -54,7 +54,8 @@ class L1(ProxOperator):
     Proximal operator of the :math:`\ell_1` norm:
 
     - :math:`\sigma\|\mathbf{x} - \mathbf{g}\|_1 = \sigma \sum_i |x_i - g_i|` for
-      1-dimensional arrays;
+      1-dimensional arrays (or :math:`\sum_i \sigma_i |x_i - g_i|` when
+      :math:`\sigma` is a vector of the same size as :math:`\mathbf{x}`);
     - :math:`\sum_j \sigma_j \|\mathbf{X}_j - \mathbf{g}\|_1 = \sum_j \sigma_j \sum_i |x_{i,j} - g_i|`
       for 2-dimensional arrays.
 
@@ -62,10 +63,10 @@ class L1(ProxOperator):
     ----------
     sigma : :obj:`float` or :obj:`numpy.ndarray` or :obj:`func`, optional
         Multiplicative coefficient of L1 norm. This can be a constant number, a list
-        of values (for 2-dimensional inputs, acting on the second dimension) or
-        a function that is called passing a counter which keeps track of how many
-        times the ``prox`` method has been invoked before and returns a scalar (or a list of)
-        ``sigma`` to be used.
+        of values (for 1-dimensional inputs, acting element-wise; for 2-dimensional
+        inputs, acting on the second dimension) or a function that is called passing
+        a counter which keeps track of how many times the ``prox`` method has been
+        invoked before and returns a scalar (or a list of) ``sigma`` to be used.
     g : :obj:`numpy.ndarray`, optional
         Vector to be subtracted
 
@@ -98,6 +99,12 @@ class L1(ProxOperator):
         \sigma,  & x_i > \sigma\\
         \end{cases}
 
+    When :math:`\mathbf{g} \neq \mathbf{0}`, the convex conjugate becomes
+    :math:`f^*(\mathbf{x}) = \mathbf{x}^T\mathbf{g} +
+    \mathcal{I}_{\|\cdot\|_{\infty} <=\sigma}(\mathbf{x})`, and the dual
+    operator is obtained by applying the same projection to
+    :math:`\mathbf{x} - \tau \mathbf{g}`.
+
     .. [1] Chambolle, and A., Pock, "A first-order primal-dual algorithm for
         convex problems with applications to imaging", Journal of Mathematical
         Imaging and Vision, 40, 8pp. 120–145. 2011.
@@ -122,8 +129,8 @@ class L1(ProxOperator):
     def __call__(self, x: NDArray) -> float:
         sigma = _current_sigma(self.sigma, self.count)
         if self.g is None:
-            return float(np.sum(sigma * np.sum(np.abs(x), axis=0)))
-        return float(np.sum(sigma * np.sum(np.abs(x - self.g), axis=0)))
+            return float(np.sum(sigma * np.abs(x)))
+        return float(np.sum(sigma * np.abs(x - self.g)))
 
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
         """Increment counter"""
@@ -147,11 +154,7 @@ class L1(ProxOperator):
 
     @_check_tau
     def proxdual(self, x: NDArray, tau: float) -> NDArray:
-        if not isinstance(self.gdual, np.ndarray):
-            x = self.box(x)
-        else:
-            x = self._proxdual_moreau(x, tau)
-        return x
+        return self.box(x - tau * self.gdual)
 
 
 class L1Ball(ProxOperator):

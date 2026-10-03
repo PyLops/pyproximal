@@ -15,7 +15,8 @@ class _Denoise(ProxOperator):
     denoiser : :obj:`func`
         Denoiser (must be a function with two inputs, the first is the signal
         to be denoised, the second is the `tau` constant of the y-update in
-        the PnP optimization)
+        the PnP optimization, which should be interpreted as the strenght of
+        the denoiser)
     dims : :obj:`tuple`
         Dimensions used to reshape the vector ``x`` in the ``prox`` method
         prior to calling the ``denoiser``
@@ -52,18 +53,19 @@ def PlugAndPlay(
 ) -> NDArray | tuple[NDArray, ...]:
     r"""Plug-and-Play Priors with any proximal algorithm of choice
 
-    Solves the following minimization problem using any proximal a
-    lgorithm of choice:
+    Solves the following minimization problem using any proximal
+    algorithm of choice:
 
     .. math::
 
-        \mathbf{x},\mathbf{z}  = \argmin_{\mathbf{x}}
-        f(\mathbf{x}) + \lambda g(\mathbf{x})
+        \mathbf{x}  = \argmin_{\mathbf{x}}
+        f(\mathbf{x}) + \sigma g(\mathbf{x})
 
     where :math:`f(\mathbf{x})` is a function that has a known gradient or
-    proximal operator and :math:`g(\mathbf{x})` is a function acting as implicit
-    prior. Implicit means that no explicit function should be defined: instead,
-    a denoising algorithm of choice is used. See Notes for details.
+    proximal operator and :math:`g(\mathbf{x})` is a function acting as an
+    implicit prior. Implicit means that no explicit function should be
+    defined: instead, a denoising algorithm of choice is used. See Notes
+    for details.
 
     Parameters
     ----------
@@ -96,24 +98,27 @@ def PlugAndPlay(
     .. math::
 
         \mathbf{x}^{k+1} = \prox_{\tau f}(\mathbf{z}^{k} - \mathbf{u}^{k})\\
-        \mathbf{z}^{k+1} = \operatorname{Denoise}(\mathbf{x}^{k+1} + \mathbf{u}^{k}, \tau \lambda)\\
+        \mathbf{z}^{k+1} = \operatorname{Denoise}(\mathbf{x}^{k+1} + \mathbf{u}^{k}, \tau \sigma)\\
         \mathbf{u}^{k+1} = \mathbf{u}^{k} + \mathbf{x}^{k+1} - \mathbf{z}^{k+1}
 
     where :math:`\operatorname{Denoise}` is a denoising algorithm of choice. This rather peculiar step originates
     from the intuition that the optimization process associated with the z-update can be interpreted as a denoising
     inverse problem, or more specifically a MAP denoiser where the noise is gaussian with zero mean and variance
-    equal to :math:`\tau \lambda`. For this reason any denoising of choice can be used instead of a function with
+    equal to :math:`\tau \sigma`. For this reason any denoising of choice can be used instead of a function with
     known proximal operator.
 
-    Finally, whilst the :math:`\tau \lambda` denoising parameter should be chosen to
+    Finally, whilst the :math:`\tau \sigma` denoising parameter should be chosen to
     represent an estimate of the noise variance (of the denoiser, not the data of the problem we wish to solve!),
     special care must be taken when setting up the denoiser and calling this optimizer. More specifically,
-    :math:`\lambda` should not be passed to the optimizer, rather set directly in the denoiser.
+    :math:`\sigma` should not be passed to the optimizer, rather set directly in the denoiser.
     On the other hand :math:`\tau` must be passed to the optimizer as it is also affecting the x-update;
-    when defining the denoiser, ensure that :math:`\tau` is multiplied to :math:`\lambda` as shown in the tutorial.
+    when defining the denoiser, ensure that :math:`\tau` is multiplied to :math:`\sigma` as shown in the tutorial.
 
-    Alternative, as suggested in [2]_, the :math:`\tau` could be set to 1. The parameter :math:`\lambda` can then be set
+    Alternative, as suggested in [2]_, the :math:`\tau` could be set to 1. The parameter :math:`\sigma` can then be set
     to maximize the value of the denoiser and a second tuning parameter can be added directly to :math:`f`.
+
+    References
+    ----------
 
     .. [1] Venkatakrishnan, S. V., Bouman, C. A. and Wohlberg, B.
        "Plug-and-Play priors for model based reconstruction",

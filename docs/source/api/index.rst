@@ -100,6 +100,7 @@ Non-Convex
     Log1
     QuadraticEnvelopeCard
     QuadraticEnvelopeCardIndicator
+    RED
     RelaxedMumfordShah
     SCAD
 
@@ -148,12 +149,35 @@ Utility functions
     gradtest_bilinear
 
 
-
 Solvers
 -------
 
 Primal
 ^^^^^^
+
+Class-based
+~~~~~~~~~~~
+
+.. currentmodule:: pyproximal.optimization.cls_primal
+
+.. autosummary::
+   :toctree: generated/
+
+    ADMM
+    ADMML2
+    AndersonProximalGradient
+    GeneralizedProximalGradient
+    HQS
+    LinearizedADMM
+    ProximalGradient
+    ProximalPoint
+    TwIST
+    DouglasRachfordSplitting
+    PPXA
+    ConsensusADMM
+
+Function-based
+~~~~~~~~~~~~~~
 
 .. currentmodule:: pyproximal.optimization.primal
 
@@ -174,6 +198,43 @@ Primal
     PPXA
     ConsensusADMM
 
+
+Primal-dual
+^^^^^^^^^^^
+
+Class-based
+~~~~~~~~~~~
+
+.. currentmodule:: pyproximal.optimization.cls_primaldual
+
+.. autosummary::
+   :toctree: generated/
+
+    AdaptivePrimalDual
+    PrimalDual
+
+Function-based
+~~~~~~~~~~~~~~
+
+.. currentmodule:: pyproximal.optimization.primaldual
+
+.. autosummary::
+   :toctree: generated/
+
+    AdaptivePrimalDual
+    PrimalDual
+
+
+Other
+^^^^^
+
+.. currentmodule:: pyproximal.optimization.bregman
+
+.. autosummary::
+   :toctree: generated/
+
+    Bregman
+
 .. currentmodule:: pyproximal.optimization.palm
 
 .. autosummary::
@@ -189,34 +250,19 @@ Primal
 
     PlugAndPlay
 
+.. currentmodule:: pyproximal.optimization.red
+
+.. autosummary::
+   :toctree: generated/
+
+    RED
+
 .. currentmodule:: pyproximal.optimization.sr3
 
 .. autosummary::
    :toctree: generated/
 
     SR3
-
-
-Primal-dual
-^^^^^^^^^^^
-
-.. currentmodule:: pyproximal.optimization.primaldual
-
-.. autosummary::
-   :toctree: generated/
-
-    AdaptivePrimalDual
-    PrimalDual
-
-Other
-^^^^^
-
-.. currentmodule:: pyproximal.optimization.bregman
-
-.. autosummary::
-   :toctree: generated/
-
-    Bregman
 
 .. currentmodule:: pyproximal.optimization.segmentation
 

@@ -7,7 +7,7 @@ Dependencies
 ************
 The mandatory dependencies of PyProximal are limited to:
 
-* Python 3.10 or greater
+* Python 3.11 or greater
 * `NumPy <http://www.numpy.org>`_
 * `SciPy <http://www.scipy.org/scipylib/index.html>`_
 * `PyLops <https://pylops.readthedocs.io>`_

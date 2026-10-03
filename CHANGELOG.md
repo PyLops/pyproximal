@@ -1,13 +1,26 @@
 Changelog
 =========
 
+# 0.13.0
+
+* Added ``pyproximal.optimization.red.RED`` solver.
+* Added ``pyproximal.proximal.RED`` operator.
+* Added class-based solvers in ``pyproximal.optimization.cls_primal`` and ``pyproximal.optimization.cls_primaldual``.
+* Added ``tau`` and ``mu`` optional parameters to ``pyproximal.optimization.segmentation.Segment`` solver.
+* Added support for ``sigma`` vector in ``pyproximal.proximal.L1``.
+* Added ``numba-cuda`` to optional dependencies.
+* Fixed ``pyproximal.projection.L1BallProj`` to preserve feasible inputs .
+ preserve feasible inputs in L1 ball projection
+* Fixed handling of complex-valued inputs in ``pyproximal.proximal.L21`` and ``pyproximal.proximal.L21_plus_L1``.
+
+
 # 0.12.0
 
 * Added ``pyproximal.optimization.primal.ConsensusADMM``
   and ``pyproximal.optimization.primal.PPXA`` solvers
 * Modified role of x and y in
   ``pyproximal.optimization.primal.DouglasRachfordSplitting``
-* Fix norm computation in ``pyproximal.proximal.L1`` for
+* Fixed norm computation in ``pyproximal.proximal.L1`` for
   2D-arrays
 
 # 0.11.1
@@ -113,7 +126,7 @@ Changelog
 * Added classes standard deviation in
   ``pyproximal.optimization.segmentation.Segment`` solver
 * Added `chain` method ``pyproximal.ProxOperator``
-* Fix ``pyproximal.proximal.Orthogonal`` by introducing `alpha`
+* Fixed ``pyproximal.proximal.Orthogonal`` by introducing `alpha`
   in the proximal evaluation
 
 # 0.1.0

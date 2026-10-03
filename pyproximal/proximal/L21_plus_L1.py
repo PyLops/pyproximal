@@ -38,7 +38,9 @@ class L21_plus_L1(ProxOperator):
     def __call__(self, x: NDArray) -> float:
         return float(
             self.rho * self.sigma * np.sum(np.abs(x))
-            + (1 - self.rho) * self.sigma * np.sum(np.sqrt(np.sum(x**2, axis=0)))
+            + (1 - self.rho)
+            * self.sigma
+            * np.sum(np.sqrt(np.sum(np.abs(x) ** 2, axis=0)))
         )
 
     @_check_tau

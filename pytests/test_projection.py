@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 from pylops.basicoperators import Identity
 
+from pyproximal.projection import L1BallProj
 from pyproximal.proximal import (
     AffineSet,
     Box,
@@ -155,6 +156,39 @@ def test_L1Ball(par):
     # prox / dualprox
     tau = 2.0
     assert moreau(l1, x, tau)
+
+
+@pytest.mark.parametrize("dtype", ["float32", "float64", "complex64", "complex128"])
+@pytest.mark.parametrize("values", [[0.125, -0.25], [1.0, 0.0], [0.0, 0.0]])
+def test_L1Ball_feasible_inputs(dtype, values):
+    """Check that the projection returns the input as already in the ball."""
+    x = np.array(values, dtype=dtype)
+    original = x.copy()
+    projection = L1BallProj(x.size, radius=1.0)
+    ball = L1Ball(x.size, radius=1.0)
+
+    assert_array_equal(projection(x), original)
+    assert_array_equal(ball.prox(x, 0.5), original)
+    assert_array_equal(ball.prox(x, 2.0), original)
+    assert_array_equal(x, original)
+
+
+@pytest.mark.parametrize("dtype", ["complex64", "complex128"])
+def test_L1Ball_complex_interior(dtype):
+    """Check that complex inputs already in the ball are returned unchanged."""
+    x = np.array([0.125 + 0.125j, 0.25 - 0.125j], dtype=dtype)
+    ball = L1Ball(x.size, radius=1.0)
+    assert_array_equal(ball.prox(x, 1.0), x)
+
+
+@pytest.mark.parametrize("dtype", ["float32", "float64", "complex64", "complex128"])
+@pytest.mark.parametrize("tau", [0.5, 2.0])
+def test_L1Ball_dual_inside_scaled_ball(dtype, tau):
+    """The conjugate prox is zero when x/tau lies inside the ball."""
+    x = np.array([0.125, -0.25], dtype=dtype)
+    ball = L1Ball(x.size, radius=1.0)
+    assert_array_equal(ball.proxdual(x, tau), np.zeros_like(x))
+    assert moreau(ball, x, tau)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
