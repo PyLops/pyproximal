@@ -479,6 +479,21 @@ def test_Huber(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
+def test_Huber_prox(par):
+    """Huber proximal operator matches a brute-force minimizer, including for
+    alpha < |x| <= alpha + tau where the quadratic branch still applies
+    """
+    alpha, tau = par["sigma"], 1.5
+    hub = Huber(alpha=alpha)
+
+    x = np.linspace(-2 * (alpha + tau), 2 * (alpha + tau), 41)
+    ys = np.linspace(-3 * (alpha + tau), 3 * (alpha + tau), 120001)
+    hys = np.where(np.abs(ys) <= alpha, ys**2 / (2 * alpha), np.abs(ys) - alpha / 2)
+    expected = np.array([ys[np.argmin(tau * hys + (ys - xi) ** 2 / 2)] for xi in x])
+    assert_array_almost_equal(hub.prox(x, tau), expected, decimal=3)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
 def test_HuberCircular(par):
     """Circular Huber norm and proximal/dual proximal"""
     np.random.seed(10)

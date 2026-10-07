@@ -36,9 +36,13 @@ class Huber(ProxOperator):
 
         \prox_{\tau H_\alpha(\cdot)}(\mathbf{x}) =
         \begin{cases}
-        \prox_{\frac{\tau}{2 \alpha} |x_i|^2}(x_i), & |x_i| \leq \alpha \\
-        \prox_{\tau |x_i|}(x_i), & |x_i| > \alpha
+        \prox_{\frac{\tau}{2 \alpha} |x_i|^2}(x_i), & |x_i| \leq \alpha + \tau \\
+        \prox_{\tau |x_i|}(x_i), & |x_i| > \alpha + \tau
         \end{cases}
+
+    The branches switch at :math:`|x_i| = \alpha + \tau` rather than at
+    :math:`|x_i| = \alpha`, as that is where the minimizer moves from the
+    quadratic to the linear part of the Huber function.
 
     """
 
@@ -60,12 +64,11 @@ class Huber(ProxOperator):
     def prox(self, x: NDArray, tau: float) -> NDArray:
         y = np.zeros_like(x)
         xabs = np.abs(x)
-        mask = xabs > self.alpha
+        mask = xabs > self.alpha + tau
         y[~mask] = self.l2.prox(x[~mask], tau)
         y[mask] = self.l1.prox(x[mask], tau)
-        # alternative from https://math.stackexchange.com/questions/1650411/
-        # proximal-operator-of-the-huber-loss-function... currently commented
-        # as it does not provide the same result
+        # equivalent closed form, from https://math.stackexchange.com/questions/1650411/
+        # proximal-operator-of-the-huber-loss-function
         # y = (1. - tau / np.maximum(np.abs(x), tau + self.alpha)) * x
 
         return y
