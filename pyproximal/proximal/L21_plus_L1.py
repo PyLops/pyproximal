@@ -23,6 +23,10 @@ class L21_plus_L1(ProxOperator):
     The proximal operator of the :math:`L_{2,1} + L_1` mixed-norm is simply the
     product of each individual proximal operator [1]_.
 
+    Grouping is performed along ``axis`` in :meth:`prox` (columns by default).
+    When ``rho=1``, only elementwise L1 shrinkage remains. With ``sigma=0``,
+    the proximal is the identity. Zero groups remain zero in both cases.
+
     .. [1] Gramfort, Alexandre, Daniel Strohmeier, Jens Haueisen, Matti Hamalainen,
         and Matthieu Kowalski. "Functional brain imaging with M/EEG using structured
         sparsity in time-frequency dictionaries." In Biennial International Conference
@@ -46,11 +50,13 @@ class L21_plus_L1(ProxOperator):
     @_check_tau
     def prox(self, x: NDArray, tau: float, axis: int = 0) -> NDArray:
         thresh = self.sigma * tau
-        l1 = np.maximum(np.abs(x) - thresh * self.rho, 0)
+        absx = np.abs(x)
+        l1 = np.maximum(absx - thresh * self.rho, 0)
         # Axis defines what dimension to perform grouping over
-        aux_l21 = np.sqrt(
-            np.sum(np.maximum(np.abs(x) - thresh * self.rho, 0) ** 2, axis=axis)
-        )
-        l21 = np.maximum(1 - thresh * (1 - self.rho) / aux_l21, 0)
-        x = np.nan_to_num(x / np.abs(x)) * l1 * l21
+        aux_l21 = np.sqrt(np.sum(l1**2, axis=axis, keepdims=True))
+        denominator = np.maximum(aux_l21, thresh * (1 - self.rho))
+        denominator = np.where(denominator == 0, 1, denominator)
+        l21 = np.maximum(1 - thresh * (1 - self.rho) / denominator, 0)
+        phase = np.where(absx == 0, 0, x) / np.where(absx == 0, 1, absx)
+        x = phase * l1 * l21
         return x
