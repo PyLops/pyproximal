@@ -127,6 +127,13 @@ plt.legend()
 plt.tight_layout()
 
 ###############################################################################
+# For complex data, the dual L1 proximal projects onto magnitude disks and
+# preserves phase, rather than clipping real and imaginary components.
+complex_l1 = pyproximal.L1(sigma=1.0)
+complex_x = np.array([0j, 2j, 3 + 4j])
+print("Complex L1 dual projection: ", complex_l1.proxdual(complex_x, 0.5))
+
+###############################################################################
 # We consider now the TV norm.
 tv = pyproximal.TV(dims=(nx,), sigma=1.0)
 

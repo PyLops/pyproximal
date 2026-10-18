@@ -105,6 +105,10 @@ class L1(ProxOperator):
     operator is obtained by applying the same projection to
     :math:`\mathbf{x} - \tau \mathbf{g}`.
 
+    For complex inputs, this is a radial projection onto the disks
+    :math:`|x_i| \leq \sigma_i`, preserving the phase of each shifted input.
+    Callable weights use the current primal-call counter in both operators.
+
     .. [1] Chambolle, and A., Pock, "A first-order primal-dual algorithm for
         convex problems with applications to imaging", Journal of Mathematical
         Imaging and Vision, 40, 8pp. 120–145. 2011.
@@ -154,7 +158,14 @@ class L1(ProxOperator):
 
     @_check_tau
     def proxdual(self, x: NDArray, tau: float) -> NDArray:
-        return self.box(x - tau * self.gdual)
+        sigma = _current_sigma(self.sigma, self.count)
+        self.box = BoxProj(-sigma, sigma)
+        x = x - tau * self.gdual
+        if np.iscomplexobj(x):
+            denominator = np.maximum(np.abs(x), sigma)
+            denominator = np.where(denominator == 0, 1, denominator)
+            return x * (sigma / denominator)
+        return self.box(x)
 
 
 class L1Ball(ProxOperator):
