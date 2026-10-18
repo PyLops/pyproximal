@@ -2218,9 +2218,9 @@ class ADMM(Solver):
         x0 : :obj:`numpy.ndarray`
             Initial vector (not required when ``gfirst=False``, can pass ``None``)
         tau : :obj:`float`
-            Positive scalar weight, which should satisfy the following condition
-            to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
-            the Lipschitz constant of :math:`\nabla f`.
+            Positive scalar weight. Convergence holds for any
+            :math:`\tau > 0` in the convex case, but its value affects the
+            convergence speed.
         z0 : :obj:`numpy.ndarray`, optional
             Initial z vector (not required when ``gfirst=True``)
         gfirst : :obj:`bool`, optional
@@ -2425,9 +2425,9 @@ class ADMM(Solver):
         x0 : :obj:`numpy.ndarray`
             Initial vector (not required when ``gfirst=False``, can pass ``None``)
         tau : :obj:`float`
-            Positive scalar weight, which should satisfy the following condition
-            to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
-            the Lipschitz constant of :math:`\nabla f`.
+            Positive scalar weight. Convergence holds for any
+            :math:`\tau > 0` in the convex case, but its value affects the
+            convergence speed.
         z0 : :obj:`numpy.ndarray`, optional
             Initial z vector (not required when ``gfirst=True``)
         gfirst : :obj:`bool`, optional
@@ -2582,8 +2582,9 @@ class ADMML2(Solver):
         x0 : :obj:`numpy.ndarray`
             Initial vector
         tau : :obj:`float`
-            Positive scalar weight, which should satisfy the following condition
-            to guarantees convergence: :math:`\tau \in (0, 1/\lambda_{max}(\mathbf{A}^H\mathbf{A})]`.
+            Positive scalar weight. Convergence holds for any
+            :math:`\tau > 0` in the convex case, but its value affects the
+            convergence speed.
         z0 : :obj:`numpy.ndarray`
             Initial auxiliary vector. If ``None``, initialized to ``A @ x0``.
         gfirst : :obj:`bool`, optional
@@ -2840,9 +2841,9 @@ class ADMML2(Solver):
         x0 : :obj:`numpy.ndarray`
             Initial vector (not required when ``gfirst=False``, can pass ``None``)
         tau : :obj:`float`
-            Positive scalar weight, which should satisfy the following condition
-            to guarantees convergence: :math:`\tau  \in (0, 1/L]` where ``L`` is
-            the Lipschitz constant of :math:`\nabla f`.
+            Positive scalar weight. Convergence holds for any
+            :math:`\tau > 0` in the convex case, but its value affects the
+            convergence speed.
         z0 : :obj:`numpy.ndarray`, optional
             Initial z vector (not required when ``gfirst=True``)
         gfirst : :obj:`bool`, optional
@@ -3002,9 +3003,7 @@ class LinearizedADMM(Solver):
         x0 : :obj:`numpy.ndarray`
             Initial vector
         tau : :obj:`float`, optional
-            Positive scalar weight, which should satisfy the following
-            condition to guarantee convergence: :math:`\mu \in (0,
-            \tau/\lambda_{max}(\mathbf{A}^H\mathbf{A})]`.
+            Positive scalar weight.
         mu : :obj:`float`, optional
             Second positive scalar weight, which should satisfy the following
             condition to guarantees convergence: :math:`\mu \in (0,
@@ -3209,9 +3208,7 @@ class LinearizedADMM(Solver):
         x0 : :obj:`numpy.ndarray`
             Initial vector
         tau : :obj:`float`, optional
-            Positive scalar weight, which should satisfy the following
-            condition to guarantee convergence: :math:`\mu \in (0,
-            \tau/\lambda_{max}(\mathbf{A}^H\mathbf{A})]`.
+            Positive scalar weight.
         mu : :obj:`float`, optional
             Second positive scalar weight, which should satisfy the following
             condition to guarantees convergence: :math:`\mu \in (0,
@@ -4447,7 +4444,9 @@ class ConsensusADMM(Solver):
         x0 : :obj:`numpy.ndarray`
             Initial vector
         tau : :obj:`float`
-            Positive scalar weight
+            Positive scalar weight. Convergence holds for any
+            :math:`\tau > 0` in the convex case, but its value affects the
+            convergence speed.
         niter : :obj:`int`, optional
             Number of iterations (default to ``None`` in case a user wants to
             manually step over the solver)
@@ -4639,7 +4638,9 @@ class ConsensusADMM(Solver):
         x0 : :obj:`numpy.ndarray`
             Initial vector
         tau : :obj:`float`
-            Positive scalar weight
+            Positive scalar weight. Convergence holds for any
+            :math:`\tau > 0` in the convex case, but its value affects the
+            convergence speed.
         niter : :obj:`int`, optional
             Number of iterations of iterative scheme.
         tol : :obj:`float`, optional
