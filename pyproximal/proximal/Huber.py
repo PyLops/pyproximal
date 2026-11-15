@@ -1,8 +1,6 @@
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal.proximal.L1 import L1
-from pyproximal.proximal.L2 import L2
 from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
@@ -49,8 +47,6 @@ class Huber(ProxOperator):
     def __init__(self, alpha: float) -> None:
         super().__init__(None, False)
         self.alpha = alpha
-        self.l2 = L2(sigma=1.0 / self.alpha)
-        self.l1 = L1()
 
     def __call__(self, x: NDArray) -> float:
         h = np.zeros_like(x)
