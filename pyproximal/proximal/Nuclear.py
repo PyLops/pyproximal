@@ -62,7 +62,7 @@ class Nuclear(ProxOperator):
 
     def __call__(self, x: NDArray) -> float:
         X = x.reshape(self.dim)
-        eigs = np.linalg.eigvalsh(X.T @ X)
+        eigs = np.linalg.eigvalsh(X.conj().T @ X)
         eigs[eigs < 0] = 0  # ensure all eigenvalues at positive
         return float(np.sum(np.flip(self.sigma) * np.sqrt(eigs)))
 
