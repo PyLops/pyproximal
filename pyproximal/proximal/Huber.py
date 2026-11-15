@@ -1,8 +1,6 @@
 import numpy as np
 from pylops.utils.typing import NDArray
 
-from pyproximal.proximal.L1 import L1
-from pyproximal.proximal.L2 import L2
 from pyproximal.ProxOperator import ProxOperator, _check_tau
 
 
@@ -36,17 +34,19 @@ class Huber(ProxOperator):
 
         \prox_{\tau H_\alpha(\cdot)}(\mathbf{x}) =
         \begin{cases}
-        \prox_{\frac{\tau}{2 \alpha} |x_i|^2}(x_i), & |x_i| \leq \alpha \\
-        \prox_{\tau |x_i|}(x_i), & |x_i| > \alpha
+        \prox_{\frac{\tau}{2 \alpha} |x_i|^2}(x_i), & |x_i| \leq \alpha + \tau \\
+        \prox_{\tau |x_i|}(x_i), & |x_i| > \alpha + \tau
         \end{cases}
+
+    Note that the switch between branches occurs at :math:`|x_i| = \alpha + \tau`,
+    as that is where the minimizer moves from the quadratic to the linear part of
+    the Huber function.
 
     """
 
     def __init__(self, alpha: float) -> None:
         super().__init__(None, False)
         self.alpha = alpha
-        self.l2 = L2(sigma=1.0 / self.alpha)
-        self.l1 = L1()
 
     def __call__(self, x: NDArray) -> float:
         h = np.zeros_like(x)
@@ -58,16 +58,7 @@ class Huber(ProxOperator):
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:
-        y = np.zeros_like(x)
-        xabs = np.abs(x)
-        mask = xabs > self.alpha
-        y[~mask] = self.l2.prox(x[~mask], tau)
-        y[mask] = self.l1.prox(x[mask], tau)
-        # alternative from https://math.stackexchange.com/questions/1650411/
-        # proximal-operator-of-the-huber-loss-function... currently commented
-        # as it does not provide the same result
-        # y = (1. - tau / np.maximum(np.abs(x), tau + self.alpha)) * x
-
+        y = (1.0 - tau / np.maximum(np.abs(x), tau + self.alpha)) * x
         return y
 
 
