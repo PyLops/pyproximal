@@ -469,13 +469,32 @@ def test_Huber(par):
 
     hub = Huber(alpha=par["sigma"])
 
-    # norm
-    x = np.random.uniform(0.0, 0.1 * par["sigma"], par["nx"]).astype(par["dtype"])
-    assert hub(x) == np.sum(x**2) / (2 * par["sigma"])
+    # norm (x chosen such that it spans either side of the threshold)
+    tau = 2.0
+    x = np.linspace(-3 * (par["sigma"] + tau), 3 * (par["sigma"] + tau), 101).astype(
+        par["dtype"]
+    )
+    xabs = np.abs(x)
+    hub_ = np.where(
+        xabs <= par["sigma"], xabs**2 / (2 * par["sigma"]), xabs - par["sigma"] / 2
+    ).sum()
+    assert_array_almost_equal(hub(x), hub_, decimal=4)
 
     # prox / dualprox
-    tau = 2.0
     assert moreau(hub, x, tau)
+
+    # prox comparison with alternative (slower) implementation
+    # using l1 and l2 directly
+    prox = hub.prox(x, tau)
+
+    l2 = L2(sigma=1.0 / par["sigma"])
+    l1 = L1()
+    prox1 = np.zeros_like(x)
+    mask = xabs > par["sigma"] + tau
+    prox1[~mask] = l2.prox(x[~mask], tau)
+    prox1[mask] = l1.prox(x[mask], tau)
+
+    assert_array_almost_equal(prox, prox1, decimal=6)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
