@@ -103,7 +103,9 @@ class L1(ProxOperator):
     :math:`f^*(\mathbf{x}) = \mathbf{x}^T\mathbf{g} +
     \mathcal{I}_{\|\cdot\|_{\infty} <=\sigma}(\mathbf{x})`, and the dual
     operator is obtained by applying the same projection to
-    :math:`\mathbf{x} - \tau \mathbf{g}`.
+    :math:`\mathbf{x} - \tau \mathbf{g}`. Note that for complex inputs,
+    this is a radial projection onto the disks :math:`|x_i| \leq \sigma_i`,
+    which preserves the phase of each shifted input.
 
     .. [1] Chambolle, and A., Pock, "A first-order primal-dual algorithm for
         convex problems with applications to imaging", Journal of Mathematical
@@ -152,9 +154,19 @@ class L1(ProxOperator):
             x = _softthreshold(x - self.g, tau * sigma) + self.g
         return x
 
+    @_increment_count
     @_check_tau
     def proxdual(self, x: NDArray, tau: float) -> NDArray:
-        return self.box(x - tau * self.gdual)
+        if callable(self.sigma):
+            sigma = _current_sigma(self.sigma, self.count)
+            self.box = BoxProj(-sigma, sigma)
+        else:
+            sigma = self.sigma
+        x = x - tau * self.gdual
+        if np.iscomplexobj(x):
+            return x * (sigma / np.maximum(np.abs(x), sigma))
+        else:
+            return self.box(x)
 
 
 class L1Ball(ProxOperator):
