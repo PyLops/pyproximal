@@ -164,9 +164,7 @@ class L1(ProxOperator):
             sigma = self.sigma
         x = x - tau * self.gdual
         if np.iscomplexobj(x):
-            den = np.maximum(np.abs(x), sigma)
-            den = np.where(den == 0, 1, den)
-            return x * (sigma / den)
+            return x * (sigma / np.maximum(np.abs(x), sigma))
         else:
             return self.box(x)
 
