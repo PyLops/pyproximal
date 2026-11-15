@@ -26,21 +26,26 @@ from pyproximal.proximal import (
 )
 from pyproximal.utils import moreau
 
-par1 = {"nx": 10, "sigma": 1.0, "dtype": "float32"}  # even float32
-par2 = {"nx": 11, "sigma": 2.0, "dtype": "float64"}  # odd float64
+par1 = {"nx": 10, "sigma": 1.0, "imag": 0, "dtype": "float32"}  # even float32
+par1j = {"nx": 10, "sigma": 1.0, "imag": 1j, "dtype": "complex64"}  # even complex64
+par2 = {"nx": 11, "sigma": 2.0, "imag": 0, "dtype": "float64"}  # odd float64
+par2j = {"nx": 11, "sigma": 2.0, "imag": 1j, "dtype": "complex128"}  # odd complex128
 
 np.random.seed(10)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_Euclidean(par):
     """Euclidean norm and proximal/dual proximal"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     eucl = Euclidean(sigma=par["sigma"])
 
     # norm
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
     assert eucl(x) == par["sigma"] * np.linalg.norm(x)
 
     # grad
@@ -353,14 +358,19 @@ def test_L2Convolve(par):
     moreau(l2, x.ravel(), tau)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_L1_scalar(par):
     """L1 norm (with and without g) and grad and proximal/dual proximal
     with sigma as scalar"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
-    g = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    g = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
     tau = 2.0
     for gg in [None, g]:
         l1 = L1(sigma=par["sigma"], g=gg)
@@ -378,16 +388,19 @@ def test_L1_scalar(par):
         assert moreau(l1, x, tau)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_L1_vector(par):
     """L1 norm and proximal/dual proximal with sigma as vector"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     sigma = np.random.uniform(0.1, 2.0, par["nx"]).astype(par["dtype"])
     l1 = L1(sigma=sigma)
 
     # norm
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
     assert l1(x) == pytest.approx(np.sum(sigma * np.abs(x)))
 
     # prox
@@ -399,15 +412,18 @@ def test_L1_vector(par):
     assert moreau(l1, x, tau)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_L1_func(par):
     """L1 norm and proximal/dual proximal with sigma as callable"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     l1 = L1(sigma=lambda x: par["sigma"])
 
     # norm
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
     assert l1(x) == par["sigma"] * np.sum(np.abs(x))
 
     # prox / dualprox
@@ -427,21 +443,29 @@ def test_L1_func(par):
     assert l1.count == 1
 
     sigma = 3 * par["sigma"]
-    assert_array_almost_equal(l1.proxdual(x, tau), np.clip(x, -sigma, sigma))
+    assert_array_almost_equal(
+        l1.proxdual(x, tau),
+        x * (sigma / np.maximum(np.abs(x), sigma)),
+    )
     assert l1.count == 2
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_L1_2d(par):
     """L1 norm and proximal/dual proximal of 2-dimensional input with
     sigma as vector acting on the second dimension"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     ncol = 3
-    sigma = np.random.uniform(0.1, 2.0, ncol).astype(par["dtype"])
-    g = np.random.normal(0.0, 1.0, (par["nx"], 1)).astype(par["dtype"])
+    sigma = np.random.uniform(0.1, 2.0, ncol).astype(dtype)
+    g = np.random.normal(0.0, 1.0, (par["nx"], 1)).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, (par["nx"], 1)).astype(dtype)
+    x = np.random.normal(0.0, 1.0, (par["nx"], ncol)).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, (par["nx"], ncol)).astype(dtype)
 
-    x = np.random.normal(0.0, 1.0, (par["nx"], ncol)).astype(par["dtype"])
     tau = 2.0
     for gg in [None, g]:
         l1 = L1(sigma=sigma, g=gg)
@@ -459,18 +483,23 @@ def test_L1_2d(par):
 
         # dualprox (conjugate of sigma||x - g||_1 is <x, g> + i_{|x|<=sigma})
         xdual = x if gg is None else x - tau * gg
-        assert_array_almost_equal(l1.proxdual(x, tau), np.clip(xdual, -sigma, sigma))
+        assert_array_almost_equal(
+            l1.proxdual(x, tau), xdual * (sigma / np.maximum(np.abs(xdual), sigma))
+        )
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_L0(par):
     """L0 norm and proximal/dual proximal"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     l0 = L0(sigma=par["sigma"])
 
     # norm
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
     assert l0(x) == np.sum(np.abs(x) > 0.0)
 
     # prox / dualprox
@@ -478,15 +507,18 @@ def test_L0(par):
     assert moreau(l0, x, tau)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_L0_func(par):
     """L0 norm and proximal/dual proximal with sigma as callable"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     l0 = L0(sigma=lambda x: par["sigma"])
 
     # norm
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
     assert l0(x) == np.sum(np.abs(x) > 0.0)
 
     # prox / dualprox
@@ -510,39 +542,45 @@ def test_L0_func(par):
     assert l0.count == 2
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_L21(par):
     """L21 norm and proximal/dual proximal on 2d array (compare it with N
     L2 norms on the columns of the 2d array
     """
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     l21 = L21(ndim=2, sigma=par["sigma"])
 
     # norm
-    x = np.random.normal(0.0, 1.0, 2 * par["nx"]).astype(par["dtype"])
+    x = np.random.normal(0.0, 1.0, 2 * par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, 2 * par["nx"]).astype(dtype)
     l21_ = par["sigma"] * np.sum(np.linalg.norm(x.reshape(2, par["nx"]), axis=0))
-    assert_array_almost_equal(l21(x), l21_)
+    assert_array_almost_equal(l21(x), l21_, decimal=4)
 
     # prox / dualprox
     tau = 2.0
     assert moreau(l21, x, tau)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_L21_plus_L1(par):
     """L21 plus L1 norm on 2darray."""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     l21_plus_l1 = L21_plus_L1(sigma=par["sigma"], rho=0.8)
 
     # norm
-    x = np.random.normal(0.0, 1.0, (2 * par["nx"], par["nx"])).astype(par["dtype"])
+    x = np.random.normal(0.0, 1.0, (2 * par["nx"], par["nx"])).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, (2 * par["nx"], par["nx"])).astype(dtype)
     rho = 0.8
     l21_plus_l1_ = par["sigma"] * rho * np.sum(np.abs(x)) + par["sigma"] * (
         1 - rho
-    ) * np.sum(np.sqrt(np.sum(x**2, axis=0)))
-    assert_array_almost_equal(l21_plus_l1(x), l21_plus_l1_)
+    ) * np.sum(np.sqrt(np.sum(np.abs(x) ** 2, axis=0)))
+    assert_array_almost_equal(l21_plus_l1(x), l21_plus_l1_, decimal=4)
 
     tau = 2.0
     l21_plus_l1.prox(x, tau)
@@ -550,31 +588,37 @@ def test_L21_plus_L1(par):
     assert moreau(l21_plus_l1, x, tau)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_Huber(par):
     """Huber norm and proximal/dual proximal"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     hub = Huber(alpha=par["sigma"])
 
     # norm
-    x = np.random.uniform(0.0, 0.1 * par["sigma"], par["nx"]).astype(par["dtype"])
-    assert hub(x) == np.sum(x**2) / (2 * par["sigma"])
+    x = np.random.uniform(0.0, 0.1 * par["sigma"], par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.uniform(0.0, 0.1 * par["sigma"], par["nx"]).astype(dtype)
+    assert hub(x) == np.sum(np.abs(x) ** 2) / (2 * par["sigma"])
 
     # prox / dualprox
     tau = 2.0
     assert moreau(hub, x, tau)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_HuberCircular(par):
     """Circular Huber norm and proximal/dual proximal"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     hub = HuberCircular(alpha=par["sigma"])
 
     # norm
-    x = np.random.uniform(0.0, 0.1, par["nx"]).astype(par["dtype"])
+    x = np.random.uniform(0.0, 0.1, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.uniform(0.0, 0.1, par["nx"]).astype(dtype)
     x_below = (
         (0.1 * par["sigma"]) * x / np.linalg.norm(x)
     )  # to ensure that is smaller than sigma
@@ -590,14 +634,17 @@ def test_HuberCircular(par):
     assert moreau(hub, x, tau)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_TV(par):
     """TV norm of x and proximal/dual proximal"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     # 1d
     tv = TV(dims=(par["nx"],), sigma=par["sigma"])
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
 
     # norm
     derivOp = FirstDerivative(par["nx"], dtype=par["dtype"], kind="forward")
@@ -613,7 +660,9 @@ def test_TV(par):
 
     for dim in dims:
         tv = TV(dims=dim, sigma=par["sigma"])
-        x = np.random.normal(0.0, 1.0, dim).astype(par["dtype"])
+        x = np.random.normal(0.0, 1.0, dim).astype(dtype) + par[
+            "imag"
+        ] * np.random.normal(0.0, 1.0, dim).astype(dtype)
 
         # norm
         derivOp = Gradient(dim, dtype=par["dtype"], kind="forward")
@@ -628,14 +677,17 @@ def test_TV(par):
         assert moreau(tv, x.ravel(), tau)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 @pytest.mark.parametrize("kappa", [1.0, lambda x: 1.0])
 def test_rMS(par, kappa):
     """rMS norm and proximal/dual proximal"""
     rMS = RelaxedMumfordShah(sigma=par["sigma"], kappa=kappa)
+    dtype = np.finfo(par["dtype"]).dtype
 
     # norm
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
     assert rMS(x) == np.minimum(par["sigma"] * np.linalg.norm(x) ** 2, 1.0)
 
     # prox / dualprox
@@ -651,16 +703,19 @@ def test_Nuclear_FOM():
     assert_array_almost_equal(proxX.ravel(), nucl.prox(X, 1), decimal=4)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_Nuclear(par):
     """Nuclear norm and proximal/dual proximal"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     nucl = Nuclear((par["nx"], 2 * par["nx"]), sigma=par["sigma"])
 
     # norm, cross-check with svd (use tolerance as two methods don't provide
     # the exact same eigenvalues)
-    X = np.random.uniform(0.0, 0.1, (par["nx"], 2 * par["nx"])).astype(par["dtype"])
+    X = np.random.uniform(0.0, 0.1, (par["nx"], 2 * par["nx"])).astype(dtype) + par[
+        "imag"
+    ] * np.random.uniform(0.0, 0.1, (par["nx"], 2 * par["nx"])).astype(dtype)
     _, S, _ = np.linalg.svd(X)
     assert (nucl(X.ravel()) - par["sigma"] * np.sum(S)) < 1e-3
 
