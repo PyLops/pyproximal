@@ -137,17 +137,20 @@ def test_L2_op_solver(par, explicit):
         assert_array_almost_equal(prox_leg, prox_cgls, decimal=4)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_L2_dense(par):
     """L2 norm of Op*x with dense Op and proximal
     compared to closed-form solution (since Op is a Diagonal
-    operator the denominator becomes 1 + sigma*tau*d[i]^2 for
+    operator the denominator becomes 1 + sigma*tau*|d[i]|^2 for
     every i)"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     for densesolver in ("numpy", "scipy", "factorize"):
         b = np.zeros(par["nx"], dtype=par["dtype"])
-        d = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+        d = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+            "imag"
+        ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
         l2 = L2(
             Op=MatrixMult(np.diag(d), dtype=par["dtype"]),
             b=b,
@@ -156,12 +159,14 @@ def test_L2_dense(par):
         )
 
         # norm
-        x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
-        assert l2(x) == (par["sigma"] / 2.0) * np.linalg.norm(d * x) ** 2
+        x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+            "imag"
+        ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
+        assert l2(x) == pytest.approx((par["sigma"] / 2.0) * np.linalg.norm(d * x) ** 2)
 
         # prox
         tau = 2.0
-        den = 1.0 + par["sigma"] * tau * d**2
+        den = 1.0 + par["sigma"] * tau * np.abs(d) ** 2
         assert_array_almost_equal(l2.prox(x, tau), x / den, decimal=4)
 
 
@@ -231,14 +236,18 @@ def test_L2_func(par):
     assert counts == [1, 2]
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_L2_x(par):
     """L2 norm of x and grad and proximal (implemented both directly and
     with identity operator and zero b and compared to closed-form
     solution)"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
-    for q in (None, np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])):
+    qc = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
+    for q in (None, qc):
         l2 = L2(
             Op=Identity(par["nx"], dtype=par["dtype"]),
             b=np.zeros(par["nx"], dtype=par["dtype"]),
@@ -251,12 +260,14 @@ def test_L2_x(par):
         )
 
         # norm
-        x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+        x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+            "imag"
+        ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
         norm = (par["sigma"] / 2.0) * np.linalg.norm(x) ** 2
         if q is not None:
             norm += np.real(np.vdot(q, x))
-        assert l2(x) == norm
-        assert l2direct(x) == norm
+        assert l2(x) == pytest.approx(norm)
+        assert l2direct(x) == pytest.approx(norm)
 
         # grad
         grad = par["sigma"] * x
@@ -274,14 +285,15 @@ def test_L2_x(par):
         assert_array_almost_equal(l2direct.prox(x, tau), prox)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_L2Convolve(par):
     """L2Convolve norm of x and grad and prox/dualprox (norm and grad are compared
     to solution in the time domain)"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     # 1d
-    h = np.ones(3) / 3.0
+    h = np.ones(3) / 3.0 + par["imag"] * 1j * np.ones(3) / 3.0
     Cop = Convolve1D(par["nx"], h=h, offset=1, dtype=par["dtype"])
     b = np.zeros(par["nx"], dtype=par["dtype"])
 
@@ -294,8 +306,10 @@ def test_L2Convolve(par):
     # define x with a spike in the middle to
     # avoid boundary effects in the convolution
     # in the time vs frequency domain
-    x = np.zeros(par["nx"], dtype=par["dtype"])
-    x[par["nx"] // 2] = 1.0
+    x = np.zeros(par["nx"], dtype=dtype) + par["imag"] * np.zeros(
+        par["nx"], dtype=dtype
+    )
+    x[par["nx"] // 2] = 1.0 + par["imag"] * 1.0
 
     # norm
     norm = (par["sigma"] / 2.0) * np.linalg.norm(b - Cop @ x) ** 2
@@ -310,7 +324,7 @@ def test_L2Convolve(par):
     moreau(l2, x, tau)
 
     # 2d on first
-    h = np.ones(3) / 3.0
+    h = np.ones(3) / 3.0 + par["imag"] * 1j * np.ones(3) / 3.0
     Cop = Convolve1D((par["nx"], 4), h=h, offset=1, axis=0, dtype=par["dtype"])
     b = np.zeros((par["nx"], 4), dtype=par["dtype"])
 
@@ -325,8 +339,10 @@ def test_L2Convolve(par):
     # define x with a spike in the middle to
     # avoid boundary effects in the convolution
     # in the time vs frequency domain
-    x = np.zeros((par["nx"], 4), dtype=par["dtype"])
-    x[par["nx"] // 2] = 1.0
+    x = np.zeros((par["nx"], 4), dtype=dtype) + par["imag"] * np.zeros(
+        (par["nx"], 4), dtype=dtype
+    )
+    x[par["nx"] // 2] = 1.0 + par["imag"] * 1.0
 
     # norm
     norm = (par["sigma"] / 2.0) * np.linalg.norm(b - Cop @ x) ** 2
@@ -341,7 +357,7 @@ def test_L2Convolve(par):
     moreau(l2, x.ravel(), tau)
 
     # 2d on last
-    h = np.ones(3) / 3.0
+    h = np.ones(3) / 3.0 + par["imag"] * 1j * np.ones(3) / 3.0
     Cop = Convolve1D((4, par["nx"]), h=h, offset=1, axis=-1, dtype=par["dtype"])
     b = np.zeros((4, par["nx"]), dtype=par["dtype"])
 
@@ -356,7 +372,9 @@ def test_L2Convolve(par):
     # define x with a spike in the middle to
     # avoid boundary effects in the convolution
     # in the time vs frequency domain
-    x = np.zeros((4, par["nx"]), dtype=par["dtype"])
+    x = np.zeros((4, par["nx"]), dtype=dtype) + par["imag"] * np.zeros(
+        (4, par["nx"]), dtype=dtype
+    )
     x[:, par["nx"] // 2] = 1.0
 
     # norm
