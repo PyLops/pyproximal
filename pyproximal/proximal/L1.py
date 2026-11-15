@@ -157,8 +157,11 @@ class L1(ProxOperator):
     @_increment_count
     @_check_tau
     def proxdual(self, x: NDArray, tau: float) -> NDArray:
-        sigma = _current_sigma(self.sigma, self.count)
-        self.box = BoxProj(-sigma, sigma)
+        if callable(self.sigma):
+            sigma = _current_sigma(self.sigma, self.count)
+            self.box = BoxProj(-sigma, sigma)
+        else:
+            sigma = self.sigma
         x = x - tau * self.gdual
         if np.iscomplexobj(x):
             den = np.maximum(np.abs(x), sigma)
