@@ -63,18 +63,21 @@ def test_L2_solver():
         _ = L2(Op=Diagonal(d), solver="foo")
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 @pytest.mark.parametrize("niter", [500, lambda x: 500])
 def test_L2_op(par, niter):
     """L2 norm of Op*x and grad and proximal"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     b = np.zeros(par["nx"], dtype=par["dtype"])
     d = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
     l2 = L2(Op=Diagonal(d, dtype=par["dtype"]), b=b, sigma=par["sigma"], niter=niter)
 
     # norm
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
     assert l2(x) == (par["sigma"] / 2.0) * np.linalg.norm(d * x) ** 2
 
     # grad: since Op is a Diagonal operator the gradient becomes
@@ -88,16 +91,19 @@ def test_L2_op(par, niter):
     assert_array_almost_equal(l2.prox(x, tau), x / den, decimal=4)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 @pytest.mark.parametrize("explicit", [False, True])
 def test_L2_op_solver(par, explicit):
     """L2 norm of Op*x-b and proximal, the first compared to close-form
     solution and the second with different choices of solver."""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     for q in (None, np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])):
         Op = MatrixMult(
-            np.random.normal(0, 1, (par["nx"], par["nx"])).astype(dtype=par["dtype"]),
+            np.random.normal(0, 1, (par["nx"], par["nx"])).astype(dtype)
+            + par["imag"]
+            * np.random.normal(0, 1, (par["nx"], par["nx"])).astype(dtype),
             dtype=par["dtype"],
         )
         Op.explicit = explicit
@@ -113,10 +119,12 @@ def test_L2_op_solver(par, explicit):
         )
 
         # norm
-        x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+        x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+            "imag"
+        ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
         norm = (par["sigma"] / 2.0) * np.linalg.norm(Op * x - b) ** 2
         if q is not None:
-            norm += np.dot(q, x)
+            norm += np.real(np.vdot(q, x))
         assert l2_leg(x) == norm
 
         # prox
@@ -157,17 +165,20 @@ def test_L2_dense(par):
         assert_array_almost_equal(l2.prox(x, tau), x / den, decimal=4)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_L2_diff(par):
     """L2 norm of difference (x-b) and proximal
     compared to closed-form solution"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     b = np.ones(par["nx"], dtype=par["dtype"])
     l2 = L2(b=b, sigma=par["sigma"])
 
     # norm
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
     assert l2(x) == (par["sigma"] / 2.0) * np.linalg.norm(x - b) ** 2
 
     # prox
@@ -177,10 +188,11 @@ def test_L2_diff(par):
     )
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_L2_func(par):
     """L2 norm of Op*x-b and proximal/dual proximal with niter as callable"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     b = np.ones(par["nx"], dtype=par["dtype"])
     d = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
@@ -188,7 +200,9 @@ def test_L2_func(par):
     l2 = L2(Op=Op, b=b, sigma=par["sigma"], niter=lambda x: 500)
 
     # norm
-    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(dtype) + par[
+        "imag"
+    ] * np.random.normal(0.0, 1.0, par["nx"]).astype(dtype)
     assert l2(x) == pytest.approx((par["sigma"] / 2.0) * np.linalg.norm(d * x - b) ** 2)
 
     # prox / dualprox
@@ -240,7 +254,7 @@ def test_L2_x(par):
         x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
         norm = (par["sigma"] / 2.0) * np.linalg.norm(x) ** 2
         if q is not None:
-            norm += np.dot(q, x)
+            norm += np.real(np.vdot(q, x))
         assert l2(x) == norm
         assert l2direct(x) == norm
 
@@ -717,26 +731,29 @@ def test_Nuclear(par):
         "imag"
     ] * np.random.uniform(0.0, 0.1, (par["nx"], 2 * par["nx"])).astype(dtype)
     _, S, _ = np.linalg.svd(X)
-    assert (nucl(X.ravel()) - par["sigma"] * np.sum(S)) < 1e-3
+    assert abs(nucl(X.ravel()) - par["sigma"] * np.sum(S)) < 1e-3
 
     # prox / dualprox
     tau = 2.0
     assert moreau(nucl, X.ravel(), tau)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par1j), (par2j)])
 def test_Weighted_Nuclear(par):
     """Weighted nuclear norm and proximal/dual proximal"""
     np.random.seed(10)
+    dtype = np.finfo(par["dtype"]).dtype
 
     weights = par["sigma"] * np.linspace(0.1, 5, 2 * par["nx"])
     nucl = Nuclear((par["nx"], 2 * par["nx"]), sigma=weights)
 
     # norm, cross-check with svd (use tolerance as two methods don't provide
     # the exact same singular values)
-    X = np.random.uniform(0.0, 0.1, (par["nx"], 2 * par["nx"])).astype(par["dtype"])
+    X = np.random.uniform(0.0, 0.1, (par["nx"], 2 * par["nx"])).astype(dtype) + par[
+        "imag"
+    ] * np.random.uniform(0.0, 0.1, (par["nx"], 2 * par["nx"])).astype(dtype)
     S = np.linalg.svd(X, compute_uv=False)
-    assert (nucl(X.ravel()) - np.sum(weights[: S.size] * S)) < 1e-2
+    assert abs(nucl(X.ravel()) - np.sum(weights[: S.size] * S)) < 1e-2
 
     # prox / dualprox
     tau = 2.0
