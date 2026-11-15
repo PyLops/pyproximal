@@ -173,6 +173,46 @@ def test_L2_diff(par):
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
+def test_L2_func(par):
+    """L2 norm of Op*x-b and proximal/dual proximal with niter as callable"""
+    np.random.seed(10)
+
+    b = np.ones(par["nx"], dtype=par["dtype"])
+    d = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    Op = Diagonal(d, dtype=par["dtype"])
+    l2 = L2(Op=Op, b=b, sigma=par["sigma"], niter=lambda x: 500)
+
+    # norm
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    assert l2(x) == pytest.approx((par["sigma"] / 2.0) * np.linalg.norm(d * x - b) ** 2)
+
+    # prox / dualprox
+    tau = 2.0
+    assert moreau(l2, x, tau)
+
+    # check counter is incremented by both prox and dualprox, and
+    # niter is evaluated with the updated counter
+    counts = []
+
+    def niter_count(count):
+        counts.append(count)
+        return 500
+
+    l2 = L2(Op=Op, b=b, sigma=par["sigma"], niter=niter_count)
+    assert l2.count == 0
+
+    # prox
+    _ = l2.prox(x, tau)
+    assert l2.count == 1
+    assert counts == [1]
+
+    # dualprox
+    _ = l2.proxdual(x, tau)
+    assert l2.count == 2
+    assert counts == [1, 2]
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
 def test_L2_x(par):
     """L2 norm of x and grad and proximal (implemented both directly and
     with identity operator and zero b and compared to closed-form
@@ -374,6 +414,22 @@ def test_L1_func(par):
     tau = 2.0
     assert moreau(l1, x, tau)
 
+    # check counter is incremented by both prox and dualprox,
+    # and sigma is evaluated with the updated counter
+    l1 = L1(sigma=lambda count: par["sigma"] * (1 + count))
+    x = 5 * x
+    tau = 0.5
+    assert l1.count == 0
+
+    sigma = 2 * par["sigma"]
+    xprox = np.sign(x) * np.maximum(np.abs(x) - tau * sigma, 0.0)
+    assert_array_almost_equal(l1.prox(x, tau), xprox)
+    assert l1.count == 1
+
+    sigma = 3 * par["sigma"]
+    assert_array_almost_equal(l1.proxdual(x, tau), np.clip(x, -sigma, sigma))
+    assert l1.count == 2
+
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_L1_2d(par):
@@ -420,6 +476,38 @@ def test_L0(par):
     # prox / dualprox
     tau = 2.0
     assert moreau(l0, x, tau)
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_L0_func(par):
+    """L0 norm and proximal/dual proximal with sigma as callable"""
+    np.random.seed(10)
+
+    l0 = L0(sigma=lambda x: par["sigma"])
+
+    # norm
+    x = np.random.normal(0.0, 1.0, par["nx"]).astype(par["dtype"])
+    assert l0(x) == np.sum(np.abs(x) > 0.0)
+
+    # prox / dualprox
+    tau = 2.0
+    assert moreau(l0, x, tau)
+
+    # check counter is incremented by both prox and dualprox,
+    # and sigma is evaluated with the updated counter
+    l0 = L0(sigma=lambda count: par["sigma"] * (1 + count))
+    x = 5 * x
+    tau = 0.5
+    assert l0.count == 0
+
+    sigma = 2 * par["sigma"]
+    xprox = np.where(np.abs(x) > tau * sigma, x, 0.0)
+    assert_array_almost_equal(l0.prox(x, tau), xprox)
+    assert l0.count == 1
+
+    sigma = 3 * par["sigma"]
+    _ = l0.proxdual(x, tau)
+    assert l0.count == 2
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
