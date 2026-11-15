@@ -40,9 +40,9 @@ class Huber(ProxOperator):
         \prox_{\tau |x_i|}(x_i), & |x_i| > \alpha + \tau
         \end{cases}
 
-    The branches switch at :math:`|x_i| = \alpha + \tau` rather than at
-    :math:`|x_i| = \alpha`, as that is where the minimizer moves from the
-    quadratic to the linear part of the Huber function.
+    Note that the switch between branches occurs at :math:`|x_i| = \alpha + \tau`,
+    as that is where the minimizer moves from the quadratic to the linear part of
+    the Huber function.
 
     """
 
@@ -62,15 +62,7 @@ class Huber(ProxOperator):
 
     @_check_tau
     def prox(self, x: NDArray, tau: float) -> NDArray:
-        y = np.zeros_like(x)
-        xabs = np.abs(x)
-        mask = xabs > self.alpha + tau
-        y[~mask] = self.l2.prox(x[~mask], tau)
-        y[mask] = self.l1.prox(x[mask], tau)
-        # equivalent closed form, from https://math.stackexchange.com/questions/1650411/
-        # proximal-operator-of-the-huber-loss-function
-        # y = (1. - tau / np.maximum(np.abs(x), tau + self.alpha)) * x
-
+        y = (1.0 - tau / np.maximum(np.abs(x), tau + self.alpha)) * x
         return y
 
 

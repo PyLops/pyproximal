@@ -469,28 +469,32 @@ def test_Huber(par):
 
     hub = Huber(alpha=par["sigma"])
 
-    # norm
-    x = np.random.uniform(0.0, 0.1 * par["sigma"], par["nx"]).astype(par["dtype"])
-    assert hub(x) == np.sum(x**2) / (2 * par["sigma"])
+    # norm (x chosen such that it spans either side of the threshold)
+    tau = 2.0
+    x = np.linspace(-3 * (par["sigma"] + tau), 3 * (par["sigma"] + tau), 101).astype(
+        par["dtype"]
+    )
+    xabs = np.abs(x)
+    hub_ = np.where(
+        xabs <= par["sigma"], xabs**2 / (2 * par["sigma"]), xabs - par["sigma"] / 2
+    ).sum()
+    assert_array_almost_equal(hub(x), hub_, decimal=4)
 
     # prox / dualprox
-    tau = 2.0
     assert moreau(hub, x, tau)
 
+    # prox comparison with alternative (slower) implementation
+    # using l1 and l2 directly
+    prox = hub.prox(x, tau)
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
-def test_Huber_prox(par):
-    """Huber proximal operator matches a brute-force minimizer, including for
-    alpha < |x| <= alpha + tau where the quadratic branch still applies
-    """
-    alpha, tau = par["sigma"], 1.5
-    hub = Huber(alpha=alpha)
+    l2 = L2(sigma=1.0 / par["sigma"])
+    l1 = L1()
+    prox1 = np.zeros_like(x)
+    mask = xabs > par["sigma"] + tau
+    prox1[~mask] = l2.prox(x[~mask], tau)
+    prox1[mask] = l1.prox(x[mask], tau)
 
-    x = np.linspace(-2 * (alpha + tau), 2 * (alpha + tau), 41)
-    ys = np.linspace(-3 * (alpha + tau), 3 * (alpha + tau), 120001)
-    hys = np.where(np.abs(ys) <= alpha, ys**2 / (2 * alpha), np.abs(ys) - alpha / 2)
-    expected = np.array([ys[np.argmin(tau * hys + (ys - xi) ** 2 / 2)] for xi in x])
-    assert_array_almost_equal(hub.prox(x, tau), expected, decimal=3)
+    assert_array_almost_equal(prox, prox1, decimal=6)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
