@@ -200,7 +200,7 @@ class L2(ProxOperator):
         else:
             f = (self.sigma / 2.0) * (np.linalg.norm(x) ** 2)
         if self.q is not None:
-            f += self.alpha * np.dot(self.q, x)
+            f += self.alpha * np.real(np.vdot(self.q, x))
         return float(f)
 
     def _increment_count(func: Callable[..., Any]) -> Callable[..., Any]:
