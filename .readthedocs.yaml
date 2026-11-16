@@ -25,4 +25,4 @@ build:
          - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --locked --extra advanced --all-groups
       build:
          html:
-            - ulimit -c 0 && cd docs/source && timeout --signal=ABRT --kill-after=10s 600s python -u -X faulthandler -m sphinx -T -b html -d _build/doctrees -D language=en . $READTHEDOCS_OUTPUT/html
+            - ulimit -c 0 && cd docs/source && timeout --signal=ABRT --kill-after=10s 240s python -u -X faulthandler -m sphinx -T -b html -d _build/doctrees -D language=en . $READTHEDOCS_OUTPUT/html > /tmp/pyproximal-sphinx.log 2>&1; sphinx_status=$?; cat /tmp/pyproximal-sphinx.log; exit $sphinx_status
