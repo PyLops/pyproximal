@@ -62,7 +62,6 @@ the execution time of the solver). Here is the ``__init__`` method of the base c
 
     def __init__(self, callbacks=None):
         self.callbacks = callbacks
-        self._registercallbacks()
         self.iiter = 0
         self.tstart = time.time()
 

@@ -2,17 +2,33 @@ from __future__ import annotations
 
 __all__ = ["Solver"]
 
+import re
 import time
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
+import pylops
 from pylops.optimization.basesolver import Solver as pSolver
 from pylops.optimization.callback import Callbacks
 from pylops.utils.typing import NDArray
 
 if TYPE_CHECKING:
     from pyproximal.ProxOperator import ProxOperator
+
+# Up to (and including) PyLops v2.9.0, callbacks are registered per instance
+# by ``pylops.optimization.basesolver.Solver._registercallbacks``, which must be
+# called explicitly from ``__init__``. Later versions, wrap
+# ``setup``/``step``/``run`` at class level via ``__init_subclass__`` and have
+# removed ``_registercallbacks``, so it must not be called there.
+_PYLOPS_LAST_INSTANCE_CALLBACKS = (2, 9, 0)
+
+
+def _pylops_needs_registercallbacks() -> bool:
+    """Whether the installed PyLops requires ``_registercallbacks`` to be called"""
+    m = re.match(r"(\d+)\.(\d+)\.(\d+)", pylops.__version__)
+    version = tuple(int(g) for g in m.groups()) if m else (0, 0, 0)
+    return version <= _PYLOPS_LAST_INSTANCE_CALLBACKS
 
 
 class Solver(pSolver, metaclass=ABCMeta):  # type: ignore[misc]
@@ -69,7 +85,8 @@ class Solver(pSolver, metaclass=ABCMeta):  # type: ignore[misc]
         callbacks: Callbacks = None,
     ) -> None:
         self.callbacks = callbacks
-        self._registercallbacks()
+        if _pylops_needs_registercallbacks():
+            self._registercallbacks()
         self.iiter = 0
         self.tstart = time.time()
 
