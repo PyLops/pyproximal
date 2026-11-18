@@ -49,7 +49,7 @@ class VStack(ProxOperator):
 
     def __init__(
         self,
-        ops: list["LinearOperator"],
+        ops: list[ProxOperator],
         nn: list[ShapeLike] | None = None,
         restr: list["LinearOperator"] | None = None,
     ) -> None:
