@@ -2,9 +2,13 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 from pylops.basicoperators import FirstDerivative, Identity, MatrixMult
+from pylops.optimization.callback import Callbacks
 from pylops.optimization.leastsquares import regularized_inversion
 from pylops.optimization.sparsity import fista, ista
 
+from pyproximal.optimization.cls_primal import HQS as HQSCls
+from pyproximal.optimization.cls_primal import ProximalGradient as ProximalGradientCls
+from pyproximal.optimization.cls_primal import ProximalPoint as ProximalPointCls
 from pyproximal.optimization.primal import (
     ADMM,
     ADMML2,
@@ -1088,3 +1092,52 @@ def test_PrimalDual_AdaptivePrimalDual(par):
     )[0]
 
     assert_array_almost_equal(xpd, xapd, decimal=2)
+
+
+class _CountCallbacks(Callbacks):
+    """Record which callback hooks are fired"""
+
+    def __init__(self):
+        super().__init__()
+        self.calls = []
+
+    def on_setup_begin(self, solver, x0):
+        self.calls.append("setup_begin")
+
+    def on_setup_end(self, solver, x):
+        self.calls.append("setup_end")
+
+    def on_step_begin(self, solver, x):
+        self.calls.append("step_begin")
+
+    def on_step_end(self, solver, x):
+        self.calls.append("step_end")
+
+    def on_run_begin(self, solver, x):
+        self.calls.append("run_begin")
+
+    def on_run_end(self, solver, x):
+        self.calls.append("run_end")
+
+
+@pytest.mark.parametrize(
+    "solver, kwargs",
+    [
+        (ProximalPointCls, {"prox": L1(sigma=0.1), "tau": 1.0}),
+        (ProximalGradientCls, {"proxf": L2(), "proxg": L1(sigma=0.1), "tau": 0.5}),
+        (HQSCls, {"proxf": L2(), "proxg": L1(sigma=0.1), "tau": 0.5}),
+    ],
+)
+def test_solver_callbacks_registered(solver, kwargs):
+    """Check that callbacks are fired exactly once per hook by PyProximal
+    solvers (regardless of how the installed PyLops registers them)
+    """
+    cb = _CountCallbacks()
+    slv = solver(callbacks=[cb])
+    slv.solve(x0=np.ones(5), niter=3, **kwargs)
+    assert cb.calls.count("setup_begin") == 1
+    assert cb.calls.count("setup_end") == 1
+    assert cb.calls.count("run_begin") == 1
+    assert cb.calls.count("run_end") == 1
+    assert cb.calls.count("step_begin") == 3
+    assert cb.calls.count("step_end") == 3
