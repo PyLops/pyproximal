@@ -879,11 +879,12 @@ class AndersonProximalGradient(Solver):
     .. math::
         m_k = min(m, k)\\
         \mathbf{g}^{k} = \mathbf{x}^{k} - \tau^k \nabla f(\mathbf{x}^k)\\
-        \mathbf{r}^{k} = \mathbf{g}^{k} - \mathbf{g}^{k}\\
+        \mathbf{r}^{k} = \mathbf{g}^{k} - \mathbf{y}^{k}\\
         \mathbf{G}^{k} = [\mathbf{g}^{k},..., \mathbf{g}^{k-m_k}]\\
         \mathbf{R}^{k} = [\mathbf{r}^{k},..., \mathbf{r}^{k-m_k}]\\
-        \alpha_k = (\mathbf{R}^{kT} \mathbf{R}^{k})^{-1} \mathbf{1} / \mathbf{1}^T
-        (\mathbf{R}^{kT} \mathbf{R}^{k})^{-1} \mathbf{1}\\
+        \alpha_k = \argmin_{\mathbf{1}^T\alpha=1}
+        \|\mathbf{R}^{k}\alpha\|_2^2
+        + \epsilon_r\|\mathbf{R}^{k}\|_F^2\|\alpha\|_2^2\\
         \mathbf{y}^{k+1} = \mathbf{G}^{k} \alpha_k\\
         \mathbf{x}^{k+1} = \prox_{\tau^{k+1} g}(\mathbf{y}^{k+1})
 
@@ -891,6 +892,9 @@ class AndersonProximalGradient(Solver):
     :math:`\mathbf{y}^{1}=\mathbf{x}^{0} - \tau^0 \nabla f(\mathbf{x}^0)`,
     :math:`\mathbf{x}^{1}=\prox_{\tau^k g}(\mathbf{y}^{1})`, and
     :math:`\mathbf{g}^{0}=\mathbf{y}^{1}`.
+
+    The coefficients are computed with the sum-to-one constraint directly,
+    including when the residual history is zero or rank deficient.
 
     Refer to [1]_ for the guarded version of the algorithm (when ``safeguard=True``).
 
@@ -979,7 +983,8 @@ class AndersonProximalGradient(Solver):
             can be chosen to be a vector when dealing with problems with
             multiple right-hand-sides
         epsr : :obj:`float`, optional
-            Scaling factor for regularization added to the inverse of :math:\mathbf{R}^T \mathbf{R}`
+            Nonnegative regularization weight, scaled by the squared Frobenius
+            norm of the residual history
         safeguard : :obj:`bool`, optional
             Apply safeguarding strategy to the update (``True``) or not (``False``)
         nhistory : :obj:`int`, optional
@@ -1033,10 +1038,10 @@ class AndersonProximalGradient(Solver):
         r = g - x0
         self.R, self.G = (
             [
-                g,
+                r,
             ],
             [
-                r,
+                g,
             ],
         )
 
@@ -1108,23 +1113,34 @@ class AndersonProximalGradient(Solver):
             self.G.pop(-1)
 
         # solve for alpha coefficients
-        Rstack = np.vstack(self.R)
-        Rinv = np.linalg.pinv(
-            Rstack @ Rstack.T + self.epsr * np.linalg.norm(Rstack) ** 2
+        Rstack = self.ncp.vstack(self.R)
+        scale = self.ncp.max(self.ncp.abs(Rstack))
+        if scale != 0:
+            Rstack = Rstack / scale
+        nhistory = Rstack.shape[0]
+        gram = Rstack.conj() @ Rstack.T
+        gram += (
+            self.epsr
+            * self.ncp.linalg.norm(Rstack) ** 2
+            * self.ncp.eye(nhistory, dtype=gram.dtype)
         )
-        ones = np.ones(min(self.nhistory, self.iiter + 2))
-        Rinvones = Rinv @ ones
-        alpha = Rinvones / (ones[None] @ Rinvones)
+        # Keep the sum-to-one constraint when the residual history is singular.
+        system = self.ncp.ones((nhistory + 1, nhistory + 1), dtype=gram.dtype)
+        system[:-1, :-1] = gram
+        system[-1, -1] = 0
+        rhs = self.ncp.zeros(nhistory + 1, dtype=gram.dtype)
+        rhs[-1] = 1
+        alpha = self.ncp.linalg.lstsq(system, rhs, rcond=None)[0][:-1]
 
         if not self.safeguard:
             # update auxiliary variable
-            y = np.vstack(self.G).T @ alpha
+            y = self.ncp.vstack(self.G).T @ alpha
 
             # update main variable
             x = self.proxg.prox(y, epsg * tau)
         else:
             # update auxiliary variable
-            ytest = np.vstack(self.G).T @ alpha
+            ytest = self.ncp.vstack(self.G).T @ alpha
 
             # update main variable
             xtest = self.proxg.prox(ytest, epsg * tau)
@@ -1254,7 +1270,8 @@ class AndersonProximalGradient(Solver):
             can be chosen to be a vector when dealing with problems with
             multiple right-hand-sides
         epsr : :obj:`float`, optional
-            Scaling factor for regularization added to the inverse of :math:\mathbf{R}^T \mathbf{R}`
+            Nonnegative regularization weight, scaled by the squared Frobenius
+            norm of the residual history
         safeguard : :obj:`bool`, optional
             Apply safeguarding strategy to the update (``True``) or not (``False``)
         nhistory : :obj:`int`, optional
