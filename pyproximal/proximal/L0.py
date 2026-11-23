@@ -1,10 +1,9 @@
 import warnings
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Self
 
 import numpy as np
 from pylops.utils.typing import NDArray
-from typing_extensions import Self
 
 from pyproximal.projection import L0BallProj, L10BallProj
 from pyproximal.proximal.L1 import _current_sigma

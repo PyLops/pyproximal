@@ -1898,7 +1898,6 @@ dependencies = [
     { name = "numpy" },
     { name = "pylops" },
     { name = "scipy" },
-    { name = "typing-extensions" },
 ]
 
 [package.optional-dependencies]
@@ -1954,7 +1953,6 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.21.0" },
     { name = "pylops", specifier = ">=2.4.0" },
     { name = "scipy", specifier = ">=1.11.0" },
-    { name = "typing-extensions", specifier = ">=4.0.0" },
 ]
 provides-extras = ["advanced", "gpu-cu12", "gpu-cu13"]
 
