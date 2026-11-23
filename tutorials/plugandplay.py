@@ -233,3 +233,5 @@ plt.tight_layout()
 
 ###############################################################################
 # This final results clearly shows the importance of relaxation also for ADMM.
+# Note that the error curves are not converged yet, and more iterations
+# can further improve the results.

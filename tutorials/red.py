@@ -199,3 +199,7 @@ plt.semilogy(errhistfp, "b", lw=2, label="FP")
 plt.title("Error norm")
 plt.legend()
 plt.tight_layout()
+
+###############################################################################
+# Note that the error curves are not converged yet, and more iterations
+# can further improve the results.
