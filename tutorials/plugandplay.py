@@ -85,9 +85,16 @@ L = np.real((Op.H * Op).eigs(neigs=1, which="LM")[0])
 tau = 1.0 / L
 sigma = 0.05
 
+# We use BM3D's low-complexity profile to keep this example quick to run.
+# This trades some denoising accuracy for a smaller block-matching search.
+bm3d_profile = bm3d.BM3DProfileLC()
+
 # BM3D denoiser
 denoiser = lambda x, tau: bm3d.bm3d(
-    np.real(x), sigma_psd=sigma * tau, stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING
+    np.real(x),
+    profile=bm3d_profile,
+    sigma_psd=sigma * tau,
+    stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING,
 )
 
 # ADMM-PnP
@@ -182,6 +189,7 @@ class Denoiser:
     def denoise(self, x, tau):
         xden = bm3d.bm3d(
             np.real(x),
+            profile=bm3d_profile,
             sigma_psd=self.decay[self.iiter] * self.sigma * tau,
             stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING,
         )

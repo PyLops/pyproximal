@@ -484,6 +484,77 @@ def test_PG_AndersonPG(par):
     assert_array_almost_equal(xpg, xapg, decimal=2)
 
 
+@pytest.mark.parametrize("b", [np.zeros(2), np.array([2.0, -1.0])])
+@pytest.mark.parametrize("safeguard", [False, True])
+@pytest.mark.parametrize("nhistory", [1, 3])
+@pytest.mark.parametrize("epsr", [0.0, 1e-10])
+def test_AndersonPG_converged_history(b, safeguard, nhistory, epsr):
+    """Continue a solved quadratic without undefined Anderson coefficients."""
+    expected = np.sign(b) * np.maximum(np.abs(b) - 0.5, 0.0)
+    iterates = []
+    with np.errstate(divide="raise", invalid="raise"):
+        result = AndersonProximalGradient(
+            L2(b=b),
+            L1(sigma=0.5),
+            x0=np.zeros(2),
+            tau=1.0,
+            niter=8,
+            nhistory=nhistory,
+            epsr=epsr,
+            safeguard=safeguard,
+            callback=lambda x: iterates.append(x.copy()),
+        )
+    assert len(iterates) == 8
+    np.testing.assert_allclose(iterates, np.tile(expected, (8, 1)), atol=1e-12)
+    np.testing.assert_allclose(result, expected, atol=1e-12)
+
+
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+@pytest.mark.parametrize("epsr", [0.0, 1e-10, 0.2])
+def test_AndersonPG_first_mixing_step(dtype, epsr):
+    """Compare two-history mixing with its scalar constrained minimizer."""
+    x0 = np.array([3.0, -4.0], dtype=dtype)
+    b = np.array([2.0, -1.0], dtype=dtype)
+    tau = 0.5
+    g0 = x0 - tau * (x0 - b)
+    x1 = np.sign(g0) * np.maximum(np.abs(g0) - tau * 0.5, 0.0)
+    g1 = x1 - tau * (x1 - b)
+    r0, r1 = g0 - x0, g1 - g0
+    delta = r1 - r0
+    ridge = epsr * (np.vdot(r0, r0) + np.vdot(r1, r1))
+    weight = (ridge - np.vdot(delta, r0)) / (np.vdot(delta, delta) + 2 * ridge)
+    y = weight * g1 + (1 - weight) * g0
+    expected = np.sign(y) * np.maximum(np.abs(y) - tau * 0.5, 0.0)
+    result = AndersonProximalGradient(
+        L2(b=b), L1(sigma=0.5), x0=x0, tau=tau, niter=1, epsr=epsr
+    )
+    np.testing.assert_allclose(
+        result, expected, atol=1e-6 if dtype == np.float32 else 1e-12
+    )
+
+
+@pytest.mark.parametrize("safeguard", [False, True])
+def test_AndersonPG_converged_history_keeps_regularization_schedule(safeguard):
+    """A zero residual must not stop later regularization updates."""
+    b = np.array([2.0, -1.0])
+    epsg = np.array([0.5, 0.5, 1.0, 1.0, 0.25])
+    iterates = []
+    with np.errstate(divide="raise", invalid="raise"):
+        AndersonProximalGradient(
+            L2(b=b),
+            L1(),
+            x0=np.zeros(2),
+            tau=1.0,
+            epsg=epsg,
+            nhistory=3,
+            niter=len(epsg),
+            safeguard=safeguard,
+            callback=lambda x: iterates.append(x.copy()),
+        )
+    expected = np.sign(b) * np.maximum(np.abs(b) - epsg[:, None], 0.0)
+    np.testing.assert_allclose(iterates, expected, atol=1e-12)
+
+
 @pytest.mark.parametrize("par", [(par1), (par2), (par3)])
 def test_PG_TwiST(par):
     """Check that PG/TwiST can be used to solve a sparsity regularized objective function

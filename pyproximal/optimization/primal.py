@@ -356,7 +356,8 @@ def AndersonProximalGradient(
     nhistory : :obj:`int`, optional
         Number of previous iterates to be kept in memory (to compute the scaling factors
     epsr : :obj:`float`, optional
-        Scaling factor for regularization added to the inverse of :math:\mathbf{R}^T \mathbf{R}`
+        Nonnegative regularization weight, scaled by the squared Frobenius
+        norm of the residual history
     safeguard : :obj:`bool`, optional
         Apply safeguarding strategy to the update (``True``) or not (``False``)
     tol : :obj:`float`, optional

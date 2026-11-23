@@ -93,9 +93,16 @@ def sigmad(iiter):
     return 0.1 * 0.99**iiter
 
 
+# We use BM3D's low-complexity profile to keep this example quick to run.
+# This trades some denoising accuracy for a smaller block-matching search.
+bm3d_profile = bm3d.BM3DProfileLC()
+
 # BM3D denoiser
 denoiser = lambda x, sigma: bm3d.bm3d(
-    np.real(x), sigma_psd=sigma, stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING
+    np.real(x),
+    profile=bm3d_profile,
+    sigma_psd=sigma,
+    stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING,
 )
 
 l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel())
@@ -122,7 +129,10 @@ tau = 1.0 / L
 
 # BM3D denoiser
 denoiser = lambda x, sigma: bm3d.bm3d(
-    np.real(x), sigma_psd=sigma, stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING
+    np.real(x),
+    profile=bm3d_profile,
+    sigma_psd=sigma,
+    stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING,
 )
 
 # ADMM-RED
@@ -150,7 +160,10 @@ xredadmm = np.real(xredadmm.reshape(x.shape))
 # BM3D
 xshape = x.shape
 denoiser = lambda x, sigma: bm3d.bm3d(
-    x.real.reshape(xshape), sigma_psd=sigma, stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING
+    x.real.reshape(xshape),
+    profile=bm3d_profile,
+    sigma_psd=sigma,
+    stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING,
 ).ravel()
 
 # FP-RED
