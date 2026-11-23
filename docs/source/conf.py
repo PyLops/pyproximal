@@ -56,7 +56,7 @@ numpydoc_class_members_toctree = False
 # Examples to skip when building the gallery
 ignore_examples = [
     "red",
-    "plugandplay",
+    # "plugandplay",
 ]
 
 sphinx_gallery_conf = {
