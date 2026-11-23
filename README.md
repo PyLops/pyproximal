@@ -105,7 +105,7 @@ This repository is organized as follows:
 * **tutorials**:  set of python script tutorials to be embedded in documentation using sphinx-gallery
 
 ## Getting started
-You need **Python 3.10 or greater**.
+You need **Python 3.11 or greater**.
 
 #### From PyPI
 To get the most out of PyProximal straight out of the box, we recommend using
