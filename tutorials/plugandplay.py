@@ -91,7 +91,7 @@ denoiser = lambda x, tau: bm3d.bm3d(
 )
 
 # ADMM-PnP
-l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel(), niter=50, warm=True)
+l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel(), niter=10, warm=True)
 
 errhistadmm = []
 xpnpadmm = pyproximal.optimization.pnp.PlugAndPlay(
@@ -101,14 +101,14 @@ xpnpadmm = pyproximal.optimization.pnp.PlugAndPlay(
     solver=pyproximal.optimization.primal.ADMM,
     tau=tau,
     x0=np.zeros(x.size, dtype=np.complex128),
-    niter=40,
+    niter=10,
     show=True,
     callback=lambda xx: callback(xx, x.ravel(), errhistadmm),
 )[0]
 xpnpadmm = np.real(xpnpadmm.reshape(x.shape))
 
 # PG-Pnp
-l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel(), niter=50, warm=True)
+l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel(), niter=10, warm=True)
 
 errhistpg = []
 xpnppg = pyproximal.optimization.pnp.PlugAndPlay(
@@ -118,7 +118,7 @@ xpnppg = pyproximal.optimization.pnp.PlugAndPlay(
     solver=pyproximal.optimization.primal.ProximalGradient,
     tau=tau,
     x0=np.zeros(x.size, dtype=np.complex128),
-    niter=40,
+    niter=10,
     acceleration="fista",
     show=True,
     callback=lambda xx: callback(xx, x.ravel(), errhistpg),
@@ -126,7 +126,7 @@ xpnppg = pyproximal.optimization.pnp.PlugAndPlay(
 xpnppg = np.real(xpnppg.reshape(x.shape))
 
 # HQS-PnP
-l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel(), niter=50, warm=True)
+l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel(), niter=10, warm=True)
 
 tau_hqs = 1.0 / L * 0.99 ** (np.arange(40))
 errhisthqs = []
@@ -137,7 +137,7 @@ xpnphqs = pyproximal.optimization.pnp.PlugAndPlay(
     solver=pyproximal.optimization.primal.HQS,
     tau=tau_hqs,
     x0=np.zeros(x.size, dtype=np.complex128),
-    niter=40,
+    niter=10,
     show=True,
     callback=lambda xx: callback(xx, x.ravel(), errhisthqs),
 )[0]
@@ -191,7 +191,7 @@ class Denoiser:
 
 # ADMM-PnP with relaxation
 denoiser = Denoiser(sigma, decay=0.99 ** (np.arange(40)))
-l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel(), niter=50, warm=True)
+l2 = pyproximal.proximal.L2(Op=Op, b=y.ravel(), niter=10, warm=True)
 
 errhistadmm1 = []
 xpnpadmm1 = pyproximal.optimization.pnp.PlugAndPlay(
@@ -201,7 +201,7 @@ xpnpadmm1 = pyproximal.optimization.pnp.PlugAndPlay(
     solver=pyproximal.optimization.primal.ADMM,
     tau=tau,
     x0=np.zeros(x.size, dtype=np.complex128),
-    niter=40,
+    niter=10,
     show=True,
     callback=lambda xx: callback(xx, x.ravel(), errhistadmm1),
 )[0]
@@ -233,3 +233,5 @@ plt.tight_layout()
 
 ###############################################################################
 # This final results clearly shows the importance of relaxation also for ADMM.
+# Note that the error curves are not converged yet, and more iterations
+# can further improve the results.

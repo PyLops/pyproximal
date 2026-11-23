@@ -108,7 +108,7 @@ xredgd = pyproximal.optimization.red.RED(
     x0=np.zeros(x.size, dtype=np.complex128),
     solver="gradientdescent",
     alpha=0.5,
-    niter=50,
+    niter=10,
     callback=lambda xx: callback(xx, x.ravel(), errhistgd),
     show=True,
 )
@@ -138,7 +138,7 @@ xredadmm = pyproximal.optimization.red.RED(
     x0=np.zeros(x.size, dtype=np.complex128),
     solver=pyproximal.optimization.primal.ADMM,
     tau=tau,
-    niter=50,
+    niter=10,
     show=True,
     callback=lambda xx: callback(xx, x.ravel(), errhistadmm),
 )[0]
@@ -165,7 +165,7 @@ xredfp = pyproximal.optimization.red.RED(
     red,
     x0=np.zeros(x.size),
     solver="fixedpoint",
-    niter=50,
+    niter=10,
     niter_inner=10,
     callback=lambda xx: callback(xx, x.ravel(), errhistfp),
     show=True,
@@ -199,3 +199,7 @@ plt.semilogy(errhistfp, "b", lw=2, label="FP")
 plt.title("Error norm")
 plt.legend()
 plt.tight_layout()
+
+###############################################################################
+# Note that the error curves are not converged yet, and more iterations
+# can further improve the results.
