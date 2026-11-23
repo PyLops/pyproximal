@@ -1,11 +1,10 @@
 from collections.abc import Callable
 from copy import deepcopy
-from typing import Any
+from typing import Any, Self
 
 import numpy as np
 from pylops import FirstDerivative, Gradient
 from pylops.utils.typing import NDArray, ShapeLike
-from typing_extensions import Self
 
 from pyproximal.ProxOperator import ProxOperator, _check_tau
 

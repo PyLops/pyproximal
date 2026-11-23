@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from math import sqrt
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, Self
 
 import numpy as np
 from pylops import Identity, MatrixMult
@@ -14,7 +14,6 @@ from pylops.utils.backend import (
 from pylops.utils.typing import NDArray, ShapeLike
 from scipy.linalg import cho_factor, cho_solve
 from scipy.sparse.linalg import lsqr as sp_lsqr
-from typing_extensions import Self
 
 from pyproximal.ProxOperator import ProxOperator, _check_tau
 

@@ -1,9 +1,8 @@
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Self
 
 from pylops.utils.backend import get_array_module
 from pylops.utils.typing import NDArray, ShapeLike
-from typing_extensions import Self
 
 from pyproximal.proximal.L1 import _current_sigma
 from pyproximal.ProxOperator import ProxOperator, _check_tau

@@ -1,9 +1,8 @@
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Self
 
 import numpy as np
 from pylops.utils.typing import NDArray
-from typing_extensions import Self
 
 from pyproximal.projection import BoxProj, L1BallProj
 from pyproximal.ProxOperator import ProxOperator, _check_tau
