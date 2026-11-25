@@ -8,6 +8,7 @@ namely:
 - L2 norm (:class:`pyproximal.L2`)
 - L1 norm (:class:`pyproximal.L1`)
 - L21 norm (:class:`pyproximal.L21`)
+- Sparse-group norm (:class:`pyproximal.L21_plus_L1`)
 
 """
 
@@ -189,3 +190,10 @@ plt.xlabel("x")
 plt.title(r"$||x||_1$")
 plt.legend()
 plt.tight_layout()
+
+###############################################################################
+# Sparse-group shrinkage can group either rows or columns. Its pure L1 limit
+# also handles zero groups without producing NaNs.
+sparse_group = pyproximal.L21_plus_L1(sigma=1.0, rho=1.0)
+grouped_x = np.array([[0.0, 1.0, 3.0], [0.0, 0.5, -4.0]])
+print("Pure L1 sparse-group shrinkage: ", sparse_group.prox(grouped_x, 0.5, axis=1))
